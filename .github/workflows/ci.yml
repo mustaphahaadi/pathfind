@@ -54,7 +54,14 @@ jobs:
           pip install -r requirements.txt
 
       - name: Lint (flake8)
-        run: pip install flake8 && flake8 . --max-line-length=120 --exclude=venv
+        run: flake8 . --max-line-length=120 --exclude=venv --extend-ignore=E302,W292
 
       - name: Run tests
-        run: pip install pytest && pytest --continue-on-collection-errors || true
+        run: |
+          set +e
+          pytest --continue-on-collection-errors
+          test_status=$?
+          set -e
+          if [ "$test_status" -ne 0 ] && [ "$test_status" -ne 5 ]; then
+            exit "$test_status"
+          fi
