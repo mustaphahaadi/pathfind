@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,19 +10,12 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Pathfind API")
 
-=======
-from fastapi import FastAPI
-
-app = FastAPI(title="Pathfind API")
-# this is just a placeholder. I will update it when major work happens
->>>>>>> efa87cbcc38e89271d5c5b3a6ff0865a815a04f5
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Pathfind API is running"}
 
 @app.get("/health")
 def health_check():
-<<<<<<< HEAD
     return {"status": "healthy"}
 
 @app.post("/auth/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -50,6 +42,3 @@ def signin(credentials: UserLogin, db: Session = Depends(get_db)):
 
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
     return {"access_token": access_token, "token_type": "bearer"}
-=======
-    return {"status": "healthy"}
->>>>>>> efa87cbcc38e89271d5c5b3a6ff0865a815a04f5
