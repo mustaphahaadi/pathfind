@@ -1,0 +1,41 @@
+services:
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pathfind
+      POSTGRES_USER: pathfind
+      POSTGRES_PASSWORD: pathfind
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pathfind -d pathfind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── FastAPI backend ───────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://pathfind:pathfind@db:5432/pathfind
+      SECRET_KEY: ${SECRET_KEY:-dev-only-secret-change-before-deploying}
+      ENVIRONMENT: development
+    # Hot-reload in dev: override CMD and mount source
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app/backend
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

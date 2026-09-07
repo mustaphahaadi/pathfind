@@ -1,3 +1,33 @@
+# ---------------------------------------------------------------------------
+# Shared test helpers — imported by test_mentorship_requests.py
+# ---------------------------------------------------------------------------
+
+DEFAULT_PASSWORD = "testpassword123"
+
+
+def signup(client, email: str, role: str = "mentee") -> dict:
+    """Sign up a user with DEFAULT_PASSWORD and return the response JSON."""
+    response = client.post("/auth/signup", json={
+        "email": email,
+        "password": DEFAULT_PASSWORD,
+        "role": role,
+    })
+    return response.json()
+
+
+def token_for(client, email: str) -> str:
+    """Return a bearer token for an already-signed-up user."""
+    response = client.post("/auth/signin", json={
+        "email": email,
+        "password": DEFAULT_PASSWORD,
+    })
+    return response.json()["access_token"]
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200
