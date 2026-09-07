@@ -1,14 +1,21 @@
-# Python virtual environments
-backend/venv/
-venv/
-.env
-.venv/
-
-# Python caches and compiled files
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+.pytest_cache/
+.venv/
+venv/
+backend/venv/
+
+# Node
+node_modules/
+dist/
+
+# Environment files
+.env
+.env.*
+!.env.example
 
 # Local database files
 *.db
@@ -19,9 +26,10 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Test and coverage artifacts
-.pytest_cache/
 .coverage
 htmlcov/
 

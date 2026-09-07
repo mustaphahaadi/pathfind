@@ -20,9 +20,6 @@ def get_db():
         db.close()
 
 
-from fastapi import FastAPI
-
-app = FastAPI(title="Pathfind API")
 # this is just a placeholder. I will update it when major work happens
 @app.get("/")
 def read_root():
@@ -83,6 +80,3 @@ def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
 @app.get("/mentorship-request-types")
 def list_mentorship_request_types():
     return [request_type.value for request_type in RequestType]
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
