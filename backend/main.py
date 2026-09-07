@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
+from auth import hash_password, verify_password, create_access_token
 
 from .database import Base, SessionLocal, engine
-from .models import MentorshipRequest, RequestStatus, RequestType
-from .schemas import MentorshipRequestCreate, MentorshipRequestRead
+from .models import MentorshipRequest, RequestStatus, RequestType, User
+from .schemas import MentorshipRequestCreate, MentorshipRequestRead, UserCreate, UserLogin, UserOut, Token
 
 Base.metadata.create_all(bind=engine)
 
@@ -68,7 +69,6 @@ def list_mentorship_requests(
 
     return query.order_by(MentorshipRequest.created_at.desc()).all()
 
-
 @app.get("/mentorship-requests/{request_id}", response_model=MentorshipRequestRead)
 def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
     mentorship_request = db.get(MentorshipRequest, request_id)
@@ -76,7 +76,34 @@ def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentorship request not found")
     return mentorship_request
 
-
 @app.get("/mentorship-request-types")
 def list_mentorship_request_types():
     return [request_type.value for request_type in RequestType]
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+@app.post("/auth/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+def signup(user: UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    new_user = User(
+        email=user.email,
+        hashed_password=hash_password(user.password),
+        role=user.role,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+@app.post("/auth/signin", response_model=Token)
+def signin(credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == credentials.email).first()
+    if not user or not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
+    return {"access_token": access_token, "token_type": "bearer"}

@@ -1,55 +1,34 @@
-from fastapi.testclient import TestClient
-
-from backend.main import app
-
-client = TestClient(app)
+from backend.test_auth import signup, token_for
 
 
-def test_create_mentorship_request():
-    payload = {
-        "mentee_id": "user-123",
-        "mentor_id": "mentor-456",
-        "request_type": "cv_review",
-        "subject": "Resume review before internship applications",
-        "message": "I would appreciate feedback on my CV and interview readiness.",
-    }
+def auth(token):
+    return {"Authorization": f"Bearer {token}"}
 
-    response = client.post("/mentorship-requests", json=payload)
 
+def test_mentee_can_create_and_view_own_request(client):
+    mentor = signup(client, "mentor@example.com", role="mentor")
+    signup(client, "mentee@example.com")
+    response = client.post("/mentorship-requests", headers=auth(token_for(client, "mentee@example.com")), json={"mentor_id": mentor["id"], "request_type": "cv_review", "subject": "CV review", "message": "Please review my CV."})
     assert response.status_code == 201, response.text
-    body = response.json()
-    assert body["mentee_id"] == "user-123"
-    assert body["mentor_id"] == "mentor-456"
-    assert body["request_type"] == "cv_review"
-    assert body["status"] == "pending"
-    assert "id" in body
-    assert body["subject"] == payload["subject"]
+    request = response.json()
+    assert request["status"] == "pending"
+    response = client.get("/mentorship-requests", headers=auth(token_for(client, "mentee@example.com")))
+    assert [item["id"] for item in response.json()] == [request["id"]]
 
 
-def test_get_mentorship_requests_and_valid_types():
-    list_response = client.get("/mentorship-requests")
-    assert list_response.status_code == 200, list_response.text
-    items = list_response.json()
-    assert isinstance(items, list)
-    assert len(items) >= 1
-
-    types_response = client.get("/mentorship-request-types")
-    assert types_response.status_code == 200, types_response.text
-    types = types_response.json()
-    assert "cv_review" in types
-    assert "portfolio_feedback" in types
+def test_request_access_is_limited_to_its_mentee_and_mentor(client):
+    mentor = signup(client, "mentor@example.com", role="mentor")
+    signup(client, "mentee@example.com")
+    signup(client, "other@example.com")
+    request = client.post("/mentorship-requests", headers=auth(token_for(client, "mentee@example.com")), json={"mentor_id": mentor["id"], "request_type": "cv_review", "subject": "CV review", "message": "Please review my CV."}).json()
+    response = client.get(f"/mentorship-requests/{request['id']}", headers=auth(token_for(client, "other@example.com")))
+    assert response.status_code == 403
+    response = client.get("/mentorship-requests", headers=auth(token_for(client, "mentor@example.com")))
+    assert [item["id"] for item in response.json()] == [request["id"]]
 
 
-def test_reject_invalid_request_type():
-    response = client.post(
-        "/mentorship-requests",
-        json={
-            "mentee_id": "user-456",
-            "mentor_id": "mentor-789",
-            "request_type": "not_a_valid_type",
-            "subject": "Invalid request",
-            "message": "This should fail validation.",
-        },
-    )
-
-    assert response.status_code == 422, response.text
+def test_unauthenticated_and_invalid_mentor_requests_are_rejected(client):
+    assert client.get("/mentorship-requests").status_code == 401
+    signup(client, "mentee@example.com")
+    response = client.post("/mentorship-requests", headers=auth(token_for(client, "mentee@example.com")), json={"mentor_id": 999, "request_type": "cv_review", "subject": "CV review", "message": "Please review my CV."})
+    assert response.status_code == 404

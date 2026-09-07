@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 from .models import RequestStatus, RequestType
 
@@ -29,3 +29,24 @@ class MentorshipRequestRead(BaseModel):
     model_config = {
         "from_attributes": True,
     }
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    role: str = "mentee"
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserOut(BaseModel):
+    id: int
+    email: EmailStr
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
