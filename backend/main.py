@@ -62,7 +62,7 @@ def create_mentorship_request(payload: MentorshipRequestCreate, credentials: HTT
     mentee_id = current_user.id
 
     # validate mentor exists
-    mentor = cast(Optional[User], db.get(User, payload.mentor_id))
+    mentor = db.get(User, payload.mentor_id)
     if mentor is None or mentor.role != "mentor":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentor not found")
 
