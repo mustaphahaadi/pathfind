@@ -8,6 +8,7 @@ httpx>=0.23.0,<0.24.0
 
 # Auth
 passlib[bcrypt]==1.7.4
+bcrypt>=3.2.0,<4.0.0
 python-jose[cryptography]==3.3.0
 python-dotenv==1.0.1
 email-validator==2.2.0
