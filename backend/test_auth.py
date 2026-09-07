@@ -4,6 +4,18 @@ def test_health_check(client):
     assert response.json() == {"status": "healthy"}
 
 
+def signup(client, email: str, role: str = "mentee"):
+    password = "password123"
+    payload = {"email": email, "password": password, "role": role}
+    response = client.post("/auth/signup", json=payload)
+    return response.json()
+
+
+def token_for(client, email: str, password: str = "password123") -> str:
+    resp = client.post("/auth/signin", json={"email": email, "password": password})
+    return resp.json()["access_token"]
+
+
 def test_signup_success(client):
     response = client.post("/auth/signup", json={
         "email": "test@example.com",
