@@ -1,7 +1,7 @@
-
-#FASTAPI Requirements
+# FASTAPI Requirements
 fastapi==0.95.2
-uvicorn==0.21.1
+uvicorn[standard]==0.21.1
 flake8==6.1.0
 pytest==8.3.5
-
+sqlalchemy
+httpx

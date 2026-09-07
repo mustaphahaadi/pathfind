@@ -1,9 +1,12 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 .pytest_cache/
 .venv/
 venv/
+backend/venv/
 
 # Node
 node_modules/
@@ -14,10 +17,25 @@ dist/
 .env.*
 !.env.example
 
-# OS files
-.DS_Store
+# Local database files
+*.db
+*.sqlite3
 
-# Local editor files
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
 .idea/
 *.swp
 *.swo
+
+# Test and coverage artifacts
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Dependency lockfiles (optional, keep if your team prefers them tracked)
+# Pipfile.lock
+# poetry.lock
