@@ -1,23 +1,33 @@
-# Python
+# Python virtual environments
+backend/venv/
+venv/
+.env
+.venv/
+
+# Python caches and compiled files
 __pycache__/
 *.py[cod]
-.pytest_cache/
-.venv/
-venv/
+*.pyo
+*.pyd
 
-# Node
-node_modules/
-dist/
+# Local database files
+*.db
+*.sqlite3
 
-# Environment files
-.env
-.env.*
-!.env.example
-
-# OS files
+# OS/editor files
 .DS_Store
-
-# Local editor files
+Thumbs.db
+.vscode/
 .idea/
-*.swp
-*.swo
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Dependency lockfiles (optional, keep if your team prefers them tracked)
+# Pipfile.lock
+# poetry.lock
