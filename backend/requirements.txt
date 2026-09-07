@@ -3,5 +3,11 @@ fastapi==0.95.2
 uvicorn[standard]==0.21.1
 flake8==6.1.0
 pytest==8.3.5
-sqlalchemy
-httpx
+sqlalchemy==2.0.41
+httpx==0.28.1
+
+# Auth
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+python-dotenv==1.0.1
+email-validator==2.2.0
