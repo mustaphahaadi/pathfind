@@ -1,23 +1,19 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+from sqlalchemy import create_engine
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import StaticPool
 
-# Falls back to local SQLite if no DATABASE_URL is set yet
-# Swap this once Margaret confirms RDS is reachable
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pathfind.db")
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine_kwargs = {"connect_args": connect_args}
 
-connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+if DATABASE_URL.startswith("sqlite:///:memory:"):
+    engine_kwargs["poolclass"] = StaticPool
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
+class Base(DeclarativeBase):
+    pass

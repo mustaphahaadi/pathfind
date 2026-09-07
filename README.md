@@ -43,12 +43,14 @@ npm run dev
 
 ### Backend
 ```bash
-cd backend
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
+pip install -r backend/requirements.txt
+uvicorn backend.main:app --reload
 ```
+
+Set `SECRET_KEY` before deploying. The API refuses to start with no secret when
+`ENVIRONMENT=production`; a development-only key is used locally for convenience.
 
 ## Team — Product Family 2
 
