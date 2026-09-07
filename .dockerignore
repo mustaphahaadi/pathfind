@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Virtual environments
+backend/.venv/
+backend/venv/
+venv/
+.venv/
+
+# Local databases (dev SQLite files)
+*.db
+*.sqlite3
+
+# Environment files (never bake secrets into the image)
+.env
+.env.*
+!.env.example
+
+# Frontend (not needed in backend image)
+frontend/
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Docs
+README.md
+CONTRIBUTING.md
+doc/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
