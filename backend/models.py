@@ -47,6 +47,7 @@ class MentorshipRequest(Base):
         nullable=False,
     )
 
+
 class User(Base):
     __tablename__ = "users"
 

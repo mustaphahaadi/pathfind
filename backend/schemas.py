@@ -8,8 +8,7 @@ from .models import RequestStatus, RequestType
 
 
 class MentorshipRequestCreate(BaseModel):
-    mentee_id: str = Field(..., min_length=1, max_length=255)
-    mentor_id: str = Field(..., min_length=1, max_length=255)
+    mentor_id: str | int
     request_type: RequestType
     subject: str = Field(..., min_length=1, max_length=255)
     message: str = Field(..., min_length=1)
@@ -29,14 +28,17 @@ class MentorshipRequestRead(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     role: str = "mentee"
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class UserOut(BaseModel):
     id: int
@@ -45,6 +47,7 @@ class UserOut(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class Token(BaseModel):
     access_token: str
