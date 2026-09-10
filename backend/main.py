@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from .auth import hash_password, verify_password, create_access_token
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
 from .models import MentorshipRequest, RequestStatus, RequestType, User
 from .schemas import MentorshipRequestCreate, MentorshipRequestRead, Token, UserCreate, UserLogin, UserOut
+
+oauth2_scheme = HTTPBearer()
 
 Base.metadata.create_all(bind=engine)
 
