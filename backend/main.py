@@ -1,17 +1,30 @@
 from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
+from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from .auth import hash_password, verify_password, create_access_token
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
 from .models import MentorshipRequest, RequestStatus, RequestType, User
 from .schemas import MentorshipRequestCreate, MentorshipRequestRead, Token, UserCreate, UserLogin, UserOut
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Pathfind API", version="0.1.0")
+
+# Allow local frontend during development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db():
@@ -24,13 +37,10 @@ def get_db():
 
 def get_current_user(
     db: Session = Depends(get_db),
-    credentials: HTTPAuthorizationCredentials | None = Depends(oauth2_scheme),
+    token: str = Depends(oauth2_scheme),
 ) -> User:
-    if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -58,9 +68,18 @@ def health_check():
 
 
 @app.post("/mentorship-requests", response_model=MentorshipRequestRead, status_code=status.HTTP_201_CREATED)
-def create_mentorship_request(payload: MentorshipRequestCreate, db: Session = Depends(get_db)):
+def create_mentorship_request(
+    payload: MentorshipRequestCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # verify mentor exists and is a mentor
+    mentor = db.get(User, int(payload.mentor_id))
+    if mentor is None or mentor.role != "mentor":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentor not found")
+
     request_record = MentorshipRequest(
-        mentee_id=payload.mentee_id,
+        mentee_id=current_user.id,
         mentor_id=payload.mentor_id,
         request_type=payload.request_type,
         subject=payload.subject,
@@ -76,30 +95,40 @@ def create_mentorship_request(payload: MentorshipRequestCreate, db: Session = De
 @app.get("/mentorship-requests", response_model=list[MentorshipRequestRead])
 def list_mentorship_requests(
     db: Session = Depends(get_db),
-    mentor_id: str | None = None,
-    mentee_id: str | None = None,
-    status: RequestStatus | None = None,
+    current_user: User = Depends(get_current_user),
     request_type: RequestType | None = None,
+    status_filter: RequestStatus | None = None,
 ):
     query = db.query(MentorshipRequest)
 
-    if mentor_id:
-        query = query.filter(MentorshipRequest.mentor_id == mentor_id)
-    if mentee_id:
-        query = query.filter(MentorshipRequest.mentee_id == mentee_id)
-    if status:
-        query = query.filter(MentorshipRequest.status == status)
+    # Mentees see only their own requests; mentors see requests addressed to them
+    if current_user.role == "mentor":
+        query = query.filter(MentorshipRequest.mentor_id == current_user.id)
+    else:
+        query = query.filter(MentorshipRequest.mentee_id == current_user.id)
+
     if request_type:
         query = query.filter(MentorshipRequest.request_type == request_type)
+    if status_filter:
+        query = query.filter(MentorshipRequest.status == status_filter)
 
     return query.order_by(MentorshipRequest.created_at.desc()).all()
 
 
 @app.get("/mentorship-requests/{request_id}", response_model=MentorshipRequestRead)
-def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
+def get_mentorship_request(
+    request_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     mentorship_request = db.get(MentorshipRequest, request_id)
     if mentorship_request is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentorship request not found")
+
+    # Only the mentee or the mentor on the request may view it
+    if current_user.id not in (mentorship_request.mentee_id, mentorship_request.mentor_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
     return mentorship_request
 
 

@@ -3,10 +3,7 @@ import pytest
 
 from .test_auth import signup, token_for
 
-pytestmark = pytest.mark.skip(
-    reason="Requires auth middleware on mentorship endpoints (not yet implemented)"
-)
-
+# Tests for mentorship request flow (require auth)
 
 
 
