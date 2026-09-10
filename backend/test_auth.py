@@ -1,3 +1,19 @@
+def signup(client, email, password="defaultpassword", role="mentee"):
+    response = client.post(
+        "/auth/signup",
+        json={"email": email, "password": password, "role": role},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def token_for(client, email, password="defaultpassword"):
+    response = client.post(
+        "/auth/signin",
+        json={"email": email, "password": password},
+    )
+    assert response.status_code == 200, response.text
+    return response.json()["access_token"]
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200
