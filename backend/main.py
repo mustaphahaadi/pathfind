@@ -4,9 +4,10 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 from .auth import hash_password, verify_password, create_access_token
 
+from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
 from .models import MentorshipRequest, RequestStatus, RequestType, User
-from .schemas import MentorshipRequestCreate, MentorshipRequestRead, UserCreate, UserLogin, UserOut, Token
+from .schemas import MentorshipRequestCreate, MentorshipRequestRead, Token, UserCreate, UserLogin, UserOut
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,7 +22,31 @@ def get_db():
         db.close()
 
 
-# this is just a placeholder. I will update it when major work happens
+def get_current_user(
+    db: Session = Depends(get_db),
+    credentials: HTTPAuthorizationCredentials | None = Depends(oauth2_scheme),
+) -> User:
+    if credentials is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        ) from exc
+
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+
+    user = db.get(User, int(user_id))
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    return user
+
+
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Pathfind API is running"}
@@ -69,12 +94,14 @@ def list_mentorship_requests(
 
     return query.order_by(MentorshipRequest.created_at.desc()).all()
 
+
 @app.get("/mentorship-requests/{request_id}", response_model=MentorshipRequestRead)
 def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
     mentorship_request = db.get(MentorshipRequest, request_id)
     if mentorship_request is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentorship request not found")
     return mentorship_request
+
 
 @app.get("/mentorship-request-types")
 def list_mentorship_request_types():
