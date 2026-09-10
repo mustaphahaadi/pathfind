@@ -25,9 +25,8 @@ class MentorshipRequestRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True,
-    }
+    class Config:
+        orm_mode = True
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -42,8 +41,8 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     role: str
-
-    model_config = {"from_attributes": True}
+    class Config:
+        orm_mode = True
 
 class Token(BaseModel):
     access_token: str

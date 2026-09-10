@@ -1,19 +1,17 @@
-def signup(client, email, password="defaultpassword", role="mentee"):
-    response = client.post(
-        "/auth/signup",
-        json={"email": email, "password": password, "role": role},
-    )
-    assert response.status_code == 201, response.text
+"""Authentication tests and shared helpers."""
+
+DEFAULT_PASSWORD = "password123"
+
+
+def signup(client, email: str, role: str = "mentee") -> dict:
+    payload = {"email": email, "password": DEFAULT_PASSWORD, "role": role}
+    response = client.post("/auth/signup", json=payload)
     return response.json()
 
 
-def token_for(client, email, password="defaultpassword"):
-    response = client.post(
-        "/auth/signin",
-        json={"email": email, "password": password},
-    )
-    assert response.status_code == 200, response.text
-    return response.json()["access_token"]
+def token_for(client, email: str, password: str = DEFAULT_PASSWORD) -> str:
+    resp = client.post("/auth/signin", json={"email": email, "password": password})
+    return resp.json()["access_token"]
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200

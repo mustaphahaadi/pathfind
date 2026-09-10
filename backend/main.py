@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
-from auth import hash_password, verify_password, create_access_token
+from .auth import hash_password, verify_password, create_access_token
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
@@ -106,9 +106,6 @@ def get_mentorship_request(request_id: str, db: Session = Depends(get_db)):
 @app.get("/mentorship-request-types")
 def list_mentorship_request_types():
     return [request_type.value for request_type in RequestType]
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
 
 @app.post("/auth/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def signup(user: UserCreate, db: Session = Depends(get_db)):

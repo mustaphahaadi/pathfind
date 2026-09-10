@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from uuid import uuid4
 
-from sqlalchemy import DateTime, Enum, String, Text, Column, Integer, String, DateTime
+from sqlalchemy import Column, DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 from .database import Base
