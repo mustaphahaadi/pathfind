@@ -63,7 +63,7 @@ SEED_MENTORS = [
         "company": "AmaliTech",
         "years_of_experience": 5,
         "bio": (
-            "Akosua is a UX/UI designer focused on turning user problems into simple and effective digital experiences. "
+            "Akosua is a UX/UI designer focused on turning user problems into simple digital experiences. "
             "She enjoys reviewing portfolios."
         ),
         "expertise_tags": "Figma, UX Research, Wireframing, Design Systems",
@@ -158,4 +158,3 @@ def seed_database():
 
 if __name__ == "__main__":
     seed_database()
-
