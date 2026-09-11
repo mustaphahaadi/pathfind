@@ -203,6 +203,12 @@ def get_mentor(mentor_id: int, db: Session = Depends(get_db)):
     return profile
 
 
+def _get_user_display_name(user: User) -> str:
+    if user and user.profile and user.profile.full_name:
+        return user.profile.full_name
+    return user.email if user else "User"
+
+
 # ── Mentorship Requests Endpoints ──────────────────────────────────────────────
 
 @app.post("/mentorship-requests", response_model=MentorshipRequestRead, status_code=status.HTTP_201_CREATED)
@@ -234,7 +240,7 @@ def create_mentorship_request(
     background_tasks.add_task(
         notify_mentor_new_request,
         mentor_email=mentor_user.email,
-        mentee_name=current_user.full_name,
+        mentee_name=_get_user_display_name(current_user),
         mentee_email=current_user.email,
         subject_title=payload.subject,
         request_type=payload.request_type.value,
@@ -330,7 +336,7 @@ def update_mentorship_request_status(
     background_tasks.add_task(
         notify_mentee_status_update,
         mentee_email=mentorship_request.mentee.email,
-        mentor_name=current_user.full_name,
+        mentor_name=_get_user_display_name(current_user),
         new_status=payload.status.value,
         response_message=payload.response_message,
     )
@@ -404,7 +410,7 @@ def approve_mentor(
     background_tasks.add_task(
         notify_mentor_verification_status,
         mentor_email=user.email,
-        mentor_name=user.full_name,
+        mentor_name=_get_user_display_name(user),
         status="VERIFIED",
     )
     return user
@@ -428,7 +434,7 @@ def reject_mentor(
     background_tasks.add_task(
         notify_mentor_verification_status,
         mentor_email=user.email,
-        mentor_name=user.full_name,
+        mentor_name=_get_user_display_name(user),
         status="REJECTED",
     )
     return user
