@@ -133,10 +133,13 @@ def test_mentor_signup_and_admin_approval_flow(client):
     assert mentor_data["verification_status"] == "pending_verification"
 
     # Create admin
-    admin = signup(client, "admin@example.com", role="admin")
+    signup(client, "admin@example.com", role="admin")
 
     # Admin list pending
-    pending_res = client.get("/admin/mentors/pending", headers=auth(token_for(client, "admin@example.com")))
+    pending_res = client.get(
+        "/admin/mentors/pending",
+        headers=auth(token_for(client, "admin@example.com")),
+    )
     assert pending_res.status_code == 200
     assert any(m["id"] == mentor_data["id"] for m in pending_res.json())
 
