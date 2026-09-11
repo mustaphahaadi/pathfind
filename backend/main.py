@@ -301,9 +301,11 @@ def update_mentorship_request_status(
     if mentorship_request is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentorship request not found")
 
-    # Only the mentor on the request may accept/decline/complete
     if mentorship_request.mentor_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the designated mentor can update request status")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the designated mentor can update request status",
+        )
 
     mentorship_request.status = payload.status
     if payload.response_message:
@@ -331,7 +333,10 @@ def cancel_mentorship_request(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentorship request not found")
 
     if mentorship_request.mentee_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the mentee who created the request can cancel it")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the mentee who created the request can cancel it",
+        )
 
     if mentorship_request.status != RequestStatus.PENDING:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending requests can be cancelled")
@@ -390,4 +395,5 @@ def reject_mentor(
     db.commit()
     db.refresh(user)
     return user
+
 
