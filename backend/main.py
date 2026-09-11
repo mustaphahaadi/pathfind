@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
+from .email import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .models import MentorshipRequest, MentorProfile, RequestStatus, RequestType, User, VerificationStatus
 from .schemas import (
     MentorshipRequestCreate,
@@ -207,6 +208,7 @@ def get_mentor(mentor_id: int, db: Session = Depends(get_db)):
 @app.post("/mentorship-requests", response_model=MentorshipRequestRead, status_code=status.HTTP_201_CREATED)
 def create_mentorship_request(
     payload: MentorshipRequestCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -228,6 +230,16 @@ def create_mentorship_request(
     db.add(request_record)
     db.commit()
     db.refresh(request_record)
+
+    background_tasks.add_task(
+        notify_mentor_new_request,
+        mentor_email=mentor_user.email,
+        mentee_name=current_user.full_name,
+        mentee_email=current_user.email,
+        subject_title=payload.subject,
+        request_type=payload.request_type.value,
+    )
+
     return request_record
 
 
@@ -294,6 +306,7 @@ def get_mentorship_request(
 def update_mentorship_request_status(
     request_id: str,
     payload: MentorshipRequestStatusUpdate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -313,6 +326,14 @@ def update_mentorship_request_status(
 
     db.commit()
     db.refresh(mentorship_request)
+
+    background_tasks.add_task(
+        notify_mentee_status_update,
+        mentee_email=mentorship_request.mentee.email,
+        mentor_name=current_user.full_name,
+        new_status=payload.status.value,
+        response_message=payload.response_message,
+    )
 
     read_obj = MentorshipRequestRead.from_orm(mentorship_request)
     read_obj.mentee_email = mentorship_request.mentee.email
@@ -368,6 +389,7 @@ def list_pending_mentors(
 @app.post("/admin/mentors/{mentor_id}/approve", response_model=UserOut)
 def approve_mentor(
     mentor_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin_user),
 ):
@@ -378,12 +400,20 @@ def approve_mentor(
     user.verification_status = VerificationStatus.VERIFIED
     db.commit()
     db.refresh(user)
+
+    background_tasks.add_task(
+        notify_mentor_verification_status,
+        mentor_email=user.email,
+        mentor_name=user.full_name,
+        status="VERIFIED",
+    )
     return user
 
 
 @app.post("/admin/mentors/{mentor_id}/reject", response_model=UserOut)
 def reject_mentor(
     mentor_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin_user: User = Depends(get_current_admin_user),
 ):
@@ -394,4 +424,11 @@ def reject_mentor(
     user.verification_status = VerificationStatus.REJECTED
     db.commit()
     db.refresh(user)
+
+    background_tasks.add_task(
+        notify_mentor_verification_status,
+        mentor_email=user.email,
+        mentor_name=user.full_name,
+        status="REJECTED",
+    )
     return user
