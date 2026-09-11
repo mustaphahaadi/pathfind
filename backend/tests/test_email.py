@@ -11,7 +11,7 @@ from backend.email import (
 def test_send_email_console():
     """Verify that send_email executes cleanly in console mock mode."""
     success = send_email(
-        to_email="[EMAIL_ADDRESS]",
+        to_email="test@example.com",
         subject="Test Subject",
         body_text="Hello World",
     )
