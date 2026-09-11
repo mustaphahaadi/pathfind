@@ -44,7 +44,10 @@ class User(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
-    profile: Mapped[MentorProfile | None] = relationship("MentorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    profile: Mapped[MentorProfile | None] = relationship(
+        "MentorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+
 
 
 class MentorProfile(Base):
