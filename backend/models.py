@@ -49,7 +49,6 @@ class User(Base):
     )
 
 
-
 class MentorProfile(Base):
     __tablename__ = "mentor_profiles"
 
