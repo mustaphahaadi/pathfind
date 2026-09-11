@@ -1,8 +1,11 @@
-from __future__ import annotations
+import os
+import shutil
+from uuid import uuid4
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -12,6 +15,7 @@ from .database import Base, SessionLocal, engine
 from .email import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .models import MentorshipRequest, MentorProfile, RequestStatus, RequestType, User, VerificationStatus
 from .schemas import (
+    FileUploadResponse,
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
@@ -26,6 +30,12 @@ from .schemas import (
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Pathfind API", version="0.2.0")
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Allow local frontend during development
 app.add_middleware(
@@ -438,3 +448,46 @@ def reject_mentor(
         status="REJECTED",
     )
     return user
+
+
+# ── File Upload Endpoint ───────────────────────────────────────────────────────
+
+ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".svg"}
+MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB limit
+
+
+@app.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
+def upload_file(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload resume, portfolio, or avatar attachments."""
+    ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File extension '{ext}' is not supported. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
+        )
+
+    file.file.seek(0, os.SEEK_END)
+    size_bytes = file.file.tell()
+    file.file.seek(0)
+
+    if size_bytes > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File size exceeds maximum limit of {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB",
+        )
+
+    safe_filename = f"{uuid4().hex}_{os.path.basename(file.filename)}"
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return FileUploadResponse(
+        filename=os.path.basename(file.filename),
+        url=f"/static/uploads/{safe_filename}",
+        content_type=file.content_type or "application/octet-stream",
+        size_bytes=size_bytes,
+    )
