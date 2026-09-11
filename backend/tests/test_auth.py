@@ -1,33 +1,37 @@
-"""Authentication tests and shared helpers."""
+# ---------------------------------------------------------------------------
+# Shared test helpers — imported by test_mentorship_requests.py
+# ---------------------------------------------------------------------------
 
-DEFAULT_PASSWORD = "password123"
+DEFAULT_PASSWORD = "testpassword123"
 
 
 def signup(client, email: str, role: str = "mentee") -> dict:
-    payload = {"email": email, "password": DEFAULT_PASSWORD, "role": role}
-    response = client.post("/auth/signup", json=payload)
+    """Sign up a user with DEFAULT_PASSWORD and return the response JSON."""
+    response = client.post("/auth/signup", json={
+        "email": email,
+        "password": DEFAULT_PASSWORD,
+        "role": role,
+    })
     return response.json()
 
 
-def token_for(client, email: str, password: str = DEFAULT_PASSWORD) -> str:
-    resp = client.post("/auth/signin", json={"email": email, "password": password})
-    return resp.json()["access_token"]
+def token_for(client, email: str) -> str:
+    """Return a bearer token for an already-signed-up user."""
+    response = client.post("/auth/signin", json={
+        "email": email,
+        "password": DEFAULT_PASSWORD,
+    })
+    return response.json()["access_token"]
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
-
-
-def signup(client, email: str, role: str = "mentee"):
-    password = "password123"
-    payload = {"email": email, "password": password, "role": role}
-    response = client.post("/auth/signup", json=payload)
-    return response.json()
-
-
-def token_for(client, email: str, password: str = "password123") -> str:
-    resp = client.post("/auth/signin", json={"email": email, "password": password})
-    return resp.json()["access_token"]
 
 
 def test_signup_success(client):

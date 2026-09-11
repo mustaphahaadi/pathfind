@@ -29,8 +29,8 @@ class MentorshipRequest(Base):
     __tablename__ = "mentorship_requests"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    mentee_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    mentor_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    mentee_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    mentor_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     request_type: Mapped[RequestType] = mapped_column(Enum(RequestType), nullable=False, index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
@@ -47,11 +47,12 @@ class MentorshipRequest(Base):
         nullable=False,
     )
 
+
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[str] = mapped_column(String, default="mentee")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(String, default="mentee")  # "mentee" or "mentor"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
