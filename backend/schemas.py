@@ -115,4 +115,3 @@ class FileUploadResponse(BaseModel):
     url: str
     content_type: str
     size_bytes: int
-
