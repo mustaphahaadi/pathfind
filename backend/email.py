@@ -64,7 +64,11 @@ def send_email(to_email: str, subject: str, body_text: str, body_html: str | Non
 
     else:
         # Fallback to console / log output
-        print(f"\n--- EMAIL SENT (CONSOLE MOCK) ---\nTo: {to_email}\nSubject: {subject}\nBody:\n{body_text}\n---------------------------------\n")
+        print(
+            f"\n--- EMAIL SENT (CONSOLE MOCK) ---\n"
+            f"To: {to_email}\nSubject: {subject}\nBody:\n{body_text}\n"
+            f"---------------------------------\n"
+        )
         logger.info("Logged mock email to console for %s", to_email)
         return True
 
@@ -78,9 +82,11 @@ def notify_mentor_new_request(
 ):
     """Notify a mentor that a mentee has submitted a mentorship request."""
     subject = f"[Pathfind] New Mentorship Request: {subject_title}"
+    req_type_str = request_type.upper()
     body = (
         f"Hello,\n\n"
-        f"You have received a new {request_type.upper()} mentorship request on Pathfind from {mentee_name} ({mentee_email}).\n\n"
+        f"You have received a new {req_type_str} mentorship request on Pathfind from "
+        f"{mentee_name} ({mentee_email}).\n\n"
         f"Subject: {subject_title}\n\n"
         f"Please log in to your Pathfind dashboard to review the request and accept or decline.\n\n"
         f"Best regards,\nThe Pathfind Team"
