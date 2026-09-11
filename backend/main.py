@@ -395,4 +395,3 @@ def reject_mentor(
     db.commit()
     db.refresh(user)
     return user
-
