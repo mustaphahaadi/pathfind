@@ -396,4 +396,3 @@ def reject_mentor(
     db.refresh(user)
     return user
 
-
