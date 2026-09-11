@@ -4,9 +4,8 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from uuid import uuid4
 
-from sqlalchemy import Column, DateTime, Enum, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
+from sqlalchemy import Enum, ForeignKey, Integer, String, Text, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 
@@ -25,15 +24,61 @@ class RequestStatus(str, PyEnum):
     COMPLETED = "completed"
 
 
+class VerificationStatus(str, PyEnum):
+    PENDING_VERIFICATION = "pending_verification"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(50), default="mentee", nullable=False)
+    verification_status: Mapped[VerificationStatus] = mapped_column(
+        Enum(VerificationStatus), default=VerificationStatus.VERIFIED, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+
+    profile: Mapped[MentorProfile | None] = relationship(
+        "MentorProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class MentorProfile(Base):
+    __tablename__ = "mentor_profiles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    job_title: Mapped[str] = mapped_column(String(255), nullable=False)
+    company: Mapped[str] = mapped_column(String(255), nullable=False)
+    years_of_experience: Mapped[int] = mapped_column(Integer, nullable=False)
+    bio: Mapped[str] = mapped_column(Text, nullable=False)
+    expertise_tags: Mapped[str] = mapped_column(String(500), nullable=False)
+    availability: Mapped[str] = mapped_column(String(255), nullable=False)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    user: Mapped[User] = relationship("User", back_populates="profile")
+
+
 class MentorshipRequest(Base):
     __tablename__ = "mentorship_requests"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    mentee_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    mentor_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    mentee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    mentor_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     request_type: Mapped[RequestType] = mapped_column(Enum(RequestType), nullable=False, index=True)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
+    resume_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    portfolio_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    github_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    response_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[RequestStatus] = mapped_column(
         Enum(RequestStatus), default=RequestStatus.PENDING, nullable=False, index=True
     )
@@ -47,12 +92,5 @@ class MentorshipRequest(Base):
         nullable=False,
     )
 
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    role = Column(String, default="mentee")  # "mentee" or "mentor"
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    mentee: Mapped[User] = relationship("User", foreign_keys=[mentee_id])
+    mentor: Mapped[User] = relationship("User", foreign_keys=[mentor_id])
