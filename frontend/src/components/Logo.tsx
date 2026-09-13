@@ -1,0 +1,1 @@
+import {Link} from 'react-router-dom';export function Logo(){return <Link to="/" className="text-[22px] font-extrabold tracking-[-.04em]">Pathfind</Link>}

@@ -1,51 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
-:root {
-  --bg: #0b0c10;
-  --surface: #12131a;
-  --surface-card: #181924;
-  --surface-border: #262838;
-  --surface-hover: #212332;
-  
-  --primary: #a855f7;
-  --primary-hover: #9333ea;
-  --primary-glow: rgba(168, 85, 247, 0.25);
-  
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
-  --text-subtle: #6b7280;
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --badge-pending-bg: rgba(245, 158, 11, 0.15);
-  --badge-pending-text: #fbbf24;
-  --badge-pending-border: rgba(245, 158, 11, 0.3);
+  /* Marketing palette — landing page and other public/content pages */
+  --color-cream: #f5f2ec;
+  --color-cream-dark: #efebe2;
+  --color-ink: #15161a;
+  --color-ink-soft: #1c1e24;
+  --color-navy: #10121a;
+  --color-navy-soft: #1a1d29;
+  --color-muted: #6f6d68;
+  --color-line: #e4e0d6;
+  --color-accent-green: #3fae63;
+  --color-accent-gold: #f2b705;
 
-  --badge-accepted-bg: rgba(16, 185, 129, 0.15);
-  --badge-accepted-text: #34d399;
-  --badge-accepted-border: rgba(16, 185, 129, 0.3);
-
-  --badge-declined-bg: rgba(244, 63, 94, 0.15);
-  --badge-declined-text: #f87171;
-  --badge-declined-border: rgba(244, 63, 94, 0.3);
-
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  /* App/product palette — sign up, sign in, and other in-product screens */
+  --color-surface: #f5f6fb;
+  --color-surface-muted: #64687a;
+  --color-surface-line: #e3e4ee;
+  --color-accent-blue: #4457e8;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--bg);
-  color: var(--text-main);
+  background-color: var(--color-cream);
+  color: var(--color-ink);
   font-family: var(--font-sans);
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
-#root {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
