@@ -161,7 +161,7 @@ const SignUpForm = ({ role }: SignUpFormProps) => {
           disabled={!agreed}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {role.ctaLabel}
+          {role.submitLabel}
           <ArrowRight size={16} />
         </button>
 
