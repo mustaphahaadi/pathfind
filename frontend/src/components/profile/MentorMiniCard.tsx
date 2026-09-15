@@ -10,7 +10,7 @@ interface MentorMiniCardProps {
 const MentorMiniCard = ({ mentor, ctaLabel = "Book session" }: MentorMiniCardProps) => {
   return (
     <div className="rounded-2xl border border-surface-line bg-white p-4">
-      <div className="flex items-start gap-3">
+      <Link to={`/mentors/${mentor.id}`} className="flex items-start gap-3">
         <img
           src={mentor.imageUrl}
           alt={mentor.name}
@@ -18,7 +18,7 @@ const MentorMiniCard = ({ mentor, ctaLabel = "Book session" }: MentorMiniCardPro
         />
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <p className="truncate text-sm font-bold text-ink">{mentor.name}</p>
+            <p className="truncate text-sm font-bold text-ink hover:underline">{mentor.name}</p>
             {mentor.available && (
               <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-accent-green">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent-green" />
@@ -30,7 +30,7 @@ const MentorMiniCard = ({ mentor, ctaLabel = "Book session" }: MentorMiniCardPro
             {mentor.role} @ {mentor.company}
           </p>
         </div>
-      </div>
+      </Link>
 
       <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-accent-blue/10 px-2.5 py-1 text-xs font-semibold text-accent-blue">
         {mentor.matchScore}% Goal Match

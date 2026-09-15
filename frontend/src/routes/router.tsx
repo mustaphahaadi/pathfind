@@ -6,17 +6,25 @@ import JoinPage from "../pages/JoinPage";
 import MenteeSignUpPage from "../pages/MenteeSignUpPage";
 import MentorSignUpPage from "../pages/MentorSignUpPage";
 import ProfilePage from "../pages/ProfilePage";
+import MentorDashboardPage from "../pages/MentorDashboardPage";
 import BrowseMentorsPage from "../pages/BrowseMentorsPage";
+import MentorProfilePage from "../pages/MentorProfilePage";
 import ScheduleSessionPage from "../pages/ScheduleSessionPage";
 import BookingConfirmedPage from "../pages/BookingConfirmedPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
 import AboutYouStep from "../pages/onboarding/AboutYouStep";
 import InterestsGoalsStep from "../pages/onboarding/InterestsGoalsStep";
 import ExperienceReadinessStep from "../pages/onboarding/ExperienceReadinessStep";
+import IdentityVerificationStep from "../pages/mentor-onboarding/IdentityVerificationStep";
+import DomainSkillsStep from "../pages/mentor-onboarding/DomainSkillsStep";
+import AvailabilityCapacityStep from "../pages/mentor-onboarding/AvailabilityCapacityStep";
+import HonorCodeReviewStep from "../pages/mentor-onboarding/HonorCodeReviewStep";
+import MentorProfileCreatedPage from "../pages/mentor-onboarding/MentorProfileCreatedPage";
 
 import AuthLayout from "../layouts/AuthLayout";
 import ContentLayout from "../layouts/ContentLayout";
 import OnboardingLayout from "../layouts/OnboardingLayout";
+import MentorOnboardingLayout from "../layouts/MentorOnboardingLayout";
 
 export const router = createBrowserRouter([
   {
@@ -56,8 +64,16 @@ export const router = createBrowserRouter([
     element: <ProfilePage />,
   },
   {
+    path: "/mentor-dashboard",
+    element: <MentorDashboardPage />,
+  },
+  {
     path: "/mentors",
     element: <BrowseMentorsPage />,
+  },
+  {
+    path: "/mentors/:mentorId",
+    element: <MentorProfilePage />,
   },
   {
     path: "/mentors/:mentorId/schedule",
@@ -90,6 +106,36 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    path: "/onboarding/mentor/complete",
+    element: <MentorProfileCreatedPage />,
+  },
+  {
+    path: "/onboarding/mentor",
+    element: <MentorOnboardingLayout />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="identity-verification" replace />,
+      },
+      {
+        path: "identity-verification",
+        element: <IdentityVerificationStep />,
+      },
+      {
+        path: "domain-skills",
+        element: <DomainSkillsStep />,
+      },
+      {
+        path: "availability-capacity",
+        element: <AvailabilityCapacityStep />,
+      },
+      {
+        path: "honor-code-review",
+        element: <HonorCodeReviewStep />,
+      },
+    ],
+  },
+  {
     element: <ContentLayout />,
     children: [
       {
@@ -118,15 +164,6 @@ export const router = createBrowserRouter([
             description="Real career transitions from mentees who broke into tech with a Pathfind mentor by their side."
           />
         ),
-      },
-      {
-        path: "/volunteer",
-        element: (
-          <PlaceholderPage
-            title="Volunteer to Mentor"
-            description="Share your experience and help someone break into tech — completely free, on your schedule."
-          />
-        )
       },
       {
         path: "/community-guidelines",

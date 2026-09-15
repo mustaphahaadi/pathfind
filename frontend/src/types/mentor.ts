@@ -5,6 +5,27 @@ export type MentorCategory =
   | "Brand & Design Systems"
   | "Technical Writing";
 
+export interface MentorReview {
+  reviewerName: string;
+  reviewerRole: string;
+  quote: string;
+  sessionTopic: string;
+  date: string;
+}
+
+export interface MentorExperience {
+  title: string;
+  org: string;
+  location: string;
+  period: string;
+  description: string;
+}
+
+export interface SkillGroup {
+  groupLabel: string;
+  skills: string[];
+}
+
 export interface Mentor {
   id: string;
   name: string;
@@ -26,4 +47,15 @@ export interface Mentor {
   durationMinutes: number;
   /** Static sample "goal match" percentage shown on personalized recommendation views. */
   matchScore: number;
+
+  // Public profile page content
+  location: string;
+  language: string;
+  attendanceRate: number;
+  responseTime: string;
+  philosophy: string;
+  aboutParagraphs: string[];
+  skillGroups: SkillGroup[];
+  experience: MentorExperience[];
+  reviews: MentorReview[];
 }

@@ -47,7 +47,7 @@ const Hero = () => {
                 Find a Free Mentor
               </Link>
               <Link
-                to="/volunteer"
+                to="/join/mentor"
                 className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 Volunteer
