@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Star, BadgeCheck, Calendar, Sparkles, Bell } from "lucide-react";
 import type { Mentor } from "../../types/mentor";
 
@@ -7,9 +8,31 @@ interface MentorListCardProps {
   showMatchBadge?: boolean;
 }
 
+/**
+ * The whole card navigates to the mentor's public profile; the CTA button is a
+ * separate real link (with stopPropagation) that jumps straight to booking.
+ */
 const MentorListCard = ({ mentor, showMatchBadge = false }: MentorListCardProps) => {
+  const navigate = useNavigate();
+  const profilePath = `/mentors/${mentor.id}`;
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      navigate(profilePath);
+    }
+  };
+
+  const stopPropagation = (event: MouseEvent<HTMLElement>) => event.stopPropagation();
+
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-surface-line bg-white p-4 sm:flex-row sm:p-5">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => navigate(profilePath)}
+      onKeyDown={handleKeyDown}
+      className="flex cursor-pointer flex-col gap-4 rounded-2xl border border-surface-line bg-white p-4 transition-colors hover:border-ink/30 sm:flex-row sm:p-5"
+    >
       <div className="relative h-40 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-40">
         <img src={mentor.imageUrl} alt={mentor.name} className="h-full w-full object-cover" />
         <span
@@ -30,7 +53,7 @@ const MentorListCard = ({ mentor, showMatchBadge = false }: MentorListCardProps)
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-lg font-bold text-ink">{mentor.name}</h3>
+              <h3 className="text-lg font-bold text-ink hover:underline">{mentor.name}</h3>
               {mentor.verified && (
                 <BadgeCheck size={16} className="text-accent-blue" fill="currentColor" />
               )}
@@ -74,6 +97,7 @@ const MentorListCard = ({ mentor, showMatchBadge = false }: MentorListCardProps)
           {mentor.available ? (
             <Link
               to={`/mentors/${mentor.id}/schedule`}
+              onClick={stopPropagation}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               Book Free Session
@@ -81,6 +105,7 @@ const MentorListCard = ({ mentor, showMatchBadge = false }: MentorListCardProps)
           ) : (
             <button
               type="button"
+              onClick={stopPropagation}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2 text-sm font-semibold text-ink"
             >
               <Bell size={14} />

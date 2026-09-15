@@ -3,7 +3,9 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { marketingNavLinks, appNavLinks } from "../../data/navigation";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
+import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import UserMenuLink from "./UserMenuLink";
+import MentorUserMenuLink from "./MentorUserMenuLink";
 
 interface HeaderProps {
   /** "overlay" sits on top of a dark hero image with light text (marketing landing page).
@@ -14,7 +16,12 @@ interface HeaderProps {
 const Header = ({ variant = "overlay" }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const isSignedIn = useOnboardingStore((state) => state.fullName.trim().length > 0);
+  const isMenteeSignedIn = useOnboardingStore((state) => state.fullName.trim().length > 0);
+  const isMentorSignedIn = useMentorOnboardingStore(
+    (state) => state.hasCompletedOnboarding && state.fullName.trim().length > 0,
+  );
+  // A mentor who has published takes precedence if, hypothetically, both flows were touched.
+  const isSignedIn = isMentorSignedIn || isMenteeSignedIn;
 
   if (variant === "solid") {
     return (
@@ -29,7 +36,9 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
             aria-label="Primary"
           >
             {appNavLinks.map((link) => {
-              const isActive = location.pathname.startsWith(link.to);
+              const isActive =
+                location.pathname.startsWith(link.to) ||
+                (link.to === "/join/mentor" && location.pathname.startsWith("/onboarding/mentor"));
               return (
                 <Link
                   key={link.to}
@@ -48,7 +57,7 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
 
           {isSignedIn ? (
             <div className="hidden lg:flex">
-              <UserMenuLink />
+              {isMentorSignedIn ? <MentorUserMenuLink /> : <UserMenuLink />}
             </div>
           ) : (
             <div className="hidden items-center gap-5 lg:flex">
@@ -92,7 +101,11 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
                 </Link>
               ))}
               {isSignedIn ? (
-                <UserMenuLink className="mt-2" />
+                isMentorSignedIn ? (
+                  <MentorUserMenuLink className="mt-2" />
+                ) : (
+                  <UserMenuLink className="mt-2" />
+                )
               ) : (
                 <>
                   <Link

@@ -19,7 +19,7 @@ const OnboardingLayout = () => {
 
       <main className="flex-1 px-5 py-10 sm:px-8">
         <div className="mx-auto max-w-3xl">
-          <OnboardingStepper currentStepIndex={currentStepIndex} />
+          <OnboardingStepper steps={onboardingSteps} currentStepIndex={currentStepIndex} />
 
           <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-10">
             <Outlet />

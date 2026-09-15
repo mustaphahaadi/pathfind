@@ -26,7 +26,7 @@ const CTASection = () => {
             <ArrowRight size={16} />
           </Link>
           <Link
-            to="/volunteer"
+            to="/join/mentor"
             className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             Volunteer to Mentor

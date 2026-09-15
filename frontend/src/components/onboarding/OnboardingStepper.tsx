@@ -1,22 +1,27 @@
 import { Check } from "lucide-react";
-import { onboardingSteps } from "../../data/onboarding/steps";
+
+export interface StepperStep {
+  path: string;
+  label: string;
+}
 
 interface OnboardingStepperProps {
+  steps: StepperStep[];
   currentStepIndex: number;
 }
 
-const statusLabel = (stepIndex: number, currentStepIndex: number) => {
+const statusLabel = (stepIndex: number, currentStepIndex: number, totalSteps: number) => {
   if (stepIndex < currentStepIndex) return "COMPLETED";
   if (stepIndex === currentStepIndex) {
-    return stepIndex === onboardingSteps.length - 1 ? "FINAL STEP" : "IN PROGRESS";
+    return stepIndex === totalSteps - 1 ? "FINAL STEP" : "IN PROGRESS";
   }
   return stepIndex === currentStepIndex + 1 ? "NEXT STEP" : "UPCOMING";
 };
 
-const OnboardingStepper = ({ currentStepIndex }: OnboardingStepperProps) => {
+const OnboardingStepper = ({ steps, currentStepIndex }: OnboardingStepperProps) => {
   return (
     <ol className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-white p-3 sm:flex-row sm:items-center sm:gap-0 sm:p-4">
-      {onboardingSteps.map((step, index) => {
+      {steps.map((step, index) => {
         const isComplete = index < currentStepIndex;
         const isActive = index === currentStepIndex;
 
@@ -45,12 +50,12 @@ const OnboardingStepper = ({ currentStepIndex }: OnboardingStepperProps) => {
                     isActive ? "text-accent-blue" : "text-ink/40"
                   }`}
                 >
-                  {statusLabel(index, currentStepIndex)}
+                  {statusLabel(index, currentStepIndex, steps.length)}
                 </p>
               </div>
             </div>
 
-            {index < onboardingSteps.length - 1 && (
+            {index < steps.length - 1 && (
               <span
                 className="hidden h-px flex-1 bg-surface-line sm:block"
                 aria-hidden="true"

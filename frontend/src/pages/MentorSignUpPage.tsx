@@ -11,11 +11,14 @@ import AuthTestimonialPanel from "../components/auth/AuthTestimonialPanel";
 import { mentorExperienceOptions } from "../data/auth/mentorExperienceOptions";
 import { focusAreaOptions } from "../data/auth/focusAreaOptions";
 import { mentors } from "../data/mentors";
+import { useMentorOnboardingStore } from "../store/useMentorOnboardingStore";
 
 const testimonialMentor = mentors.find((mentor) => mentor.id === "david-park");
 
 const MentorSignUpPage = () => {
   const navigate = useNavigate();
+  const setFullName = useMentorOnboardingStore((state) => state.setFullName);
+  const setWorkEmail = useMentorOnboardingStore((state) => state.setWorkEmail);
 
   const [experienceId, setExperienceId] = useState<string | null>(null);
   const [focusAreaId, setFocusAreaId] = useState<string | null>(null);
@@ -27,8 +30,13 @@ const MentorSignUpPage = () => {
     event.preventDefault();
     if (!canSubmit) return;
 
-    // No mentor onboarding flow yet — land back on the mentors directory for now.
-    navigate("/mentors");
+    const formData = new FormData(event.currentTarget);
+    const fullName = String(formData.get("fullName") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim();
+    if (fullName) setFullName(fullName);
+    if (email) setWorkEmail(email);
+
+    navigate("/onboarding/mentor/identity-verification");
   };
 
   return (

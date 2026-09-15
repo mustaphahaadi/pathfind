@@ -15,7 +15,7 @@ export const marketingNavLinks: NavLink[] = [
 export const appNavLinks: NavLink[] = [
   { label: "Browse Mentors", to: "/mentors" },
   { label: "How It Works", to: "/how-it-works" },
-  { label: "Volunteer", to: "/volunteer" },
+  { label: "Volunteer", to: "/join/mentor" },
   { label: "About", to: "/about" },
 ];
 
@@ -23,6 +23,6 @@ export const footerNavLinks: NavLink[] = [
   { label: "Community Guidelines", to: "/community-guidelines" },
   { label: "Honor Code", to: "/honor-code" },
   { label: "Privacy Policy", to: "/privacy" },
-  { label: "Become a Mentor", to: "/volunteer" },
+  { label: "Become a Mentor", to: "/join/mentor" },
   { label: "Open Source", to: "/open-source" },
 ];
