@@ -268,7 +268,11 @@ def list_mentors(
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
-    q = db.query(MentorProfile).join(User, MentorProfile.user_id == User.id)
+    q = (
+        db.query(MentorProfile)
+        .join(User, MentorProfile.user_id == User.id)
+        .filter(User.role == "mentor")
+    )
 
     if verified_only:
         q = q.filter(User.verification_status == VerificationStatus.VERIFIED)
@@ -292,7 +296,12 @@ def list_mentors(
 
 @app.get("/mentors/{mentor_id}", response_model=MentorProfileRead)
 def get_mentor(mentor_id: int, db: Session = Depends(get_db)):
-    profile = db.query(MentorProfile).filter(MentorProfile.user_id == mentor_id).first()
+    profile = (
+        db.query(MentorProfile)
+        .join(User, MentorProfile.user_id == User.id)
+        .filter(MentorProfile.user_id == mentor_id, User.role == "mentor")
+        .first()
+    )
     if not profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentor profile not found")
     return profile
