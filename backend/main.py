@@ -13,14 +13,30 @@ from sqlalchemy.orm import Session
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
-from .models import MentorshipRequest, MentorProfile, RequestStatus, RequestType, User, VerificationStatus
+from .models import (
+    MentorshipRequest,
+    MentorProfile,
+    MentorReview,
+    RequestStatus,
+    RequestType,
+    SavedMentor,
+    SessionNote,
+    User,
+    VerificationStatus,
+)
 from .schemas import (
     FileUploadResponse,
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
     MentorProfileRead,
+    MentorReviewCreate,
+    MentorReviewRead,
     ProfileUpdate,
+    SavedMentorCreate,
+    SavedMentorRead,
+    SessionNoteCreate,
+    SessionNoteRead,
     Token,
     UserCreate,
     UserCreateMentor,
@@ -553,3 +569,144 @@ def upload_file(
         content_type=file.content_type or "application/octet-stream",
         size_bytes=size_bytes,
     )
+
+
+# ── Saved Mentors ─────────────────────────────────────────────────────────────
+
+@app.post("/saved-mentors", response_model=SavedMentorRead, status_code=status.HTTP_201_CREATED)
+def save_mentor(
+    payload: SavedMentorCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = (
+        db.query(SavedMentor)
+        .filter(SavedMentor.user_id == current_user.id, SavedMentor.mentor_id == payload.mentor_id)
+        .first()
+    )
+    if existing:
+        return existing
+
+    record = SavedMentor(user_id=current_user.id, mentor_id=payload.mentor_id)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+@app.get("/saved-mentors", response_model=list[SavedMentorRead])
+def list_saved_mentors(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    items = db.query(SavedMentor).filter(SavedMentor.user_id == current_user.id).all()
+    output = []
+    for item in items:
+        read_obj = SavedMentorRead.from_orm(item)
+        mentor_user = db.get(User, item.mentor_id)
+        if mentor_user and mentor_user.profile:
+            read_obj.mentor_profile = MentorProfileRead.from_orm(mentor_user.profile)
+        output.append(read_obj)
+    return output
+
+
+@app.delete("/saved-mentors/{mentor_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_saved_mentor(
+    mentor_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    record = (
+        db.query(SavedMentor)
+        .filter(SavedMentor.user_id == current_user.id, SavedMentor.mentor_id == mentor_id)
+        .first()
+    )
+    if record:
+        db.delete(record)
+        db.commit()
+    return None
+
+
+# ── Mentor Reviews ─────────────────────────────────────────────────────────────
+
+@app.post("/mentors/{mentor_id}/reviews", response_model=MentorReviewRead, status_code=status.HTTP_201_CREATED)
+def create_mentor_review(
+    mentor_id: int,
+    payload: MentorReviewCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    reviewer_name = _get_user_display_name(current_user)
+    reviewer_role = "Verified Mentee"
+
+    review = MentorReview(
+        mentor_id=mentor_id,
+        mentee_id=current_user.id,
+        rating=payload.rating,
+        reviewer_name=reviewer_name,
+        reviewer_role=reviewer_role,
+        session_topic=payload.session_topic,
+        quote=payload.quote,
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return review
+
+
+@app.get("/mentors/{mentor_id}/reviews", response_model=list[MentorReviewRead])
+def list_mentor_reviews(mentor_id: int, db: Session = Depends(get_db)):
+    return (
+        db.query(MentorReview)
+        .filter(MentorReview.mentor_id == mentor_id)
+        .order_by(MentorReview.created_at.desc())
+        .all()
+    )
+
+
+# ── Session Notes ─────────────────────────────────────────────────────────────
+
+@app.post("/session-notes", response_model=SessionNoteRead, status_code=status.HTTP_201_CREATED)
+def create_session_note(
+    payload: SessionNoteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    note = SessionNote(
+        user_id=current_user.id,
+        request_id=payload.request_id,
+        title=payload.title,
+        content=payload.content,
+        resource_url=payload.resource_url,
+    )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@app.get("/session-notes", response_model=list[SessionNoteRead])
+def list_session_notes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(SessionNote)
+        .filter(SessionNote.user_id == current_user.id)
+        .order_by(SessionNote.created_at.desc())
+        .all()
+    )
+
+
+@app.delete("/session-notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_session_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    note = db.get(SessionNote, note_id)
+    if note and note.user_id == current_user.id:
+        db.delete(note)
+        db.commit()
+    return None
+

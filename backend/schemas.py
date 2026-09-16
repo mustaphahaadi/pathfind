@@ -137,3 +137,64 @@ class FileUploadResponse(BaseModel):
     url: str
     content_type: str
     size_bytes: int
+
+
+class SavedMentorCreate(BaseModel):
+    mentor_id: int
+
+
+class SavedMentorRead(BaseModel):
+    id: int
+    user_id: int
+    mentor_id: int
+    created_at: datetime
+    mentor_profile: MentorProfileRead | None = None
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class MentorReviewCreate(BaseModel):
+    mentor_id: int
+    rating: int = Field(5, ge=1, le=5)
+    session_topic: str = Field(..., min_length=1, max_length=255)
+    quote: str = Field(..., min_length=1)
+
+
+class MentorReviewRead(BaseModel):
+    id: int
+    mentor_id: int
+    mentee_id: int
+    rating: int
+    reviewer_name: str
+    reviewer_role: str
+    session_topic: str
+    quote: str
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class SessionNoteCreate(BaseModel):
+    request_id: str | None = None
+    title: str = Field(..., min_length=1, max_length=255)
+    content: str = Field(..., min_length=1)
+    resource_url: str | None = None
+
+
+class SessionNoteRead(BaseModel):
+    id: int
+    user_id: int
+    request_id: str | None = None
+    title: str
+    content: str
+    resource_url: str | None = None
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+

@@ -173,6 +173,101 @@ export const api = {
 
     cancel: (id: string) =>
       request<void>(`/mentorship-requests/${id}`, { method: "DELETE" }),
+
+    listTypes: () => request<string[]>("/mentorship-request-types"),
+  },
+
+  // ── Saved Mentors ──────────────────────────────────────────────────────────
+
+  savedMentors: {
+    save: (mentorId: number) =>
+      request<{ id: number; user_id: number; mentor_id: number }>("/saved-mentors", {
+        method: "POST",
+        body: JSON.stringify({ mentor_id: mentorId }),
+      }),
+
+    list: () =>
+      request<
+        Array<{
+          id: number;
+          user_id: number;
+          mentor_id: number;
+          created_at: string;
+          mentor_profile: MentorProfileRead | null;
+        }>
+      >("/saved-mentors"),
+
+    remove: (mentorId: number) =>
+      request<void>(`/saved-mentors/${mentorId}`, { method: "DELETE" }),
+  },
+
+  // ── Mentor Reviews ─────────────────────────────────────────────────────────
+
+  reviews: {
+    create: (mentorId: number, payload: { rating: number; session_topic: string; quote: string }) =>
+      request<{
+        id: number;
+        mentor_id: number;
+        mentee_id: number;
+        rating: number;
+        reviewer_name: string;
+        reviewer_role: string;
+        session_topic: string;
+        quote: string;
+        created_at: string;
+      }>(`/mentors/${mentorId}/reviews`, {
+        method: "POST",
+        body: JSON.stringify({ mentor_id: mentorId, ...payload }),
+      }),
+
+    list: (mentorId: number) =>
+      request<
+        Array<{
+          id: number;
+          mentor_id: number;
+          mentee_id: number;
+          rating: number;
+          reviewer_name: string;
+          reviewer_role: string;
+          session_topic: string;
+          quote: string;
+          created_at: string;
+        }>
+      >(`/mentors/${mentorId}/reviews`),
+  },
+
+  // ── Session Notes ──────────────────────────────────────────────────────────
+
+  notes: {
+    create: (payload: { request_id?: string; title: string; content: string; resource_url?: string }) =>
+      request<{
+        id: number;
+        user_id: number;
+        request_id?: string;
+        title: string;
+        content: string;
+        resource_url?: string;
+        created_at: string;
+      }>("/session-notes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    list: () =>
+      request<
+        Array<{
+          id: number;
+          user_id: number;
+          request_id?: string;
+          title: string;
+          content: string;
+          resource_url?: string;
+          created_at: string;
+        }>
+      >("/session-notes"),
+
+    delete: (noteId: number) =>
+      request<void>(`/session-notes/${noteId}`, { method: "DELETE" }),
   },
 
   // ── Admin ──────────────────────────────────────────────────────────────────
