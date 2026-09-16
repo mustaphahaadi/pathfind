@@ -19,6 +19,19 @@ class MentorProfileCreate(BaseModel):
     linkedin_url: str | None = None
 
 
+class ProfileUpdate(BaseModel):
+    full_name: str | None = None
+    job_title: str | None = None
+    company: str | None = None
+    years_of_experience: int | None = None
+    bio: str | None = None
+    expertise_tags: str | None = None
+    availability: str | None = None
+    avatar_url: str | None = None
+    location: str | None = None
+    linkedin_url: str | None = None
+
+
 class MentorProfileRead(BaseModel):
     id: int
     user_id: int

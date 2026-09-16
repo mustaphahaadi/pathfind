@@ -106,6 +106,27 @@ export const api = {
     me: (token?: string) => request<UserOut>("/auth/me", {}, token),
   },
 
+  // ── Profiles ───────────────────────────────────────────────────────────────
+
+  profiles: {
+    update: (payload: Partial<{
+      full_name: string;
+      job_title: string;
+      company: string;
+      years_of_experience: number;
+      bio: string;
+      expertise_tags: string;
+      availability: string;
+      avatar_url: string | null;
+      location: string | null;
+      linkedin_url: string | null;
+    }>) =>
+      request<UserOut>("/profiles/me", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+  },
+
   // ── Mentors ────────────────────────────────────────────────────────────────
 
   mentors: {
@@ -152,6 +173,18 @@ export const api = {
 
     cancel: (id: string) =>
       request<void>(`/mentorship-requests/${id}`, { method: "DELETE" }),
+  },
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+
+  admin: {
+    listPendingMentors: () => request<UserOut[]>("/admin/mentors/pending"),
+
+    approveMentor: (mentorId: number) =>
+      request<UserOut>(`/admin/mentors/${mentorId}/approve`, { method: "POST" }),
+
+    rejectMentor: (mentorId: number) =>
+      request<UserOut>(`/admin/mentors/${mentorId}/reject`, { method: "POST" }),
   },
 
   // ── File upload ────────────────────────────────────────────────────────────

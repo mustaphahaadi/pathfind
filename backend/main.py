@@ -20,6 +20,7 @@ from .schemas import (
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
     MentorProfileRead,
+    ProfileUpdate,
     Token,
     UserCreate,
     UserCreateMentor,
@@ -104,6 +105,38 @@ def health_check():
 
 @app.get("/auth/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@app.patch("/profiles/me", response_model=UserOut)
+def update_profile(
+    payload: ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    profile = current_user.profile
+    if profile is None:
+        profile = MentorProfile(
+            user_id=current_user.id,
+            full_name=payload.full_name or current_user.email.split("@")[0],
+            job_title=payload.job_title or "Mentee",
+            company=payload.company or "Pathfind Network",
+            years_of_experience=payload.years_of_experience or 1,
+            bio=payload.bio or "",
+            expertise_tags=payload.expertise_tags or "Software Engineering",
+            availability=payload.availability or "Available",
+            avatar_url=payload.avatar_url,
+            location=payload.location,
+            linkedin_url=payload.linkedin_url,
+        )
+        db.add(profile)
+    else:
+        for field, value in payload.dict(exclude_unset=True).items():
+            if value is not None:
+                setattr(profile, field, value)
+
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 
