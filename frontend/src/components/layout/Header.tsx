@@ -8,6 +8,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 import UserMenuLink from "./UserMenuLink";
 import MentorUserMenuLink from "./MentorUserMenuLink";
 
+import { Logo } from "../ui/Logo";
+
 interface HeaderProps {
   /** "overlay" sits on top of a dark hero image with light text (marketing landing page).
    *  "solid" is a plain white app-shell header used on every other, in-product page. */
@@ -34,9 +36,7 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
     return (
       <header className="relative z-30 border-b border-surface-line bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link to="/" className="text-xl font-extrabold tracking-tight text-ink">
-            Pathfind
-          </Link>
+          <Logo />
 
           <nav
             className="hidden items-center gap-8 lg:flex"
@@ -140,9 +140,7 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
 
   return (
     <header className="relative z-30 flex items-center justify-between px-5 py-5 sm:px-8 sm:py-6">
-      <Link to="/" className="text-xl font-extrabold tracking-tight text-white">
-        Pathfind
-      </Link>
+      <Logo light />
 
       <nav
         className="hidden items-center gap-1 rounded-full bg-white/10 px-2 py-2 backdrop-blur-sm lg:flex"

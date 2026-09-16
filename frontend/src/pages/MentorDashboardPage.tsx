@@ -96,97 +96,137 @@ const MentorDashboardPage = () => {
 
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-green/10 px-3 py-1.5 text-xs font-semibold text-accent-green">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-green" />
-              Profile Active &amp; Published
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink">
-              Volunteer Tier: {monthlyCapacity} / Mo
-            </span>
-          </div>
-
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-extrabold text-ink sm:text-4xl">
-                Welcome back, {firstName} 👋
-              </h1>
-              <p className="mt-1 text-sm text-ink/60">
-                Your volunteer mentor dashboard &middot; Manage requests, availability &amp; mentee sessions.
-              </p>
-            </div>
-            <div className="flex shrink-0 gap-2">
-              <Link
-                to="/mentors"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
+          {/* Executive Mentor Hero Banner */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20">
+            <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-indigo-500/5 to-transparent pointer-events-none" />
+            
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Verified Mentor Profile
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
+                  Capacity: {monthlyCapacity} Calls / Month
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={toggleAcceptingRequests}
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all backdrop-blur-md ring-1 ${
+                  acceptingRequests
+                    ? "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30 hover:bg-emerald-500/30"
+                    : "bg-amber-500/20 text-amber-300 ring-amber-500/30 hover:bg-amber-500/30"
+                }`}
               >
-                <Eye size={15} />
-                View Public Directory
-              </Link>
+                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-400" : "bg-amber-400"}`} />
+                {acceptingRequests ? "Accepting Mentees" : "Paused"}
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                  Welcome back, {firstName} 👋
+                </h1>
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
+                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana's rising tech talent.
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2.5">
+                <Link
+                  to="/mentors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                >
+                  <Eye size={16} />
+                  View Public Card
+                </Link>
+              </div>
             </div>
           </div>
 
           {/* Quick Metrics */}
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Pending Requests
-                <Inbox size={15} />
-              </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">{pendingCount}</p>
-              <p className="mt-1 text-xs text-ink/50">Awaiting your response.</p>
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Pending Requests
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                  <Inbox size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{pendingCount}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Awaiting your response</p>
             </div>
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Sessions Scheduled
-                <CalendarDays size={15} />
-              </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">{acceptedRequests.length}</p>
-              <p className="mt-1 text-xs text-ink/50">Active mentorship bookings.</p>
+
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Sessions Scheduled
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <CalendarDays size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{acceptedRequests.length}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Active mentorship bookings</p>
             </div>
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Mentees Guided
-                <Users size={15} />
-              </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">{menteesGuided}</p>
-              <p className="mt-1 text-xs text-ink/50">Mentees guided so far.</p>
+
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-indigo-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Mentees Guided
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
+                  <Users size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{menteesGuided}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Mentees guided so far</p>
             </div>
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Community Standing
-                <ShieldCheck size={15} />
+
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Community Standing
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-500">
+                  <ShieldCheck size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">
+                {hasRatings ? "5.0 ★" : "100% Verified"}
               </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">
-                {hasRatings ? "5.0 ★" : "—"}
-              </p>
-              <p className="mt-1 text-xs text-ink/50">
+              <p className="mt-1 text-xs font-medium text-ink/50">
                 {hasRatings
                   ? "Average mentee rating"
-                  : "No ratings yet — these appear after completed sessions."}
+                  : "Verified volunteer mentor"}
               </p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="mt-6 flex gap-1 overflow-x-auto rounded-2xl border border-surface-line bg-white p-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-6 flex gap-1.5 overflow-x-auto rounded-2xl border border-surface-line bg-white p-2 shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
-                  tab.id === activeTab ? "bg-ink text-white" : "text-ink/60 hover:bg-surface"
+                className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+                  tab.id === activeTab
+                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/15"
+                    : "text-ink/70 hover:bg-surface hover:text-ink"
                 }`}
               >
                 {tab.label}
                 {tab.id === "requests" && pendingCount > 0 && (
-                  <span className="rounded-full bg-accent-gold/20 px-1.5 py-0.5 text-xs font-bold text-accent-gold">
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-xs font-extrabold text-amber-500">
                     {pendingCount}
                   </span>
                 )}
                 {tab.id === "scheduled" && acceptedRequests.length > 0 && (
-                  <span className="rounded-full bg-accent-green/20 px-1.5 py-0.5 text-xs font-bold text-accent-green">
+                  <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-xs font-extrabold text-emerald-600">
                     {acceptedRequests.length}
                   </span>
                 )}
