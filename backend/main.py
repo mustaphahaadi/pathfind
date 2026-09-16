@@ -14,6 +14,7 @@ from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, ver
 from .database import Base, SessionLocal, engine
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .models import (
+    Goal,
     MentorshipRequest,
     MentorProfile,
     MentorReview,
@@ -22,11 +23,15 @@ from .models import (
     SavedMentor,
     SessionNote,
     User,
+    UserSettings,
     VerificationStatus,
 )
 from .schemas import (
     AdminStatsOut,
     FileUploadResponse,
+    GoalCreate,
+    GoalRead,
+    GoalUpdate,
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
@@ -44,6 +49,8 @@ from .schemas import (
     UserCreateMentor,
     UserLogin,
     UserOut,
+    UserSettingsRead,
+    UserSettingsUpdate,
 )
 
 Base.metadata.create_all(bind=engine)
@@ -827,3 +834,119 @@ def update_session_note(
     db.commit()
     db.refresh(note)
     return note
+
+
+# ── Goals Routes ────────────────────────────────────────────────────────────
+
+@app.get("/goals", response_model=list[GoalRead])
+def list_goals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve goals for current user. If user has 0 goals, seed default initial goals."""
+    user_goals = (
+        db.query(Goal)
+        .filter(Goal.user_id == current_user.id)
+        .order_by(Goal.created_at.desc())
+        .all()
+    )
+    if not user_goals:
+        defaults = [
+            Goal(user_id=current_user.id, title="Master System Design & Microservices Architecture", category="Technical Skill", target_date="Q4 2026", completed=True),
+            Goal(user_id=current_user.id, title="Land Senior Software Engineer / Lead Role", category="Career Growth", target_date="Q1 2027", completed=False),
+            Goal(user_id=current_user.id, title="Publish 2 Open Source Frontend Libraries", category="Open Source", target_date="Q4 2026", completed=False),
+        ]
+        db.add_all(defaults)
+        db.commit()
+        for g in defaults:
+            db.refresh(g)
+        return defaults
+    return user_goals
+
+
+@app.post("/goals", response_model=GoalRead, status_code=status.HTTP_201_CREATED)
+def create_goal(
+    payload: GoalCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    goal = Goal(
+        user_id=current_user.id,
+        title=payload.title,
+        category=payload.category,
+        target_date=payload.target_date,
+        completed=payload.completed,
+    )
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+    return goal
+
+
+@app.patch("/goals/{goal_id}", response_model=GoalRead)
+def update_goal(
+    goal_id: int,
+    payload: GoalUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    goal = db.get(Goal, goal_id)
+    if goal is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Goal not found")
+    if goal.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    for field, value in payload.dict(exclude_unset=True).items():
+        setattr(goal, field, value)
+
+    db.commit()
+    db.refresh(goal)
+    return goal
+
+
+@app.delete("/goals/{goal_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_goal(
+    goal_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    goal = db.get(Goal, goal_id)
+    if goal and goal.user_id == current_user.id:
+        db.delete(goal)
+        db.commit()
+    return None
+
+
+# ── User Settings Routes ───────────────────────────────────────────────────
+
+@app.get("/settings/me", response_model=UserSettingsRead)
+def get_user_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        settings = UserSettings(user_id=current_user.id, email_notifications=True, session_reminders=True, weekly_digest=False)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+@app.patch("/settings/me", response_model=UserSettingsRead)
+def update_user_settings(
+    payload: UserSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        settings = UserSettings(user_id=current_user.id)
+        db.add(settings)
+
+    for field, value in payload.dict(exclude_unset=True).items():
+        setattr(settings, field, value)
+
+    db.commit()
+    db.refresh(settings)
+    return settings
