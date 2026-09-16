@@ -162,11 +162,16 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
+    user_role = user.role if user.role in ("mentee", "mentor", "admin") else "mentee"
+    v_status = (
+        VerificationStatus.PENDING_VERIFICATION if user_role == "mentor" else VerificationStatus.VERIFIED
+    )
+
     new_user = User(
         email=user.email,
         hashed_password=hash_password(user.password),
-        role=user.role if user.role in ("mentee", "mentor", "admin") else "mentee",
-        verification_status=VerificationStatus.VERIFIED,
+        role=user_role,
+        verification_status=v_status,
     )
     db.add(new_user)
     db.commit()
@@ -179,7 +184,8 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
         existing_user.role = "mentor"
-        existing_user.verification_status = VerificationStatus.VERIFIED
+        if existing_user.verification_status != VerificationStatus.VERIFIED:
+            existing_user.verification_status = VerificationStatus.PENDING_VERIFICATION
         if existing_user.profile:
             existing_user.profile.full_name = payload.full_name
             existing_user.profile.job_title = payload.job_title
@@ -256,7 +262,7 @@ def list_mentors(
     query: str | None = None,
     expertise: str | None = None,
     request_type: RequestType | None = None,
-    verified_only: bool = False,
+    verified_only: bool = True,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db),

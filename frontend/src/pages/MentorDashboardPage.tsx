@@ -102,10 +102,22 @@ const MentorDashboardPage = () => {
             
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Verified Mentor Profile
-                </span>
+                {user?.verification_status === "verified" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Verified Mentor Profile
+                  </span>
+                ) : user?.verification_status === "rejected" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300 backdrop-blur-md ring-1 ring-rose-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                    Verification Rejected
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md ring-1 ring-amber-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    Pending Admin Verification
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
                   Capacity: {monthlyCapacity} Calls / Month
                 </span>

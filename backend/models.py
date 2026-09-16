@@ -38,7 +38,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="mentee", nullable=False)
     verification_status: Mapped[VerificationStatus] = mapped_column(
-        Enum(VerificationStatus), default=VerificationStatus.VERIFIED, nullable=False
+        Enum(VerificationStatus), default=VerificationStatus.PENDING_VERIFICATION, nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
