@@ -5,4 +5,5 @@ export interface Testimonial {
   outcome: string;
   avatarUrl: string;
   rating: number;
+  category?: string;
 }

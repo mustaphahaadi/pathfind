@@ -21,6 +21,8 @@ import HonorCodePage from "../pages/HonorCodePage";
 import GuidelinesPage from "../pages/GuidelinesPage";
 import PrivacyPage from "../pages/PrivacyPage";
 import TermsPage from "../pages/TermsPage";
+import StoriesPage from "../pages/StoriesPage";
+import OpenSourcePage from "../pages/OpenSourcePage";
 
 import AboutYouStep from "../pages/onboarding/AboutYouStep";
 import InterestsGoalsStep from "../pages/onboarding/InterestsGoalsStep";
@@ -49,6 +51,14 @@ export const router = createBrowserRouter([
   {
     path: "/how-it-works",
     element: <HowItWorksPage />,
+  },
+  {
+    path: "/stories",
+    element: <StoriesPage />,
+  },
+  {
+    path: "/open-source",
+    element: <OpenSourcePage />,
   },
   {
     path: "/volunteer",
