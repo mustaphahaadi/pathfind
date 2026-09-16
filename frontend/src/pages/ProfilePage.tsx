@@ -39,6 +39,7 @@ import type {
   MentorProfileRead,
   SavedMentorRead,
   SessionNoteRead,
+  GoalRead,
 } from "../types/api";
 import type { Mentor } from "../types/mentor";
 import { mentors } from "../data/mentors";
@@ -83,25 +84,14 @@ const ProfilePage = () => {
   const [editResource, setEditResource] = useState("");
   const [savingNote, setSavingNote] = useState(false);
 
-  // Fix 16 — Goals state
-  interface GoalItem {
-    id: string;
-    title: string;
-    category: string;
-    targetDate: string;
-    completed: boolean;
-  }
-  const [goals, setGoals] = useState<GoalItem[]>([
-    { id: "1", title: "Master System Design & Microservices Architecture", category: "Technical Skill", targetDate: "Q4 2026", completed: true },
-    { id: "2", title: "Land Senior Software Engineer / Lead Role", category: "Career Growth", targetDate: "Q1 2027", completed: false },
-    { id: "3", title: "Publish 2 Open Source Frontend Libraries", category: "Open Source", targetDate: "Q4 2026", completed: false },
-  ]);
+  // Fix 16 — Goals state (backed by DB)
+  const [goals, setGoals] = useState<GoalRead[]>([]);
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalCategory, setNewGoalCategory] = useState("Technical Skill");
   const [newGoalTargetDate, setNewGoalTargetDate] = useState("Q4 2026");
   const [showGoalForm, setShowGoalForm] = useState(false);
 
-  // Fix 16 — Settings state
+  // Fix 16 — Settings state (backed by DB & profile endpoint)
   const updateUser = useAuthStore((s) => s.updateUser);
   const [settingsName, setSettingsName] = useState(user?.profile?.full_name || "");
   const [settingsLocation, setSettingsLocation] = useState(user?.profile?.location || "");
@@ -120,29 +110,39 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  const handleAddGoal = (e: React.FormEvent) => {
+  const handleAddGoal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGoalTitle.trim()) return;
-    const newGoal: GoalItem = {
-      id: String(Date.now()),
-      title: newGoalTitle.trim(),
-      category: newGoalCategory,
-      targetDate: newGoalTargetDate.trim() || "Q4 2026",
-      completed: false,
-    };
-    setGoals((prev) => [newGoal, ...prev]);
-    setNewGoalTitle("");
-    setShowGoalForm(false);
+    try {
+      const created = await api.goals.create({
+        title: newGoalTitle.trim(),
+        category: newGoalCategory,
+        target_date: newGoalTargetDate.trim() || "Q4 2026",
+      });
+      setGoals((prev) => [created, ...prev]);
+      setNewGoalTitle("");
+      setShowGoalForm(false);
+    } catch {
+      // fallback
+    }
   };
 
-  const handleToggleGoal = (goalId: string) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, completed: !g.completed } : g))
-    );
+  const handleToggleGoal = async (goalId: number, currentCompleted: boolean) => {
+    try {
+      const updated = await api.goals.update(goalId, { completed: !currentCompleted });
+      setGoals((prev) => prev.map((g) => (g.id === goalId ? updated : g)));
+    } catch {
+      // fallback
+    }
   };
 
-  const handleDeleteGoal = (goalId: string) => {
-    setGoals((prev) => prev.filter((g) => g.id !== goalId));
+  const handleDeleteGoal = async (goalId: number) => {
+    try {
+      await api.goals.delete(goalId);
+      setGoals((prev) => prev.filter((g) => g.id !== goalId));
+    } catch {
+      // fallback
+    }
   };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -151,13 +151,21 @@ const ProfilePage = () => {
     setSettingsMessage(null);
     try {
       if (user) {
-        const updated = await api.profiles.update({
+        const updatedUser = await api.profiles.update({
           full_name: settingsName.trim() || user.profile?.full_name || "Mentee User",
           location: settingsLocation.trim() || user.profile?.location || "Ghana / Remote",
           bio: settingsBio.trim(),
         });
-        updateUser(updated);
+        updateUser(updatedUser);
       }
+      const updatedSettings = await api.settings.update({
+        email_notifications: emailNotifs,
+        session_reminders: sessionReminders,
+        weekly_digest: weeklyDigest,
+      });
+      setEmailNotifs(updatedSettings.email_notifications);
+      setSessionReminders(updatedSettings.session_reminders);
+      setWeeklyDigest(updatedSettings.weekly_digest);
       setSettingsMessage("Settings saved successfully!");
     } catch {
       setSettingsMessage("Failed to save settings. Please try again.");
@@ -187,6 +195,20 @@ const ProfilePage = () => {
     api.notes
       .list()
       .then(setSessionNotes)
+      .catch(() => {});
+
+    api.goals
+      .list()
+      .then(setGoals)
+      .catch(() => {});
+
+    api.settings
+      .get()
+      .then((s) => {
+        setEmailNotifs(s.email_notifications);
+        setSessionReminders(s.session_reminders);
+        setWeeklyDigest(s.weekly_digest);
+      })
       .catch(() => {});
   }, []);
 
@@ -1043,7 +1065,7 @@ const ProfilePage = () => {
                     <div className="flex items-start gap-3">
                       <button
                         type="button"
-                        onClick={() => handleToggleGoal(goal.id)}
+                        onClick={() => handleToggleGoal(goal.id, goal.completed)}
                         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
                           goal.completed
                             ? "border-emerald-500 bg-emerald-500 text-white"
@@ -1064,7 +1086,7 @@ const ProfilePage = () => {
                           <span className="rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-medium text-ink/70">
                             {goal.category}
                           </span>
-                          <span className="text-xs text-ink/40">• Target: {goal.targetDate}</span>
+                          <span className="text-xs text-ink/40">• Target: {goal.target_date}</span>
                         </div>
                       </div>
                     </div>
