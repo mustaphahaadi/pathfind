@@ -36,7 +36,7 @@ const MenteeSignUpPage = () => {
 
       // Auto sign-in to get token
       const token = await api.auth.signIn({ email, password });
-      const user = await api.auth.me();
+      const user = await api.auth.me(token.access_token);
       setAuth(token.access_token, user);
 
       // Pre-fill onboarding store with known data

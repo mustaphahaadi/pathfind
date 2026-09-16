@@ -22,7 +22,7 @@ const SignInPage = () => {
 
     try {
       const token = await api.auth.signIn({ email, password });
-      const user = await api.auth.me();
+      const user = await api.auth.me(token.access_token);
       setAuth(token.access_token, user);
 
       if (user.role === "mentor") {

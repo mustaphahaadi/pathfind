@@ -107,7 +107,7 @@ const HonorCodeReviewStep = () => {
 
       // Auto sign-in
       const token = await api.auth.signIn({ email: workEmail, password });
-      const user = await api.auth.me();
+      const user = await api.auth.me(token.access_token);
       setAuth(token.access_token, user);
 
       completeOnboarding();

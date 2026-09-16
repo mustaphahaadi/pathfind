@@ -19,8 +19,9 @@ const BASE_URL = "http://localhost:8000";
 async function request<T>(
   path: string,
   options: RequestInit = {},
+  authToken?: string,
 ): Promise<T> {
-  const token = useAuthStore.getState().token;
+  const token = authToken ?? useAuthStore.getState().token;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -102,7 +103,7 @@ export const api = {
         body: JSON.stringify(payload),
       }),
 
-    me: () => request<UserOut>("/auth/me"),
+    me: (token?: string) => request<UserOut>("/auth/me", {}, token),
   },
 
   // ── Mentors ────────────────────────────────────────────────────────────────
