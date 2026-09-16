@@ -26,14 +26,14 @@ const ProfileHeaderCard = () => {
   return (
     <div className="overflow-hidden rounded-3xl border border-surface-line bg-white shadow-sm transition-all hover:shadow-md">
       {/* Rich dark executive banner */}
-      <div className="relative h-28 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:h-32">
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
+      <div className="relative h-24 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:h-28">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
         <div className="flex items-center justify-between text-white/80">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md ring-1 ring-white/10">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Verified Mentee
           </span>
-          <span className="text-xs font-medium text-white/60">
+          <span className="text-xs font-semibold tracking-wide text-white/60 uppercase">
             Pathfind Talent Network
           </span>
         </div>
@@ -46,22 +46,13 @@ const ProfileHeaderCard = () => {
               <img
                 src={avatarUrl}
                 alt={name}
-                className="h-24 w-24 rounded-2xl border-4 border-white object-cover shadow-md ring-2 ring-indigo-500/20"
+                className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-md ring-2 ring-indigo-500/20"
               />
             ) : (
-              <span className="flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-600 to-slate-900 text-2xl font-black text-white shadow-md">
+              <span className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-600 to-slate-900 text-2xl font-black text-white shadow-md">
                 {getInitials(name)}
               </span>
             )}
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">{name}</h1>
-              <p className="mt-0.5 text-sm font-medium text-ink/60">
-                {seekingLabels.length > 0 && (
-                  <>Seeking: {seekingLabels.join(" & ")}{location ? " · " : ""}</>
-                )}
-                {location || "Ghana / Remote"}
-              </p>
-            </div>
           </div>
 
           <div className="flex flex-wrap gap-2.5">
@@ -80,6 +71,16 @@ const ProfileHeaderCard = () => {
               Customize Match Goals
             </Link>
           </div>
+        </div>
+
+        <div className="mt-3">
+          <h1 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">{name}</h1>
+          <p className="mt-1 text-sm font-medium text-ink/60">
+            {seekingLabels.length > 0 && (
+              <>Seeking: {seekingLabels.join(" & ")}{location ? " · " : ""}</>
+            )}
+            {location || "Ghana / Remote"}
+          </p>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-3">

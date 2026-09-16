@@ -26,7 +26,8 @@ import { useOnboardingStore } from "../store/useOnboardingStore";
 import { useSessionsStore } from "../store/useSessionsStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { api } from "../lib/api";
-import type { MentorshipRequestRead } from "../types/api";
+import type { MentorshipRequestRead, MentorProfileRead } from "../types/api";
+import type { Mentor } from "../types/mentor";
 import { mentors } from "../data/mentors";
 import { getRecommendedMentors } from "../lib/getRecommendedMentors";
 
@@ -51,6 +52,7 @@ const ProfilePage = () => {
   const savedMentorIds = useSessionsStore((state) => state.savedMentorIds);
 
   const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
+  const [dbMentors, setDbMentors] = useState<MentorProfileRead[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
@@ -60,6 +62,11 @@ const ProfilePage = () => {
       .then(setRequests)
       .catch(() => {})
       .finally(() => setLoadingRequests(false));
+
+    api.mentors
+      .list()
+      .then(setDbMentors)
+      .catch(() => {});
   }, []);
 
   const handleCancelRequest = async (requestId: string) => {
@@ -101,9 +108,61 @@ const ProfilePage = () => {
       }
     : null;
 
+  const mappedRealMentors: Mentor[] = dbMentors.map((p) => ({
+    id: String(p.user_id),
+    name: p.full_name,
+    role: p.job_title || "Senior Engineer",
+    company: p.company || "Technology Partner",
+    imageUrl: p.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+    category: "Software Engineering",
+    trackId: "software-engineering",
+    tags: p.expertise_tags ? p.expertise_tags.split(",").map((s) => s.trim()) : ["Software Engineering", "Career Guidance"],
+    available: true,
+    verified: true,
+    rating: 5,
+    reviewCount: 12,
+    sessionsGiven: (p.years_of_experience || 3) * 8 + 4,
+    bio: p.bio || "Passionate software engineering mentor helping mentees grow their technical careers.",
+    nextOpening: "Available this week",
+    sessionFormat: "1:1 Video (45m)",
+    durationMinutes: 45,
+    matchScore: 98,
+    location: p.location || "Ghana / Remote",
+    language: "English",
+    attendanceRate: 100,
+    responseTime: "Usually responds in 2 hours",
+    philosophy: "Empowering developers to build robust systems and clear career paths.",
+    aboutParagraphs: [p.bio || "Dedicated mentor with extensive industry experience."],
+    skillGroups: [
+      {
+        groupLabel: "Core Engineering",
+        skills: p.expertise_tags ? p.expertise_tags.split(",").map((s) => s.trim()) : ["Software Architecture"],
+      },
+    ],
+    experience: [
+      {
+        title: p.job_title || "Senior Engineer",
+        org: p.company || "Tech Enterprise",
+        location: p.location || "Remote",
+        period: "2021 — Present",
+        description: "Leading development teams and mentoring junior engineers.",
+      },
+    ],
+    reviews: [],
+  }));
+
+  const combinedMentors = [...mappedRealMentors, ...mentors];
+  const uniqueMentorsMap = new Map<string, Mentor>();
+  combinedMentors.forEach((m) => {
+    if (!uniqueMentorsMap.has(m.id)) {
+      uniqueMentorsMap.set(m.id, m);
+    }
+  });
+  const allAvailableMentors = Array.from(uniqueMentorsMap.values());
+
   const firstName = fullName.split(" ")[0] || "there";
-  const recommended = getRecommendedMentors(technicalTracks, 4);
-  const savedMentors = mentors.filter((mentor) => savedMentorIds.includes(mentor.id));
+  const recommended = getRecommendedMentors(technicalTracks, 4, allAvailableMentors);
+  const savedMentors = allAvailableMentors.filter((mentor) => savedMentorIds.includes(mentor.id));
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
