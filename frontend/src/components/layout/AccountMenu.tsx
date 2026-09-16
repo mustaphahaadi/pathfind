@@ -72,10 +72,10 @@ const AccountMenu = ({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div
-        className={`flex items-center gap-2 rounded-full px-2 py-1.5 backdrop-blur-md transition-all ${
+        className={`flex items-center gap-2.5 rounded-full p-1.5 pr-3 backdrop-blur-md transition-all ${
           isOverlay
-            ? "bg-white/10 border border-white/20 text-white shadow-sm hover:bg-white/20"
-            : "bg-white border border-surface-line text-ink shadow-sm hover:bg-surface"
+            ? "bg-slate-950/75 border border-white/25 text-white shadow-md hover:bg-slate-950/90 hover:border-white/40"
+            : "bg-white border border-surface-line text-ink shadow-sm hover:bg-surface hover:border-black/20"
         }`}
       >
         <Link to={profileTo} aria-label="Go to your dashboard" className="shrink-0">
@@ -87,19 +87,19 @@ const AccountMenu = ({
           onClick={() => setIsOpen((open) => !open)}
           aria-haspopup="menu"
           aria-expanded={isOpen}
-          className="flex items-center gap-1.5 pr-2 text-left"
+          className="flex items-center gap-2 text-left"
         >
           <span className="hidden sm:block">
             <span
-              className={`block text-xs font-bold leading-snug truncate max-w-[130px] ${
+              className={`block text-xs font-bold leading-snug truncate max-w-[140px] ${
                 isOverlay ? "text-white" : "text-ink"
               }`}
             >
               {name}
             </span>
             <span
-              className={`block text-[11px] font-medium leading-none truncate max-w-[130px] ${
-                isOverlay ? "text-white/80" : "text-ink/60"
+              className={`block text-[11px] font-medium leading-none truncate max-w-[140px] ${
+                isOverlay ? "text-white/90" : "text-ink/65"
               }`}
             >
               {subtitle}
@@ -108,7 +108,7 @@ const AccountMenu = ({
           <ChevronDown
             size={15}
             className={`hidden shrink-0 transition-transform sm:block ${
-              isOverlay ? "text-white/80" : "text-ink/60"
+              isOverlay ? "text-white/90" : "text-ink/60"
             } ${isOpen ? "rotate-180" : ""}`}
           />
         </button>
