@@ -12,14 +12,32 @@ from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
-from .email import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
-from .models import MentorshipRequest, MentorProfile, RequestStatus, RequestType, User, VerificationStatus
+from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
+from .models import (
+    MentorshipRequest,
+    MentorProfile,
+    MentorReview,
+    RequestStatus,
+    RequestType,
+    SavedMentor,
+    SessionNote,
+    User,
+    VerificationStatus,
+)
 from .schemas import (
+    AdminStatsOut,
     FileUploadResponse,
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
     MentorProfileRead,
+    MentorReviewCreate,
+    MentorReviewRead,
+    ProfileUpdate,
+    SavedMentorCreate,
+    SavedMentorRead,
+    SessionNoteCreate,
+    SessionNoteRead,
     Token,
     UserCreate,
     UserCreateMentor,
@@ -107,17 +125,54 @@ def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+@app.patch("/profiles/me", response_model=UserOut)
+def update_profile(
+    payload: ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    profile = current_user.profile
+    if profile is None:
+        profile = MentorProfile(
+            user_id=current_user.id,
+            full_name=payload.full_name or current_user.email.split("@")[0],
+            job_title=payload.job_title or "Mentee",
+            company=payload.company or "Pathfind Network",
+            years_of_experience=payload.years_of_experience or 1,
+            bio=payload.bio or "",
+            expertise_tags=payload.expertise_tags or "Software Engineering",
+            availability=payload.availability or "Available",
+            avatar_url=payload.avatar_url,
+            location=payload.location,
+            linkedin_url=payload.linkedin_url,
+        )
+        db.add(profile)
+    else:
+        for field, value in payload.dict(exclude_unset=True).items():
+            if value is not None:
+                setattr(profile, field, value)
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
 @app.post("/auth/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def signup(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
+    user_role = user.role if user.role in ("mentee", "mentor", "admin") else "mentee"
+    v_status = (
+        VerificationStatus.PENDING_VERIFICATION if user_role == "mentor" else VerificationStatus.VERIFIED
+    )
+
     new_user = User(
         email=user.email,
         hashed_password=hash_password(user.password),
-        role=user.role if user.role in ("mentee", "mentor", "admin") else "mentee",
-        verification_status=VerificationStatus.VERIFIED,
+        role=user_role,
+        verification_status=v_status,
     )
     db.add(new_user)
     db.commit()
@@ -129,16 +184,44 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    # Determine verification status (pending by default for mentors)
-    verification = VerificationStatus.PENDING_VERIFICATION
+        existing_user.role = "mentor"
+        if existing_user.verification_status != VerificationStatus.VERIFIED:
+            existing_user.verification_status = VerificationStatus.PENDING_VERIFICATION
+        if existing_user.profile:
+            existing_user.profile.full_name = payload.full_name
+            existing_user.profile.job_title = payload.job_title
+            existing_user.profile.company = payload.company
+            existing_user.profile.years_of_experience = payload.years_of_experience
+            existing_user.profile.bio = payload.bio
+            existing_user.profile.expertise_tags = payload.expertise_tags
+            existing_user.profile.availability = payload.availability
+            existing_user.profile.avatar_url = payload.avatar_url
+            existing_user.profile.location = payload.location
+            existing_user.profile.linkedin_url = payload.linkedin_url
+        else:
+            profile = MentorProfile(
+                user_id=existing_user.id,
+                full_name=payload.full_name,
+                job_title=payload.job_title,
+                company=payload.company,
+                years_of_experience=payload.years_of_experience,
+                bio=payload.bio,
+                expertise_tags=payload.expertise_tags,
+                availability=payload.availability,
+                avatar_url=payload.avatar_url,
+                location=payload.location,
+                linkedin_url=payload.linkedin_url,
+            )
+            db.add(profile)
+        db.commit()
+        db.refresh(existing_user)
+        return existing_user
 
     new_user = User(
         email=payload.email,
         hashed_password=hash_password(payload.password),
         role="mentor",
-        verification_status=verification,
+        verification_status=VerificationStatus.PENDING_VERIFICATION,
     )
     db.add(new_user)
     db.commit()
@@ -154,6 +237,8 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
         expertise_tags=payload.expertise_tags,
         availability=payload.availability,
         avatar_url=payload.avatar_url,
+        location=payload.location,
+        linkedin_url=payload.linkedin_url,
     )
     db.add(profile)
     db.commit()
@@ -450,6 +535,85 @@ def reject_mentor(
     return user
 
 
+@app.get("/admin/stats", response_model=AdminStatsOut)
+def get_admin_stats(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """Retrieve comprehensive real-time statistics for the Admin Portal."""
+    total_users = db.query(User).count()
+    total_mentors = db.query(User).filter(User.role == "mentor").count()
+    verified_mentors = (
+        db.query(User)
+        .filter(User.role == "mentor", User.verification_status == VerificationStatus.VERIFIED)
+        .count()
+    )
+    pending_mentors = (
+        db.query(User)
+        .filter(User.role == "mentor", User.verification_status == VerificationStatus.PENDING_VERIFICATION)
+        .count()
+    )
+    total_mentees = db.query(User).filter(User.role == "mentee").count()
+    total_requests = db.query(MentorshipRequest).count()
+    pending_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.PENDING).count()
+    accepted_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.ACCEPTED).count()
+    completed_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.COMPLETED).count()
+    total_session_notes = db.query(SessionNote).count()
+    total_saved_mentors = db.query(SavedMentor).count()
+
+    return AdminStatsOut(
+        total_users=total_users,
+        total_mentors=total_mentors,
+        verified_mentors=verified_mentors,
+        pending_mentors=pending_mentors,
+        total_mentees=total_mentees,
+        total_requests=total_requests,
+        pending_requests=pending_requests,
+        accepted_requests=accepted_requests,
+        completed_requests=completed_requests,
+        total_session_notes=total_session_notes,
+        total_saved_mentors=total_saved_mentors,
+    )
+
+
+@app.get("/admin/mentors", response_model=list[UserOut])
+def list_all_admin_mentors(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """List all mentors regardless of verification status."""
+    return db.query(User).filter(User.role == "mentor").order_by(User.created_at.desc()).all()
+
+
+@app.get("/admin/mentees", response_model=list[UserOut])
+def list_all_admin_mentees(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """List all registered mentees on the platform."""
+    return db.query(User).filter(User.role == "mentee").order_by(User.created_at.desc()).all()
+
+
+@app.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """Delete a user account and associated profile."""
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user.id == admin_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin cannot delete own account")
+
+    if user.profile:
+        db.delete(user.profile)
+    db.delete(user)
+    db.commit()
+    return None
+
+
 # ── File Upload Endpoint ───────────────────────────────────────────────────────
 
 ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".svg"}
@@ -491,3 +655,143 @@ def upload_file(
         content_type=file.content_type or "application/octet-stream",
         size_bytes=size_bytes,
     )
+
+
+# ── Saved Mentors ─────────────────────────────────────────────────────────────
+
+@app.post("/saved-mentors", response_model=SavedMentorRead, status_code=status.HTTP_201_CREATED)
+def save_mentor(
+    payload: SavedMentorCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = (
+        db.query(SavedMentor)
+        .filter(SavedMentor.user_id == current_user.id, SavedMentor.mentor_id == payload.mentor_id)
+        .first()
+    )
+    if existing:
+        return existing
+
+    record = SavedMentor(user_id=current_user.id, mentor_id=payload.mentor_id)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
+@app.get("/saved-mentors", response_model=list[SavedMentorRead])
+def list_saved_mentors(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    items = db.query(SavedMentor).filter(SavedMentor.user_id == current_user.id).all()
+    output = []
+    for item in items:
+        read_obj = SavedMentorRead.from_orm(item)
+        mentor_user = db.get(User, item.mentor_id)
+        if mentor_user and mentor_user.profile:
+            read_obj.mentor_profile = MentorProfileRead.from_orm(mentor_user.profile)
+        output.append(read_obj)
+    return output
+
+
+@app.delete("/saved-mentors/{mentor_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_saved_mentor(
+    mentor_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    record = (
+        db.query(SavedMentor)
+        .filter(SavedMentor.user_id == current_user.id, SavedMentor.mentor_id == mentor_id)
+        .first()
+    )
+    if record:
+        db.delete(record)
+        db.commit()
+    return None
+
+
+# ── Mentor Reviews ─────────────────────────────────────────────────────────────
+
+@app.post("/mentors/{mentor_id}/reviews", response_model=MentorReviewRead, status_code=status.HTTP_201_CREATED)
+def create_mentor_review(
+    mentor_id: int,
+    payload: MentorReviewCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    reviewer_name = _get_user_display_name(current_user)
+    reviewer_role = "Verified Mentee"
+
+    review = MentorReview(
+        mentor_id=mentor_id,
+        mentee_id=current_user.id,
+        rating=payload.rating,
+        reviewer_name=reviewer_name,
+        reviewer_role=reviewer_role,
+        session_topic=payload.session_topic,
+        quote=payload.quote,
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return review
+
+
+@app.get("/mentors/{mentor_id}/reviews", response_model=list[MentorReviewRead])
+def list_mentor_reviews(mentor_id: int, db: Session = Depends(get_db)):
+    return (
+        db.query(MentorReview)
+        .filter(MentorReview.mentor_id == mentor_id)
+        .order_by(MentorReview.created_at.desc())
+        .all()
+    )
+
+
+# ── Session Notes ─────────────────────────────────────────────────────────────
+
+@app.post("/session-notes", response_model=SessionNoteRead, status_code=status.HTTP_201_CREATED)
+def create_session_note(
+    payload: SessionNoteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    note = SessionNote(
+        user_id=current_user.id,
+        request_id=payload.request_id,
+        title=payload.title,
+        content=payload.content,
+        resource_url=payload.resource_url,
+    )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@app.get("/session-notes", response_model=list[SessionNoteRead])
+def list_session_notes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(SessionNote)
+        .filter(SessionNote.user_id == current_user.id)
+        .order_by(SessionNote.created_at.desc())
+        .all()
+    )
+
+
+@app.delete("/session-notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_session_note(
+    note_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    note = db.get(SessionNote, note_id)
+    if note and note.user_id == current_user.id:
+        db.delete(note)
+        db.commit()
+    return None

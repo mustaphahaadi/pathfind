@@ -1,11 +1,23 @@
+import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import OnboardingStepper from "../components/onboarding/OnboardingStepper";
 import { mentorOnboardingSteps } from "../data/mentor-onboarding/steps";
+import { useAuthStore } from "../store/useAuthStore";
+import { useMentorOnboardingStore } from "../store/useMentorOnboardingStore";
 
 const MentorOnboardingLayout = () => {
   const location = useLocation();
+  const authUser = useAuthStore((s) => s.user);
+  const hydrateFromUser = useMentorOnboardingStore((s) => s.hydrateFromUser);
+
+  useEffect(() => {
+    if (authUser) {
+      hydrateFromUser(authUser);
+    }
+  }, [authUser, hydrateFromUser]);
+
   const currentStepIndex = Math.max(
     0,
     mentorOnboardingSteps.findIndex((step) => location.pathname.endsWith(step.path)),

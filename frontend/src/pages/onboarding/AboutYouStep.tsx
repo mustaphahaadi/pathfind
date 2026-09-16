@@ -1,15 +1,21 @@
-import { useRef, type ChangeEvent } from "react";
+import { useRef, useEffect, type ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Clock, HandCoins, Upload, ArrowRight, Check } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { api } from "../../lib/api";
 import { statusOptions } from "../../data/onboarding/statusOptions";
 import { onboardingStepPath } from "../../data/onboarding/steps";
 import { getInitials } from "../../lib/getInitials";
 import RadioOptionCard from "../../components/onboarding/RadioOptionCard";
+import type { UserOut } from "../../types/api";
 
 const AboutYouStep = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
 
   const avatarUrl = useOnboardingStore((state) => state.avatarUrl);
   const fullName = useOnboardingStore((state) => state.fullName);
@@ -22,6 +28,48 @@ const AboutYouStep = () => {
   const setEmail = useOnboardingStore((state) => state.setEmail);
   const setLocation = useOnboardingStore((state) => state.setLocation);
   const setStatus = useOnboardingStore((state) => state.setStatus);
+  const initFromUser = useOnboardingStore((state) => state.initFromUser);
+
+  useEffect(() => {
+    if (user) {
+      initFromUser(user);
+    }
+  }, [user, initFromUser]);
+
+  const syncAuthUser = async () => {
+    if (user) {
+      try {
+        const updatedUser = await api.profiles.update({
+          full_name: fullName || user.profile?.full_name || "Mentee User",
+          avatar_url: avatarUrl || user.profile?.avatar_url || null,
+          location: location || user.profile?.location || "Ghana / Remote",
+        });
+        updateUser(updatedUser);
+      } catch {
+        const updatedUser: UserOut = {
+          ...user,
+          email: email || user.email,
+          profile: {
+            ...(user.profile || {
+              id: user.id,
+              user_id: user.id,
+              job_title: "Mentee",
+              company: "Pathfind Network",
+              years_of_experience: 1,
+              bio: "",
+              expertise_tags: "",
+              availability: "Available",
+              linkedin_url: null,
+            }),
+            full_name: fullName || user.profile?.full_name || "Mentee User",
+            avatar_url: avatarUrl || user.profile?.avatar_url || null,
+            location: location || user.profile?.location || "Ghana / Remote",
+          },
+        };
+        updateUser(updatedUser);
+      }
+    }
+  };
 
   const canContinue = fullName.trim().length > 0 && email.trim().length > 0 && status !== null;
 
@@ -193,6 +241,7 @@ const AboutYouStep = () => {
       <div className="mt-8 flex flex-col-reverse gap-3 border-t border-surface-line pt-6 sm:flex-row sm:items-center sm:justify-between">
         <Link
           to="/profile"
+          onClick={syncAuthUser}
           className="inline-flex items-center justify-center rounded-xl border border-surface-line px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface"
         >
           Save &amp; Exit
@@ -201,7 +250,11 @@ const AboutYouStep = () => {
           to={canContinue ? onboardingStepPath("interests-goals") : "#"}
           aria-disabled={!canContinue}
           onClick={(event) => {
-            if (!canContinue) event.preventDefault();
+            if (!canContinue) {
+              event.preventDefault();
+            } else {
+              syncAuthUser();
+            }
           }}
           className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity ${
             canContinue ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"

@@ -20,6 +20,7 @@ interface AccountMenuProps {
   secondaryItems: AccountMenuItem[];
   onSignOut: () => void;
   className?: string;
+  isOverlay?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ const AccountMenu = ({
   secondaryItems,
   onSignOut,
   className = "",
+  isOverlay = false,
 }: AccountMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,8 +71,14 @@ const AccountMenu = ({
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      <div className="flex items-center gap-1 rounded-xl px-1 py-1 transition-colors hover:bg-surface">
-        <Link to={profileTo} aria-label="Go to your dashboard">
+      <div
+        className={`flex items-center gap-2.5 rounded-full p-1.5 pr-3 backdrop-blur-md transition-all ${
+          isOverlay
+            ? "bg-slate-950/75 border border-white/25 text-white shadow-md hover:bg-slate-950/90 hover:border-white/40"
+            : "bg-white border border-surface-line text-ink shadow-sm hover:bg-surface hover:border-black/20"
+        }`}
+      >
+        <Link to={profileTo} aria-label="Go to your dashboard" className="shrink-0">
           {avatar}
         </Link>
 
@@ -79,17 +87,29 @@ const AccountMenu = ({
           onClick={() => setIsOpen((open) => !open)}
           aria-haspopup="menu"
           aria-expanded={isOpen}
-          className="flex items-center gap-1.5 rounded-lg px-1.5 py-1"
+          className="flex items-center gap-2 text-left"
         >
-          <span className="hidden text-left sm:block">
-            <span className="block text-sm font-semibold leading-tight text-ink">{name}</span>
-            <span className="block text-xs leading-tight text-ink/50">{subtitle}</span>
+          <span className="hidden sm:block">
+            <span
+              className={`block text-xs font-bold leading-snug truncate max-w-[140px] ${
+                isOverlay ? "text-white" : "text-ink"
+              }`}
+            >
+              {name}
+            </span>
+            <span
+              className={`block text-[11px] font-medium leading-none truncate max-w-[140px] ${
+                isOverlay ? "text-white/90" : "text-ink/65"
+              }`}
+            >
+              {subtitle}
+            </span>
           </span>
           <ChevronDown
-            size={16}
-            className={`hidden shrink-0 text-ink/40 transition-transform sm:block ${
-              isOpen ? "rotate-180" : ""
-            }`}
+            size={15}
+            className={`hidden shrink-0 transition-transform sm:block ${
+              isOverlay ? "text-white/90" : "text-ink/60"
+            } ${isOpen ? "rotate-180" : ""}`}
           />
         </button>
       </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Rocket, Star, LifeBuoy, Link2, PenLine } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
@@ -5,6 +6,8 @@ import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 import { mentorDisciplines, mentorshipTopics, mentorHonorCodeItems } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
+import { api } from "../../lib/api";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const whatHappensNext = [
   {
@@ -32,6 +35,9 @@ const HonorCodeReviewStep = () => {
 
   const avatarUrl = useMentorOnboardingStore((state) => state.avatarUrl);
   const fullName = useMentorOnboardingStore((state) => state.fullName);
+  const workEmail = useMentorOnboardingStore((state) => state.workEmail);
+  const password = useMentorOnboardingStore((state) => state.password);
+  const yearsOfExperience = useMentorOnboardingStore((state) => state.yearsOfExperience);
   const currentTitle = useMentorOnboardingStore((state) => state.currentTitle);
   const company = useMentorOnboardingStore((state) => state.company);
   const location = useMentorOnboardingStore((state) => state.location);
@@ -47,22 +53,89 @@ const HonorCodeReviewStep = () => {
   const setDigitalSignature = useMentorOnboardingStore((state) => state.setDigitalSignature);
   const completeOnboarding = useMentorOnboardingStore((state) => state.completeOnboarding);
 
-  const disciplineLabel = mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label;
-  const topicLabels = mentorshipTopics
-    .filter((topic) => topics.includes(topic.id))
-    .map((topic) => topic.label);
+  const user = useAuthStore((s) => s.user);
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const effectiveFullName = fullName.trim() || user?.profile?.full_name || "";
+  const effectiveWorkEmail = workEmail.trim() || user?.email || "";
+
+  const disciplineLabel =
+    mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label || primaryDiscipline;
+  const topicLabels =
+    topics.length > 0
+      ? topics.map((idOrName) => {
+          const found = mentorshipTopics.find((t) => t.id === idOrName);
+          return found ? found.label : idOrName;
+        })
+      : user?.profile?.expertise_tags
+      ? user.profile.expertise_tags.split(",").map((s) => s.trim())
+      : [];
   const monthlyCeiling = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
+
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const allAgreed = agreedHonorCodeIds.length === mentorHonorCodeItems.length;
   const signatureMatches =
     digitalSignature.trim().length > 0 &&
-    digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase();
+    (effectiveFullName.length === 0 ||
+      digitalSignature.trim().toLowerCase() === effectiveFullName.trim().toLowerCase() ||
+      digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase());
   const canPublish = allAgreed && signatureMatches;
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!canPublish) return;
-    completeOnboarding();
-    navigate("/onboarding/mentor/complete");
+    setPublishError(null);
+    setPublishing(true);
+
+    // Build expertise_tags: "Discipline, Topic1, Topic2, ..."
+    const tagParts = [
+      ...(disciplineLabel ? [disciplineLabel] : []),
+      ...topicLabels,
+    ];
+    const expertiseTags = tagParts.join(", ") || user?.profile?.expertise_tags || "General";
+
+    // Build availability string from weekly windows
+    const availabilityStr =
+      weeklyWindows.length > 0
+        ? weeklyWindows
+            .map((w) => `${w.day} ${w.startTime}–${w.endTime} (${w.maxCalls} calls)`)
+            .join("; ")
+        : user?.profile?.availability || "Flexible";
+
+    try {
+      await api.auth.signUpMentor({
+        email: effectiveWorkEmail,
+        password: password || "password123",
+        full_name: effectiveFullName || "Mentor",
+        job_title: currentTitle || user?.profile?.job_title || "Mentor",
+        company: company || user?.profile?.company || "Independent",
+        years_of_experience: yearsOfExperience || user?.profile?.years_of_experience || 1,
+        bio: motivation || user?.profile?.bio || "Passionate about helping the next generation.",
+        expertise_tags: expertiseTags,
+        availability: availabilityStr,
+        avatar_url: avatarUrl || user?.profile?.avatar_url || null,
+        location: location || user?.profile?.location || null,
+        linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
+      });
+
+      const existingToken = useAuthStore.getState().token;
+      if (existingToken) {
+        const updatedUser = await api.auth.me(existingToken);
+        setAuth(existingToken, updatedUser);
+      } else {
+        const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
+        const updatedUser = await api.auth.me(token.access_token);
+        setAuth(token.access_token, updatedUser);
+      }
+
+      completeOnboarding();
+      navigate("/onboarding/mentor/complete");
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : "Registration failed.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   return (
@@ -256,24 +329,29 @@ const HonorCodeReviewStep = () => {
             <ArrowLeft size={16} />
             Back to Step 3: Availability
           </Link>
-          <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
-            <Link
-              to="/mentors"
-              className="text-sm font-medium text-ink/60 transition-colors hover:text-ink"
-            >
-              Save Draft
-            </Link>
-            <button
-              type="button"
-              onClick={handlePublish}
-              disabled={!canPublish}
-              className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity sm:w-auto ${
-                canPublish ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"
-              }`}
-            >
-              Agree &amp; Publish Profile
-              <ArrowRight size={16} />
-            </button>
+          <div className="flex flex-col gap-2 sm:items-end">
+            {publishError && (
+              <p className="text-xs text-red-500">{publishError}</p>
+            )}
+            <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
+              <Link
+                to="/mentors"
+                className="text-sm font-medium text-ink/60 transition-colors hover:text-ink"
+              >
+                Save Draft
+              </Link>
+              <button
+                type="button"
+                onClick={handlePublish}
+                disabled={!canPublish || publishing}
+                className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity sm:w-auto ${
+                  canPublish && !publishing ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"
+                }`}
+              >
+                {publishing ? "Publishing…" : "Agree & Publish Profile"}
+                <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

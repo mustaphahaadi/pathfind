@@ -1,7 +1,16 @@
-"""Seed script to populate mock mentor profiles and demo accounts into the database."""
-from backend.auth import hash_password
-from backend.database import Base, SessionLocal, engine
-from backend.models import MentorProfile, User, VerificationStatus
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+try:
+    from backend.auth import hash_password
+    from backend.database import Base, SessionLocal, engine
+    from backend.models import MentorProfile, User, VerificationStatus
+except ImportError:
+    from auth import hash_password
+    from database import Base, SessionLocal, engine
+    from models import MentorProfile, User, VerificationStatus
 
 SEED_MENTORS = [
     {
@@ -16,6 +25,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "Python, FastAPI, PostgreSQL, AWS",
         "availability": "Weekday evenings",
+        "location": "Accra, Ghana",
+        "linkedin_url": "https://linkedin.com/in/kwame-mensah",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "abena.owusu@amalitech.org",
@@ -29,6 +44,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "Product Strategy, Agile, User Research, Product Discovery",
         "availability": "Saturday mornings",
+        "location": "Kumasi, Ghana",
+        "linkedin_url": "https://linkedin.com/in/abena-owusu",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "kofi.asante@amalitech.org",
@@ -42,6 +63,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "React, TypeScript, JavaScript, HTML/CSS",
         "availability": "Weekday evenings",
+        "location": "Takoradi, Ghana",
+        "linkedin_url": "https://linkedin.com/in/kofi-asante",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "nana.yeboah@amalitech.org",
@@ -55,6 +82,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "SQL, Power BI, Excel, Data Visualization",
         "availability": "Saturday afternoons",
+        "location": "Accra, Ghana",
+        "linkedin_url": "https://linkedin.com/in/nana-yeboah",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "akosua.boateng@amalitech.org",
@@ -68,6 +101,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "Figma, UX Research, Wireframing, Design Systems",
         "availability": "Weekday evenings",
+        "location": "Tema, Ghana",
+        "linkedin_url": "https://linkedin.com/in/akosua-boateng",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "yaw.ofori@amalitech.org",
@@ -78,6 +117,12 @@ SEED_MENTORS = [
         "bio": "Yaw is a cloud and DevOps engineer with experience automating deployments and managing infrastructure.",
         "expertise_tags": "AWS, Docker, CI/CD, Linux, Cloud Infrastructure",
         "availability": "Saturday mornings",
+        "location": "Accra, Ghana",
+        "linkedin_url": "https://linkedin.com/in/yaw-ofori",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "adwoa.addo@amalitech.org",
@@ -91,6 +136,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "Java, Spring Boot, PostgreSQL, APIs",
         "availability": "Weekday evenings",
+        "location": "Accra, Ghana",
+        "linkedin_url": "https://linkedin.com/in/adwoa-addo",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "kojo.antwi@amalitech.org",
@@ -104,6 +155,12 @@ SEED_MENTORS = [
         ),
         "expertise_tags": "Python, Machine Learning, SQL, Statistics",
         "availability": "Sunday afternoons",
+        "location": "Kumasi, Ghana",
+        "linkedin_url": "https://linkedin.com/in/kojo-antwi",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
 ]
 
@@ -147,6 +204,9 @@ def seed_database():
                     bio=item["bio"],
                     expertise_tags=item["expertise_tags"],
                     availability=item["availability"],
+                    avatar_url=item.get("avatar_url"),
+                    location=item.get("location"),
+                    linkedin_url=item.get("linkedin_url"),
                 )
                 db.add(profile)
                 db.commit()

@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, HeartHandshake, PartyPopper } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { proficiencyOptions } from "../../data/onboarding/proficiencyOptions";
 import { meetingPreferences } from "../../data/onboarding/meetingPreferences";
 import { mentors } from "../../data/mentors";
@@ -8,9 +9,16 @@ import { onboardingStepPath } from "../../data/onboarding/steps";
 import RadioOptionCard from "../../components/onboarding/RadioOptionCard";
 import ToggleChip from "../../components/onboarding/ToggleChip";
 import AvatarStack from "../../components/onboarding/AvatarStack";
+import type { UserOut } from "../../types/api";
 
 const ExperienceReadinessStep = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const updateUser = useAuthStore((state) => state.updateUser);
+
+  const fullName = useOnboardingStore((state) => state.fullName);
+  const location = useOnboardingStore((state) => state.location);
+  const avatarUrl = useOnboardingStore((state) => state.avatarUrl);
   const proficiency = useOnboardingStore((state) => state.proficiency);
   const selectedMeetingPrefs = useOnboardingStore((state) => state.meetingPreferences);
   const pledgeAgreed = useOnboardingStore((state) => state.pledgeAgreed);
@@ -25,7 +33,31 @@ const ExperienceReadinessStep = () => {
   const handleComplete = () => {
     if (!canComplete) return;
     completeOnboarding();
-    navigate("/mentors", { state: { matched: true } });
+
+    if (user) {
+      const updatedUser: UserOut = {
+        ...user,
+        profile: {
+          ...(user.profile || {
+            id: user.id,
+            user_id: user.id,
+            job_title: "Mentee",
+            company: "Pathfind Network",
+            years_of_experience: 1,
+            bio: "",
+            expertise_tags: "",
+            availability: "Available",
+            linkedin_url: null,
+          }),
+          full_name: fullName || user.profile?.full_name || "Mentee User",
+          avatar_url: avatarUrl || user.profile?.avatar_url || null,
+          location: location || user.profile?.location || "Ghana / Remote",
+        },
+      };
+      updateUser(updatedUser);
+    }
+
+    navigate("/profile", { state: { matched: true } });
   };
 
   return (

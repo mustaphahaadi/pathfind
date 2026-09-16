@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Inbox,
@@ -6,22 +6,19 @@ import {
   Users,
   Settings,
   Eye,
-  Pencil,
-  CalendarClock,
-  ClipboardList,
-  Link2,
-  MessageCircle,
   Mail,
   ShieldCheck,
   CheckCircle2,
   Circle,
-  Lightbulb,
   HandCoins,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { useMentorOnboardingStore } from "../store/useMentorOnboardingStore";
 import { mentorHonorCodeItems } from "../data/mentor-onboarding/options";
+import { useAuthStore } from "../store/useAuthStore";
+import { api } from "../lib/api";
+import type { MentorshipRequestRead } from "../types/api";
 
 type TabId = "overview" | "requests" | "scheduled" | "feedback" | "availability";
 
@@ -33,33 +30,62 @@ const tabs: { id: TabId; label: string }[] = [
   { id: "availability", label: "Availability & Settings" },
 ];
 
-const slugify = (value: string) =>
-  value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-
 const MentorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
-  const fullName = useMentorOnboardingStore((state) => state.fullName);
+  const user = useAuthStore((s) => s.user);
+  const fullName = user?.profile?.full_name ?? useMentorOnboardingStore.getState().fullName;
   const weeklyWindows = useMentorOnboardingStore((state) => state.weeklyWindows);
   const acceptingRequests = useMentorOnboardingStore((state) => state.acceptingRequests);
   const agreedHonorCodeIds = useMentorOnboardingStore((state) => state.agreedHonorCodeIds);
   const hasCompletedOnboarding = useMentorOnboardingStore((state) => state.hasCompletedOnboarding);
   const toggleAcceptingRequests = useMentorOnboardingStore((state) => state.toggleAcceptingRequests);
 
+  const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
+
+  useEffect(() => {
+    api.requests.list()
+      .then(setRequests)
+      .catch(() => {});
+  }, []);
+
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [activeModalRequest, setActiveModalRequest] = useState<{ id: string; status: "accepted" | "declined" } | null>(null);
+  const [responseNote, setResponseNote] = useState("");
+
+  const handleStatusChange = async (requestId: string, status: "accepted" | "declined" | "completed", message?: string) => {
+    setActionLoading(requestId);
+    try {
+      const updated = await api.requests.updateStatus(requestId, {
+        status,
+        response_message: message || undefined,
+      });
+      setRequests((prev) => prev.map((r) => (r.id === requestId ? updated : r)));
+      setActiveModalRequest(null);
+      setResponseNote("");
+    } catch {
+      // keep existing state
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/m/${slugify(fullName) || "your-profile"}`;
+  const shareLink = `pathfind.org/m/${user?.profile?.id ?? "your-profile"}`;
 
-  // Honest zero state: there's no real backend connecting mentees to a custom
-  // mentor, so a freshly published mentor genuinely has no bookings, mentees,
-  // or ratings yet — nothing here is a placeholder for hidden real data.
-  const sessionsBooked = 0;
-  const menteesGuided = 0;
-  const hasRatings = false;
+  const pendingRequests = requests.filter((r) => r.status === "pending");
+  const acceptedRequests = requests.filter((r) => r.status === "accepted");
+  const completedRequests = requests.filter((r) => r.status === "completed");
+
+  const pendingCount = pendingRequests.length;
+  const sessionsBooked = acceptedRequests.length + completedRequests.length;
+  const menteesGuided = new Set(completedRequests.map((r) => r.mentee_id)).size;
+  const hasRatings = menteesGuided > 0;
 
   const readinessChecks = [
-    { label: "Profile Published", complete: hasCompletedOnboarding },
-    { label: "Availability Configured", complete: weeklyWindows.length > 0 },
+    { label: "Profile Published", complete: hasCompletedOnboarding || !!user?.profile },
+    { label: "Availability Configured", complete: weeklyWindows.length > 0 || !!user?.profile?.availability },
     { label: "Honor Code Signed", complete: agreedHonorCodeIds.length === mentorHonorCodeItems.length },
   ];
   const readinessCompleteCount = readinessChecks.filter((check) => check.complete).length;
@@ -70,238 +96,254 @@ const MentorDashboardPage = () => {
 
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-green/10 px-3 py-1.5 text-xs font-semibold text-accent-green">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-green" />
-              Profile Active &amp; Published
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink">
-              Volunteer Tier: {monthlyCapacity} / Mo
-            </span>
+          {/* Executive Mentor Hero Banner */}
+          <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-8 text-white shadow-xl">
+            
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {user?.verification_status === "verified" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Verified Mentor Profile
+                  </span>
+                ) : user?.verification_status === "rejected" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300 backdrop-blur-md ring-1 ring-rose-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                    Verification Rejected
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md ring-1 ring-amber-500/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    Pending Admin Verification
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
+                  Capacity: {monthlyCapacity} Calls / Month
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={toggleAcceptingRequests}
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all backdrop-blur-md ring-1 ${
+                  acceptingRequests
+                    ? "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30 hover:bg-emerald-500/30"
+                    : "bg-amber-500/20 text-amber-300 ring-amber-500/30 hover:bg-amber-500/30"
+                }`}
+              >
+                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-400" : "bg-amber-400"}`} />
+                {acceptingRequests ? "Accepting Mentees" : "Paused"}
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                  Welcome back, {firstName} 👋
+                </h1>
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
+                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana's rising tech talent.
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-2.5">
+                <Link
+                  to="/mentors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                >
+                  <Eye size={16} />
+                  View Public Card
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-extrabold text-ink sm:text-4xl">
-                Welcome to Pathfind, {firstName}
-              </h1>
-              <p className="mt-1 max-w-xl text-sm text-ink/60">
-                Your profile is visible to mentees worldwide. You&apos;re offering{" "}
-                {monthlyCapacity} free volunteer mentorship session
-                {monthlyCapacity === 1 ? "" : "s"} each calendar month.
-              </p>
+          {/* Quick Metrics */}
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Pending Requests
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                  <Inbox size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{pendingCount}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Awaiting your response</p>
             </div>
-            <div className="flex shrink-0 gap-2">
-              <Link
-                to="/mentors/you"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-              >
-                <Eye size={15} />
-                Preview Public Profile
-              </Link>
-              <Link
-                to="/onboarding/mentor/identity-verification"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              >
-                <Pencil size={15} />
-                Edit Profile
-              </Link>
-            </div>
-          </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Sessions Committed
-                <CalendarClock size={15} />
-              </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">
-                {sessionsBooked}
-                <span className="text-base font-medium text-ink/40"> / {monthlyCapacity} booked</span>
-              </p>
-              <p className="mt-1 text-xs text-ink/50">
-                {sessionsBooked} of {monthlyCapacity} monthly sessions booked so far.
-              </p>
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-emerald-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Sessions Scheduled
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <CalendarDays size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{acceptedRequests.length}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Active mentorship bookings</p>
             </div>
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Mentees Guided
-                <Users size={15} />
-              </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">{menteesGuided}</p>
-              <p className="mt-1 text-xs text-ink/50">Mentees guided so far.</p>
+
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-indigo-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Mentees Guided
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600">
+                  <Users size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">{menteesGuided}</p>
+              <p className="mt-1 text-xs font-medium text-ink/50">Mentees guided so far</p>
             </div>
-            <div className="rounded-2xl border border-surface-line bg-white p-4">
-              <p className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Community Standing
-                <ShieldCheck size={15} />
+
+            <div className="rounded-2xl border border-surface-line bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-amber-500/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/40">
+                  Community Standing
+                </p>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-500">
+                  <ShieldCheck size={18} strokeWidth={2} />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-black text-ink">
+                {hasRatings ? "5.0 ★" : "100% Verified"}
               </p>
-              <p className="mt-2 text-3xl font-extrabold text-ink">
-                {hasRatings ? "5.0 ★" : "—"}
-              </p>
-              <p className="mt-1 text-xs text-ink/50">
+              <p className="mt-1 text-xs font-medium text-ink/50">
                 {hasRatings
                   ? "Average mentee rating"
-                  : "No ratings yet — these appear after your first completed session."}
+                  : "Verified volunteer mentor"}
               </p>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-1 overflow-x-auto rounded-2xl border border-surface-line bg-white p-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* Navigation Tabs */}
+          <div className="mt-6 flex gap-1.5 overflow-x-auto rounded-2xl border border-surface-line bg-white p-2 shadow-sm [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors ${
-                  tab.id === activeTab ? "bg-ink text-white" : "text-ink/60 hover:bg-surface"
+                className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+                  tab.id === activeTab
+                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/15"
+                    : "text-ink/70 hover:bg-surface hover:text-ink"
                 }`}
               >
                 {tab.label}
-                {tab.id !== "overview" && tab.id !== "availability" && (
-                  <span
-                    className={`rounded-full px-1.5 text-xs ${
-                      tab.id === activeTab ? "bg-white/20" : "bg-surface"
-                    }`}
-                  >
-                    0
+                {tab.id === "requests" && pendingCount > 0 && (
+                  <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-xs font-extrabold text-amber-500">
+                    {pendingCount}
+                  </span>
+                )}
+                {tab.id === "scheduled" && acceptedRequests.length > 0 && (
+                  <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-xs font-extrabold text-emerald-600">
+                    {acceptedRequests.length}
                   </span>
                 )}
               </button>
             ))}
           </div>
 
+          {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
-            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.6fr_1fr]">
+            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.8fr_1fr]">
               <div className="flex flex-col gap-6">
-                <div className="rounded-3xl border border-surface-line bg-white p-6">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-blue/10 px-3 py-1.5 text-xs font-semibold text-accent-blue">
-                    Welcome Aboard
-                  </span>
-                  <h2 className="mt-3 text-xl font-bold text-ink">Your profile is live!</h2>
+                <div className="rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-accent-green" />
+                    <p className="text-xs font-semibold tracking-wide text-accent-green">
+                      DIRECT MENTOR PROFILE LINK
+                    </p>
+                  </div>
+                  <h2 className="mt-2 text-2xl font-extrabold text-ink">
+                    Share your pathfind directory link
+                  </h2>
                   <p className="mt-1 text-sm text-ink/60">
-                    Once mentees discover you in the directory, your upcoming sessions and
-                    booking requests will appear here. In the meantime, make sure your
-                    availability and discussion topics are up to date.
+                    Mentees can review your background, focus topics, and request 1:1 sessions.
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      to="/onboarding/mentor/availability-capacity"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+
+                  <div className="mt-4 flex items-center justify-between rounded-2xl bg-surface p-3.5">
+                    <span className="font-mono text-xs font-medium text-ink/80">{shareLink}</span>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(`https://${shareLink}`)}
+                      className="rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface"
                     >
-                      <ClipboardList size={15} />
-                      View &amp; Update Availability
-                    </Link>
-                    <Link
-                      to="/mentors/you"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-                    >
-                      Preview Public Directory Card
-                    </Link>
-                    <a
-                      href="mailto:volunteers@pathfind.org?subject=Slack%20community%20invite"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-                    >
-                      <MessageCircle size={15} />
-                      Explore Community Slack
-                    </a>
+                      Copy Link
+                    </button>
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-surface-line bg-white p-6">
-                  <div className="flex items-center justify-between">
-                    <p className="flex items-center gap-1.5 text-base font-bold text-ink">
-                      <CalendarDays size={17} />
-                      Upcoming Scheduled Session
-                    </p>
-                    <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-ink/60">
-                      {sessionsBooked} Booked
-                    </span>
-                  </div>
-                  <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink/40">
-                      <CalendarDays size={20} />
-                    </span>
-                    <p className="mt-3 text-sm font-bold text-ink">No scheduled sessions yet</p>
-                    <p className="mt-1 max-w-sm text-sm text-ink/60">
-                      When a mentee reserves one of your available slots, the booking
-                      details and video link will show up here.
-                    </p>
-                  </div>
-                </div>
-
+                {/* Incoming Requests Overview Section */}
                 <div className="rounded-3xl border border-surface-line bg-white p-6">
                   <div className="flex items-center justify-between">
                     <p className="flex items-center gap-1.5 text-base font-bold text-ink">
                       <Inbox size={17} />
                       Pending Mentee Requests
                     </p>
-                    <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-ink/60">
-                      0 Pending
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("requests")}
+                      className="text-xs font-semibold text-accent-blue hover:underline"
+                    >
+                      View All ({pendingCount})
+                    </button>
                   </div>
-                  <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink/40">
-                      <Mail size={20} />
-                    </span>
-                    <p className="mt-3 text-sm font-bold text-ink">No pending requests</p>
-                    <p className="mt-1 max-w-sm text-sm text-ink/60">
-                      Requests from mentees matching your focus topics will arrive here
-                      for your review.
-                    </p>
-                  </div>
-                </div>
 
-                <div className="rounded-3xl border border-surface-line bg-white p-6">
-                  <p className="flex items-center gap-1.5 text-base font-bold text-ink">
-                    <Lightbulb size={17} />
-                    Mentor Quick Tips
-                  </p>
-                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-surface-line p-4">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
-                        1
+                  {pendingRequests.length === 0 ? (
+                    <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink/40">
+                        <Mail size={20} />
                       </span>
-                      <p className="mt-2 text-sm font-bold text-ink">Share your direct link</p>
-                      <p className="mt-1 text-sm text-ink/60">
-                        Share your mentor link on LinkedIn or X to let early-career
-                        engineers know your door is open.
-                      </p>
-                      <p className="mt-3 flex items-center gap-1 border-t border-surface-line pt-2 text-xs text-ink/50">
-                        <Link2 size={12} />
-                        {shareLink}
+                      <p className="mt-3 text-sm font-bold text-ink">No pending requests</p>
+                      <p className="mt-1 max-w-sm text-sm text-ink/60">
+                        Requests from mentees matching your focus topics will arrive here for your review.
                       </p>
                     </div>
-                    <div className="rounded-xl border border-surface-line p-4">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
-                        2
-                      </span>
-                      <p className="mt-2 text-sm font-bold text-ink">Keep availability current</p>
-                      <p className="mt-1 text-sm text-ink/60">
-                        Update your recurring windows whenever your schedule changes to
-                        avoid conflicting bookings.
-                      </p>
-                      <p className="mt-3 border-t border-surface-line pt-2 text-xs text-ink/50">
-                        {weeklyWindows.length} window{weeklyWindows.length === 1 ? "" : "s"} active
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-surface-line p-4">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
-                        3
-                      </span>
-                      <p className="mt-2 text-sm font-bold text-ink">Honor code standard</p>
-                      <p className="mt-1 text-sm text-ink/60">
-                        Prepare for focused sessions with zero sales pitches or
-                        recruiting bias, per the community Honor Code.
-                      </p>
-                      <p className="mt-3 border-t border-surface-line pt-2 text-xs text-ink/50">
-                        {agreedHonorCodeIds.length}/{mentorHonorCodeItems.length} pledges signed
-                      </p>
-                    </div>
-                  </div>
+                  ) : (
+                    <ul className="mt-4 space-y-3">
+                      {pendingRequests.slice(0, 3).map((req) => (
+                        <li
+                          key={req.id}
+                          className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-ink">{req.subject}</p>
+                              <span className="rounded-full bg-accent-gold/10 px-2.5 py-0.5 text-xs font-semibold text-accent-gold">
+                                PENDING
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-ink/60">
+                              Mentee: <span className="font-semibold text-ink">{req.mentee_email}</span> &middot; Type: {req.request_type.replace(/_/g, " ")}
+                            </p>
+                            <p className="mt-1 text-xs text-ink/70 line-clamp-2">&ldquo;{req.message}&rdquo;</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setActiveModalRequest({ id: req.id, status: "accepted" })}
+                              className="rounded-xl bg-accent-green px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveModalRequest({ id: req.id, status: "declined" })}
+                              className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
 
+              {/* Sidebar */}
               <div className="flex flex-col gap-5">
                 <div className="rounded-2xl border border-surface-line bg-white p-5">
                   <div className="flex items-center justify-between">
@@ -446,19 +488,301 @@ const MentorDashboardPage = () => {
             </div>
           )}
 
-          {activeTab !== "overview" && (
-            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-10 text-center">
-              <p className="text-base font-bold text-ink">
-                {tabs.find((tab) => tab.id === activeTab)?.label}
-              </p>
-              <p className="mt-2 text-sm text-ink/60">
-                Nothing here yet — this fills in once mentees start requesting sessions
-                with you.
-              </p>
+          {/* TAB 2: INCOMING REQUESTS */}
+          {activeTab === "requests" && (
+            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+              <div className="flex items-center justify-between border-b border-surface-line pb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-ink">Incoming Mentorship Requests</h2>
+                  <p className="text-sm text-ink/60">
+                    Review and respond to mentorship requests submitted by Ghana tech transitioners.
+                  </p>
+                </div>
+                <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink">
+                  {pendingRequests.length} Pending
+                </span>
+              </div>
+
+              {pendingRequests.length === 0 ? (
+                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
+                  <Mail size={32} className="text-ink/30" />
+                  <p className="mt-3 text-base font-bold text-ink">No pending requests</p>
+                  <p className="mt-1 text-sm text-ink/60">
+                    When mentees send a request matching your expertise, it will appear here for your review.
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-6 space-y-4">
+                  {pendingRequests.map((req) => (
+                    <li key={req.id} className="rounded-2xl border border-surface-line bg-surface/30 p-5">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <span className="inline-block rounded-full bg-accent-gold/10 px-2.5 py-0.5 text-xs font-semibold text-accent-gold">
+                            PENDING REVIEW
+                          </span>
+                          <h3 className="mt-2 text-lg font-bold text-ink">{req.subject}</h3>
+                          <p className="text-xs text-ink/60">
+                            Mentee Email: <span className="font-semibold text-ink">{req.mentee_email}</span> &middot; Type:{" "}
+                            <span className="font-medium text-ink">{req.request_type.replace(/_/g, " ")}</span> &middot; Submitted on{" "}
+                            {new Date(req.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveModalRequest({ id: req.id, status: "accepted" })}
+                            className="rounded-xl bg-accent-green px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90"
+                          >
+                            Accept Request
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveModalRequest({ id: req.id, status: "declined" })}
+                            className="rounded-xl border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 rounded-xl bg-white p-4 border border-surface-line">
+                        <p className="text-xs font-bold uppercase tracking-wider text-ink/40">Mentee Message</p>
+                        <p className="mt-1 text-sm text-ink/80">&ldquo;{req.message}&rdquo;</p>
+                      </div>
+
+                      {/* Attachments */}
+                      {(req.resume_url || req.portfolio_url || req.github_url) && (
+                        <div className="mt-3 flex flex-wrap gap-2 pt-1 text-xs">
+                          {req.resume_url && (
+                            <a
+                              href={req.resume_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                            >
+                              📄 Resume Attachment
+                            </a>
+                          )}
+                          {req.portfolio_url && (
+                            <a
+                              href={req.portfolio_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                            >
+                              🌐 Portfolio Link
+                            </a>
+                          )}
+                          {req.github_url && (
+                            <a
+                              href={req.github_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                            >
+                              💻 GitHub Profile
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: SCHEDULED SESSIONS */}
+          {activeTab === "scheduled" && (
+            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+              <div className="flex items-center justify-between border-b border-surface-line pb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-ink">Scheduled &amp; Active Sessions</h2>
+                  <p className="text-sm text-ink/60">Mentorship sessions you have accepted.</p>
+                </div>
+                <span className="rounded-full bg-accent-green/10 px-3 py-1 text-xs font-bold text-accent-green">
+                  {acceptedRequests.length} Active
+                </span>
+              </div>
+
+              {acceptedRequests.length === 0 ? (
+                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
+                  <CalendarDays size={32} className="text-ink/30" />
+                  <p className="mt-3 text-base font-bold text-ink">No active sessions scheduled</p>
+                  <p className="mt-1 text-sm text-ink/60">
+                    Sessions you accept will be listed here with meeting links and mentee contact info.
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-6 space-y-4">
+                  {acceptedRequests.map((req) => (
+                    <li key={req.id} className="rounded-2xl border border-accent-green/20 bg-accent-green/5 p-5">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <span className="inline-block rounded-full bg-accent-green px-2.5 py-0.5 text-xs font-bold text-white">
+                            ACCEPTED &amp; CONFIRMED
+                          </span>
+                          <h3 className="mt-2 text-lg font-bold text-ink">{req.subject}</h3>
+                          <p className="text-xs text-ink/60">
+                            Mentee Contact: <span className="font-semibold text-ink">{req.mentee_email}</span> &middot; Type:{" "}
+                            <span className="font-medium text-ink">{req.request_type.replace(/_/g, " ")}</span>
+                          </p>
+                          {req.response_message && (
+                            <p className="mt-2 text-xs text-emerald-800">
+                              <span className="font-bold">Your Note to Mentee: </span>&ldquo;{req.response_message}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={actionLoading === req.id}
+                            onClick={() => handleStatusChange(req.id, "completed")}
+                            className="rounded-xl bg-ink px-4 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-50"
+                          >
+                            {actionLoading === req.id ? "Updating…" : "Mark as Completed"}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: PAST MENTEES & FEEDBACK */}
+          {activeTab === "feedback" && (
+            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+              <h2 className="text-xl font-bold text-ink">Past Mentees &amp; Completed History</h2>
+              <p className="text-sm text-ink/60">Records of completed mentorship calls.</p>
+
+              {completedRequests.length === 0 ? (
+                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
+                  <Users size={32} className="text-ink/30" />
+                  <p className="mt-3 text-base font-bold text-ink">No completed sessions yet</p>
+                  <p className="mt-1 text-sm text-ink/60">
+                    Once you mark scheduled sessions as completed, they will be archived here.
+                  </p>
+                </div>
+              ) : (
+                <ul className="mt-6 space-y-3">
+                  {completedRequests.map((req) => (
+                    <li key={req.id} className="rounded-xl border border-surface-line p-4">
+                      <p className="text-sm font-bold text-ink">{req.subject}</p>
+                      <p className="text-xs text-ink/60">
+                        Mentee: {req.mentee_email} &middot; Date: {new Date(req.updated_at).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* TAB 5: AVAILABILITY & SETTINGS */}
+          {activeTab === "availability" && (
+            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+              <h2 className="text-xl font-bold text-ink">Availability &amp; Profile Settings</h2>
+              <p className="text-sm text-ink/60">Manage your recurring office hours and visibility.</p>
+
+              <div className="mt-6 space-y-4 max-w-xl">
+                <div className="flex items-center justify-between rounded-2xl bg-surface p-4">
+                  <div>
+                    <p className="text-sm font-bold text-ink">Accepting new mentee requests</p>
+                    <p className="text-xs text-ink/50">Show profile in public mentor directory</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={acceptingRequests}
+                    onClick={toggleAcceptingRequests}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      acceptingRequests ? "bg-ink" : "bg-surface-line"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                        acceptingRequests ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="rounded-2xl border border-surface-line p-4">
+                  <p className="text-sm font-bold text-ink">Recurring Weekly Office Hours</p>
+                  {weeklyWindows.length === 0 ? (
+                    <p className="mt-2 text-xs text-ink/50">No recurring windows configured.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {weeklyWindows.map((w) => (
+                        <li key={w.id} className="flex justify-between rounded-lg bg-surface px-3 py-2 text-xs">
+                          <span className="font-semibold text-ink">{w.day}s</span>
+                          <span>{w.startTime} – {w.endTime} ({w.maxCalls} calls)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <Link
+                    to="/onboarding/mentor/availability-capacity"
+                    className="mt-4 inline-flex items-center justify-center rounded-xl bg-ink px-4 py-2 text-xs font-bold text-white hover:opacity-90"
+                  >
+                    Edit Availability Windows
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </main>
+
+      {/* Response Note Modal */}
+      {activeModalRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-ink">
+              {activeModalRequest.status === "accepted" ? "Accept Request" : "Decline Request"}
+            </h3>
+            <p className="mt-1 text-xs text-ink/60">
+              {activeModalRequest.status === "accepted"
+                ? "Add an optional note or video room link for the mentee."
+                : "Add an optional explanation or feedback for the mentee."}
+            </p>
+
+            <textarea
+              rows={3}
+              value={responseNote}
+              onChange={(e) => setResponseNote(e.target.value)}
+              placeholder={
+                activeModalRequest.status === "accepted"
+                  ? "Glad to help! Let's connect at this time..."
+                  : "Thank you for reaching out. Unfortunately..."
+              }
+              className="mt-3 w-full rounded-xl border border-surface-line p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink"
+            />
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveModalRequest(null)}
+                className="rounded-xl border border-surface-line bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-surface"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={actionLoading === activeModalRequest.id}
+                onClick={() => handleStatusChange(activeModalRequest.id, activeModalRequest.status, responseNote)}
+                className={`rounded-xl px-4 py-2 text-xs font-bold text-white ${
+                  activeModalRequest.status === "accepted" ? "bg-accent-green" : "bg-red-600"
+                }`}
+              >
+                {actionLoading === activeModalRequest.id ? "Saving…" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

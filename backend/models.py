@@ -38,7 +38,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), default="mentee", nullable=False)
     verification_status: Mapped[VerificationStatus] = mapped_column(
-        Enum(VerificationStatus), default=VerificationStatus.VERIFIED, nullable=False
+        Enum(VerificationStatus), default=VerificationStatus.PENDING_VERIFICATION, nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
@@ -62,6 +62,8 @@ class MentorProfile(Base):
     expertise_tags: Mapped[str] = mapped_column(String(500), nullable=False)
     availability: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="profile")
 
@@ -94,3 +96,44 @@ class MentorshipRequest(Base):
 
     mentee: Mapped[User] = relationship("User", foreign_keys=[mentee_id])
     mentor: Mapped[User] = relationship("User", foreign_keys=[mentor_id])
+
+
+class SavedMentor(Base):
+    __tablename__ = "saved_mentors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    mentor_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+
+
+class MentorReview(Base):
+    __tablename__ = "mentor_reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    mentor_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    mentee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
+    reviewer_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    reviewer_role: Mapped[str] = mapped_column(String(255), nullable=False)
+    session_topic: Mapped[str] = mapped_column(String(255), nullable=False)
+    quote: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )
+
+
+class SessionNote(Base):
+    __tablename__ = "session_notes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    resource_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+    )

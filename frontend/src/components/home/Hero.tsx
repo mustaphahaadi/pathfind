@@ -10,21 +10,22 @@ const avatarUrls = [
 
 const Hero = () => {
   return (
-    <section className="px-3 pt-3 sm:px-6 sm:pt-6">
-      <div
-        className="relative overflow-hidden rounded-[28px] bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&q=80&auto=format&fit=crop')",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+    <section className="px-5 pt-5 sm:px-8 sm:pt-8 lg:px-12 lg:pt-10">
+      <div className="mx-auto max-w-7xl">
+        <div
+          className="relative overflow-hidden rounded-[32px] bg-cover bg-center shadow-lg"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&q=80&auto=format&fit=crop')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
 
-        <div className="relative flex min-h-[560px] flex-col justify-between sm:min-h-[640px]">
-          <Header variant="overlay" />
+          <div className="relative flex min-h-[560px] flex-col justify-between sm:min-h-[640px]">
+            <Header variant="overlay" />
 
-          <div className="flex flex-1 flex-col justify-center px-5 pb-8 sm:px-10 sm:pb-10 lg:px-16">
+            <div className="flex flex-1 flex-col justify-center px-6 pb-10 sm:px-12 sm:pb-12 lg:px-16 lg:pb-16">
             <h1 className="max-w-xl text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl lg:text-6xl">
               Feel Supported.
               <br />
@@ -85,7 +86,8 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
   );
 };
 

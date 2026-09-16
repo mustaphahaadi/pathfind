@@ -1,5 +1,7 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { MenteeStatus, ProficiencyLevel } from "../types/onboarding";
+import type { UserOut } from "../types/api";
 
 interface OnboardingState {
   avatarUrl: string | null;
@@ -27,6 +29,7 @@ interface OnboardingState {
   setPledgeAgreed: (agreed: boolean) => void;
   completeOnboarding: () => void;
   reset: () => void;
+  initFromUser: (user: UserOut) => void;
 }
 
 const initialState = {
@@ -46,28 +49,44 @@ const initialState = {
 const toggleInList = (list: string[], id: string) =>
   list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
 
-export const useOnboardingStore = create<OnboardingState>((set) => ({
-  ...initialState,
+export const useOnboardingStore = create<OnboardingState>()(
+  persist(
+    (set) => ({
+      ...initialState,
 
-  setAvatarUrl: (url) => set({ avatarUrl: url }),
-  setFullName: (value) => set({ fullName: value }),
-  setEmail: (value) => set({ email: value }),
-  setLocation: (value) => set({ location: value }),
-  setStatus: (status) => set({ status }),
-  toggleTechnicalTrack: (id) =>
-    set((state) => ({
-      technicalTracks: toggleInList(state.technicalTracks, id),
-    })),
-  toggleCoreObjective: (id) =>
-    set((state) => ({
-      coreObjectives: toggleInList(state.coreObjectives, id),
-    })),
-  setProficiency: (level) => set({ proficiency: level }),
-  toggleMeetingPreference: (id) =>
-    set((state) => ({
-      meetingPreferences: toggleInList(state.meetingPreferences, id),
-    })),
-  setPledgeAgreed: (agreed) => set({ pledgeAgreed: agreed }),
-  completeOnboarding: () => set({ hasCompletedOnboarding: true }),
-  reset: () => set(initialState),
-}));
+      setAvatarUrl: (url) => set({ avatarUrl: url }),
+      setFullName: (value) => set({ fullName: value }),
+      setEmail: (value) => set({ email: value }),
+      setLocation: (value) => set({ location: value }),
+      setStatus: (status) => set({ status }),
+      toggleTechnicalTrack: (id) =>
+        set((state) => ({
+          technicalTracks: toggleInList(state.technicalTracks, id),
+        })),
+      toggleCoreObjective: (id) =>
+        set((state) => ({
+          coreObjectives: toggleInList(state.coreObjectives, id),
+        })),
+      setProficiency: (level) => set({ proficiency: level }),
+      toggleMeetingPreference: (id) =>
+        set((state) => ({
+          meetingPreferences: toggleInList(state.meetingPreferences, id),
+        })),
+      setPledgeAgreed: (agreed) => set({ pledgeAgreed: agreed }),
+      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
+      reset: () => set(initialState),
+      initFromUser: (user: UserOut) => {
+        set((state) => ({
+          fullName: state.fullName || user.profile?.full_name || user.email?.split("@")[0] || "",
+          email: state.email || user.email || "",
+          location: state.location || user.profile?.location || "",
+          avatarUrl: state.avatarUrl || user.profile?.avatar_url || null,
+        }));
+      },
+    }),
+    {
+      name: "pathfind-mentee-onboarding",
+    }
+  )
+);
+

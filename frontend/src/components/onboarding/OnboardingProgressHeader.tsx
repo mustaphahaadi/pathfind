@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Logo } from "../ui/Logo";
 import { onboardingSteps } from "../../data/onboarding/steps";
 
 interface OnboardingProgressHeaderProps {
@@ -17,17 +18,14 @@ const OnboardingProgressHeader = ({
   return (
     <header className="border-b border-surface-line bg-white">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-5 py-4 sm:px-8">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-lg font-extrabold tracking-tight text-ink"
-        >
-          Pathfind
+        <div className="flex items-center gap-3">
+          <Logo size="sm" />
           <span className="hidden h-4 w-px bg-surface-line sm:inline-block" />
           <span className="hidden items-center gap-1.5 text-xs font-medium text-ink/60 sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-accent-green" />
             100% Free Mentorship
           </span>
-        </Link>
+        </div>
 
         <div className="flex items-center gap-4">
           <div className="text-right">

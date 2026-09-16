@@ -3,37 +3,53 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-import OAuthOptions from "../components/auth/OAuthOptions";
-import PasswordField from "../components/auth/PasswordField";
-import SimpleRadioTile from "../components/auth/SimpleRadioTile";
-import SingleSelectChip from "../components/auth/SingleSelectChip";
 import AuthTestimonialPanel from "../components/auth/AuthTestimonialPanel";
-import { menteeStageOptions } from "../data/auth/menteeStageOptions";
-import { focusAreaOptions } from "../data/auth/focusAreaOptions";
+import PasswordField from "../components/auth/PasswordField";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/useAuthStore";
 import { useOnboardingStore } from "../store/useOnboardingStore";
 
 const MenteeSignUpPage = () => {
   const navigate = useNavigate();
-  const setOnboardingFullName = useOnboardingStore((state) => state.setFullName);
-  const setOnboardingEmail = useOnboardingStore((state) => state.setEmail);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setOnboardingFullName = useOnboardingStore((s) => s.setFullName);
+  const setOnboardingEmail = useOnboardingStore((s) => s.setEmail);
 
-  const [stageId, setStageId] = useState<string | null>(null);
-  const [focusAreaId, setFocusAreaId] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const canSubmit = agreed && stageId !== null && focusAreaId !== null;
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!agreed) return;
+    setError(null);
+    setLoading(true);
 
     const formData = new FormData(event.currentTarget);
     const fullName = String(formData.get("fullName") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
-    if (fullName) setOnboardingFullName(fullName);
-    if (email) setOnboardingEmail(email);
+    const password = String(formData.get("password") ?? "");
 
-    navigate("/onboarding/mentee/about-you");
+    try {
+      // Register the mentee account
+      await api.auth.signUp({ email, password, role: "mentee" });
+
+      // Auto sign-in to get token
+      const token = await api.auth.signIn({ email, password });
+      const user = await api.auth.me(token.access_token);
+      setAuth(token.access_token, user);
+
+      // Pre-fill onboarding store with known data
+      if (fullName) setOnboardingFullName(fullName);
+      if (email) setOnboardingEmail(email);
+
+      // Go to mentee profile setup (local onboarding)
+      navigate("/onboarding/mentee/about-you");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,138 +63,96 @@ const MenteeSignUpPage = () => {
               Start your journey into tech
             </h1>
             <p className="mt-3 max-w-xl text-base leading-relaxed text-ink/60">
-              Create your free mentee account to book 1:1 sessions with
-              verified senior engineers, product managers, and designers.
-              Zero fees, ever.
+              Create your free mentee account to connect with verified senior
+              engineers, product managers, and designers. Zero fees, ever.
             </p>
 
-            <div className="mt-8">
-              <OAuthOptions />
-
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <div>
-                  <label htmlFor="fullName" className="text-sm font-medium text-ink">
-                    Full Name
-                  </label>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    required
-                    placeholder="Jordan Chen"
-                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="text-sm font-medium text-ink">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="jordan@example.com"
-                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
-                  />
-                </div>
-
-                <PasswordField
-                  id="password"
-                  name="password"
-                  helperText="Must be at least 8 characters"
-                />
-
-                <div>
-                  <p className="text-sm font-medium text-ink">
-                    Current Stage / Primary Goal
-                  </p>
-                  <div
-                    className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2"
-                    role="radiogroup"
-                    aria-label="Current stage or primary goal"
-                  >
-                    {menteeStageOptions.map((option) => (
-                      <SimpleRadioTile
-                        key={option.id}
-                        label={option.label}
-                        isSelected={stageId === option.id}
-                        onSelect={() => setStageId(option.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-ink">
-                    Primary Discipline of Interest
-                  </p>
-                  <div
-                    className="mt-2 flex flex-wrap gap-2.5"
-                    role="radiogroup"
-                    aria-label="Primary discipline of interest"
-                  >
-                    {focusAreaOptions.map((option) => (
-                      <SingleSelectChip
-                        key={option.id}
-                        label={option.label}
-                        isSelected={focusAreaId === option.id}
-                        onSelect={() => setFocusAreaId(option.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <label className="flex items-start gap-2.5 text-sm text-ink/75">
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    onChange={(event) => setAgreed(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-surface-line accent-ink"
-                  />
-                  <span>
-                    I agree to Pathfind&apos;s{" "}
-                    <Link to="/terms" className="underline underline-offset-2 hover:text-ink">
-                      Terms of Service
-                    </Link>
-                    ,{" "}
-                    <Link to="/privacy" className="underline underline-offset-2 hover:text-ink">
-                      Privacy Policy
-                    </Link>
-                    , and{" "}
-                    <Link to="/honor-code" className="underline underline-offset-2 hover:text-ink">
-                      Mentee Honor Code
-                    </Link>{" "}
-                    (commit to bringing a prepared agenda to every session).
-                  </span>
+            <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+              <div>
+                <label htmlFor="fullName" className="text-sm font-medium text-ink">
+                  Full Name
                 </label>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  required
+                  placeholder="Jordan Chen"
+                  className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                />
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={!canSubmit}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Create Free Mentee Account
-                  <ArrowRight size={16} />
-                </button>
+              <div>
+                <label htmlFor="email" className="text-sm font-medium text-ink">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="jordan@example.com"
+                  className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                />
+              </div>
 
-                <p className="text-center text-sm text-surface-muted">
-                  Already have an account?{" "}
-                  <Link to="/auth" className="font-medium text-ink underline underline-offset-2">
-                    Sign in
+              <PasswordField
+                id="password"
+                name="password"
+                helperText="Must be at least 6 characters"
+              />
+
+              <label className="flex items-start gap-2.5 text-sm text-ink/75">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-surface-line accent-ink"
+                />
+                <span>
+                  I agree to Pathfind&apos;s{" "}
+                  <Link to="/terms" className="underline underline-offset-2 hover:text-ink">
+                    Terms of Service
                   </Link>
-                  <span className="mx-2">&middot;</span>
-                  Want to become a mentor instead?{" "}
-                  <Link
-                    to="/join/mentor"
-                    className="font-medium text-ink underline underline-offset-2"
-                  >
-                    Volunteer here
+                  ,{" "}
+                  <Link to="/privacy" className="underline underline-offset-2 hover:text-ink">
+                    Privacy Policy
                   </Link>
+                  , and{" "}
+                  <Link to="/honor-code" className="underline underline-offset-2 hover:text-ink">
+                    Mentee Honor Code
+                  </Link>
+                  .
+                </span>
+              </label>
+
+              {error && (
+                <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {error}
                 </p>
-              </form>
-            </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={!agreed || loading}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {loading ? "Creating account…" : "Create Free Mentee Account"}
+                <ArrowRight size={16} />
+              </button>
+
+              <p className="text-center text-sm text-surface-muted">
+                Already have an account?{" "}
+                <Link to="/auth" className="font-medium text-ink underline underline-offset-2">
+                  Sign in
+                </Link>
+                <span className="mx-2">&middot;</span>
+                Want to become a mentor instead?{" "}
+                <Link to="/join/mentor" className="font-medium text-ink underline underline-offset-2">
+                  Volunteer here
+                </Link>
+              </p>
+            </form>
           </div>
 
           <AuthTestimonialPanel
