@@ -17,10 +17,11 @@ import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 
 interface UserMenuLinkProps {
   className?: string;
+  isOverlay?: boolean;
 }
 
 /** The signed-in mentee avatar block + dropdown menu shown once a mentee has a name on file. */
-const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
+const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) => {
   const navigate = useNavigate();
 
   const user = useAuthStore((s) => s.user);
@@ -37,9 +38,19 @@ const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
   const subtitle = `Mentee${statusLabel ? ` · ${statusLabel}` : ""}`;
 
   const avatar = avatarUrl ? (
-    <img src={avatarUrl} alt={fullName} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+    <img
+      src={avatarUrl}
+      alt={fullName}
+      className={`h-9 w-9 shrink-0 rounded-full object-cover ring-2 ${
+        isOverlay ? "ring-white/80" : "ring-black/10"
+      }`}
+    />
   ) : (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
+    <span
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black shadow-sm ${
+        isOverlay ? "bg-white text-ink ring-2 ring-white/80" : "bg-ink text-white ring-2 ring-black/10"
+      }`}
+    >
       {getInitials(fullName)}
     </span>
   );
@@ -80,6 +91,7 @@ const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
       profileTo="/profile"
       menuItems={menuItems}
       secondaryItems={secondaryItems}
+      isOverlay={isOverlay}
       onSignOut={() => {
         logout();
         resetOnboarding();

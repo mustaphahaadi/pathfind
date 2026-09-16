@@ -15,10 +15,11 @@ import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 
 interface MentorUserMenuLinkProps {
   className?: string;
+  isOverlay?: boolean;
 }
 
 /** The signed-in mentor avatar block + dropdown menu shown once a mentor has published their profile. */
-const MentorUserMenuLink = ({ className = "" }: MentorUserMenuLinkProps) => {
+const MentorUserMenuLink = ({ className = "", isOverlay = false }: MentorUserMenuLinkProps) => {
   const navigate = useNavigate();
 
   const user = useAuthStore((s) => s.user);
@@ -34,9 +35,19 @@ const MentorUserMenuLink = ({ className = "" }: MentorUserMenuLinkProps) => {
   const subtitle = [currentTitle, company].filter(Boolean).join(" @ ") || "Volunteer Mentor";
 
   const avatar = avatarUrl ? (
-    <img src={avatarUrl} alt={fullName} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+    <img
+      src={avatarUrl}
+      alt={fullName}
+      className={`h-9 w-9 shrink-0 rounded-full object-cover ring-2 ${
+        isOverlay ? "ring-white/80" : "ring-black/10"
+      }`}
+    />
   ) : (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
+    <span
+      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black shadow-sm ${
+        isOverlay ? "bg-white text-ink ring-2 ring-white/80" : "bg-ink text-white ring-2 ring-black/10"
+      }`}
+    >
       {getInitials(fullName)}
     </span>
   );
@@ -68,6 +79,7 @@ const MentorUserMenuLink = ({ className = "" }: MentorUserMenuLinkProps) => {
       profileTo="/mentor-dashboard"
       menuItems={menuItems}
       secondaryItems={secondaryItems}
+      isOverlay={isOverlay}
       onSignOut={() => {
         logout();
         resetOnboarding();
