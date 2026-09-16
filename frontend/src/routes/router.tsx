@@ -12,6 +12,15 @@ import MentorProfilePage from "../pages/MentorProfilePage";
 import ScheduleSessionPage from "../pages/ScheduleSessionPage";
 import BookingConfirmedPage from "../pages/BookingConfirmedPage";
 import PlaceholderPage from "../pages/PlaceholderPage";
+
+import AboutPage from "../pages/AboutPage";
+import HowItWorksPage from "../pages/HowItWorksPage";
+import VolunteerPage from "../pages/VolunteerPage";
+import HonorCodePage from "../pages/HonorCodePage";
+import GuidelinesPage from "../pages/GuidelinesPage";
+import PrivacyPage from "../pages/PrivacyPage";
+import TermsPage from "../pages/TermsPage";
+
 import AboutYouStep from "../pages/onboarding/AboutYouStep";
 import InterestsGoalsStep from "../pages/onboarding/InterestsGoalsStep";
 import ExperienceReadinessStep from "../pages/onboarding/ExperienceReadinessStep";
@@ -22,7 +31,6 @@ import HonorCodeReviewStep from "../pages/mentor-onboarding/HonorCodeReviewStep"
 import MentorProfileCreatedPage from "../pages/mentor-onboarding/MentorProfileCreatedPage";
 
 import AuthLayout from "../layouts/AuthLayout";
-import ContentLayout from "../layouts/ContentLayout";
 import OnboardingLayout from "../layouts/OnboardingLayout";
 import MentorOnboardingLayout from "../layouts/MentorOnboardingLayout";
 
@@ -30,6 +38,34 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />,
+  },
+  {
+    path: "/about",
+    element: <AboutPage />,
+  },
+  {
+    path: "/how-it-works",
+    element: <HowItWorksPage />,
+  },
+  {
+    path: "/volunteer",
+    element: <VolunteerPage />,
+  },
+  {
+    path: "/honor-code",
+    element: <HonorCodePage />,
+  },
+  {
+    path: "/community-guidelines",
+    element: <GuidelinesPage />,
+  },
+  {
+    path: "/privacy",
+    element: <PrivacyPage />,
+  },
+  {
+    path: "/terms",
+    element: <TermsPage />,
   },
   {
     path: "/auth",
@@ -136,89 +172,12 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <ContentLayout />,
-    children: [
-      {
-        path: "/about",
-        element: (
-          <PlaceholderPage
-            title="About Us"
-            description="The story behind Pathfind and the community of volunteer mentors making tech careers accessible to everyone."
-          />
-        ),
-      },
-      {
-        path: "/how-it-works",
-        element: (
-          <PlaceholderPage
-            title="How It Works"
-            description="From matching to your first session — here's how free mentorship on Pathfind actually works."
-          />
-        ),
-      },
-      {
-        path: "/stories",
-        element: (
-          <PlaceholderPage
-            title="Stories"
-            description="Real career transitions from mentees who broke into tech with a Pathfind mentor by their side."
-          />
-        ),
-      },
-      {
-        path: "/community-guidelines",
-        element: (
-          <PlaceholderPage
-            title="Community Guidelines"
-            description="Our expectations for a safe, respectful, and generous mentorship experience."
-          />
-        ),
-      },
-      {
-        path: "/honor-code",
-        element: (
-          <PlaceholderPage
-            title="Honor Code"
-            description="The commitments every mentor and mentee makes when they join Pathfind."
-          />
-        ),
-      },
-      {
-        path: "/terms",
-        element: (
-          <PlaceholderPage
-            title="Terms of Service"
-            description="The terms that govern your use of Pathfind."
-          />
-        ),
-      },
-      {
-        path: "/open-source",
-        element: (
-          <PlaceholderPage
-            title="Open Source"
-            description="Pathfind is built in the open. Explore the projects powering the platform."
-          />
-        ),
-      },
-      {
-        path: "/privacy",
-        element: (
-          <PlaceholderPage
-            title="Privacy"
-            description="How Pathfind collects, uses, and protects your information."
-          />
-        ),
-      },
-      {
-        path: "*",
-        element: (
-          <PlaceholderPage
-            title="Page not found"
-            description="The page you're looking for doesn't exist or has moved."
-          />
-        ),
-      },
-    ],
+    path: "*",
+    element: (
+      <PlaceholderPage
+        title="Page not found"
+        description="The page you're looking for doesn't exist or has moved."
+      />
+    ),
   },
 ]);
