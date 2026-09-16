@@ -244,7 +244,7 @@ const MentorDashboardPage = () => {
                       Pending Mentee Requests
                     </p>
                     <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-ink/60">
-                      0 Pending
+                      {pendingCount} Pending
                     </span>
                   </div>
                   <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">

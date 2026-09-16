@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BadgeCheck, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { getInitials } from "../../lib/getInitials";
 import type { MentorProfileRead } from "../../types/api";
