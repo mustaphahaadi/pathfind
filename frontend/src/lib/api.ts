@@ -84,6 +84,8 @@ async function upload(file: File): Promise<FileUploadResponse> {
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
 export const api = {
+  health: () => request<{ status: string }>("/health"),
+
   auth: {
     signIn: (payload: UserLoginPayload) =>
       request<Token>("/auth/signin", {
