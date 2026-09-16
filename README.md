@@ -71,71 +71,143 @@ pathfind/
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Local Setup Guide
 
-### Method 1: Docker Compose (Recommended for Full Stack)
-
-Run the backend API and PostgreSQL database simultaneously using Docker Compose:
-
-```bash
-# Build and start services in containerized environment
-docker compose up --build
-```
-
-The API will be available at `http://localhost:8000` (interactive API docs at `http://localhost:8000/docs`).
+Follow one of the two methods below to set up and run the application locally.
 
 ---
 
-### Method 2: Local Development Setup
+### 🐳 Method 1: Docker Compose Setup (Recommended)
 
-#### Backend Setup
+Docker Compose provisions a local PostgreSQL 15 database container alongside the FastAPI backend with live code hot-reloading.
 
-1. **Create and activate a Python virtual environment**:
+#### 1. Start Docker Containers
+```bash
+# Build images and start Postgres DB & FastAPI API in foreground
+docker compose up --build
+```
+> *Tip: Add `-d` flag to run in detached background mode (`docker compose up --build -d`).*
+
+#### 2. Seed Mock Database Data
+In a new terminal window, populate the database with 8 verified mentor profiles and the admin account:
+```bash
+docker compose exec api python3 backend/seed.py
+```
+
+#### 3. Start Frontend Development Server
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+#### 4. Access Local Services
+- 🌐 **Frontend App**: `http://localhost:5173`
+- ⚙️ **Backend API**: `http://localhost:8000`
+- 📚 **Interactive Swagger API Docs**: `http://localhost:8000/docs`
+- 🗄️ **PostgreSQL Database**: `localhost:5432` (`user: pathfind`, `password: pathfind`, `db: pathfind`)
+
+#### 🛠️ Useful Docker Commands
+```bash
+# View backend logs in real time
+docker compose logs -f api
+
+# Stop all container services
+docker compose down
+
+# Stop and wipe database volume data
+docker compose down -v
+```
+
+---
+
+### 💻 Method 2: Normal Local Setup (Manual Environment)
+
+#### Prerequisites
+Ensure you have the following installed on your system:
+- **Python**: 3.11 or higher (`python3 --version`)
+- **Node.js**: 18.0 or higher (`node -v`)
+- **npm**: 9.0 or higher (`npm -v`)
+
+---
+
+#### 🔧 Step-by-Step Backend Setup
+
+1. **Navigate to project root and create virtual environment**:
    ```bash
    python3 -m venv backend/.venv
-   source backend/.venv/bin/activate
    ```
 
-2. **Install dependencies**:
+2. **Activate the virtual environment**:
+   - **Linux / macOS**:
+     ```bash
+     source backend/.venv/bin/activate
+     ```
+   - **Windows (PowerShell)**:
+     ```powershell
+     .\backend\.venv\Scripts\Activate.ps1
+     ```
+
+3. **Install Python dependencies**:
    ```bash
    pip install -r backend/requirements.txt
    ```
 
-3. **Seed mock data** (Populates 8 verified mentor profiles & 1 admin account `admin@pathfind.org` / `admin123`):
+4. **Seed mock data into SQLite database** (Populates mock Ghanaian mentors & admin `admin@pathfind.org` / `admin123`):
    ```bash
    python3 backend/seed.py
    ```
 
-4. **Run the development server**:
+5. **Start the Uvicorn development server**:
    ```bash
    uvicorn backend.main:app --reload --port 8000
    ```
+   The backend API will start at `http://localhost:8000`.
 
-5. **Run linting checks**:
+6. **(Optional) Run tests and linting**:
    ```bash
+   # Run Pytest unit test suite
+   pytest backend/tests
+
+   # Run Flake8 code style linter
    python3 -m flake8 backend --exclude=.venv,venv,tests --max-line-length=120
    ```
 
-#### Frontend Setup
+---
 
-1. **Navigate to frontend directory and install dependencies**:
+#### 🎨 Step-by-Step Frontend Setup
+
+1. **Navigate to the frontend directory**:
    ```bash
    cd frontend
+   ```
+
+2. **Install Node modules**:
+   ```bash
    npm install
    ```
 
-2. **Start the Vite development server**:
+3. **Configure environment variable** (Optional):
+   Create a `.env` file in `frontend/` (defaults to `http://localhost:8000`):
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
+
+4. **Start the Vite development server**:
    ```bash
    npm run dev
    ```
+   The application will open at `http://localhost:5173`.
 
-3. **Build and lint frontend**:
+5. **(Optional) Verify production build and linting**:
    ```bash
+   # Build production bundle
    npm run build
+
+   # Run ESLint static check
    npx eslint .
    ```
 
-The frontend will run at `http://localhost:5173`.
 
 ---
 
