@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Inbox,
@@ -7,21 +7,25 @@ import {
   Settings,
   Eye,
   Pencil,
-  CalendarClock,
   ClipboardList,
   Link2,
-  MessageCircle,
   Mail,
   ShieldCheck,
   CheckCircle2,
   Circle,
   Lightbulb,
   HandCoins,
+  Loader2,
+  Check,
+  X,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { useMentorOnboardingStore } from "../store/useMentorOnboardingStore";
 import { mentorHonorCodeItems } from "../data/mentor-onboarding/options";
+import { useAuthStore } from "../store/useAuthStore";
+import { api } from "../lib/api";
+import type { MentorshipRequestRead } from "../types/api";
 
 type TabId = "overview" | "requests" | "scheduled" | "feedback" | "availability";
 
@@ -39,27 +43,53 @@ const slugify = (value: string) =>
 const MentorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
-  const fullName = useMentorOnboardingStore((state) => state.fullName);
+  const user = useAuthStore((s) => s.user);
+  const fullName = user?.profile?.full_name ?? useMentorOnboardingStore.getState().fullName;
   const weeklyWindows = useMentorOnboardingStore((state) => state.weeklyWindows);
   const acceptingRequests = useMentorOnboardingStore((state) => state.acceptingRequests);
   const agreedHonorCodeIds = useMentorOnboardingStore((state) => state.agreedHonorCodeIds);
   const hasCompletedOnboarding = useMentorOnboardingStore((state) => state.hasCompletedOnboarding);
   const toggleAcceptingRequests = useMentorOnboardingStore((state) => state.toggleAcceptingRequests);
 
+  const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.requests.list()
+      .then(setRequests)
+      .catch(() => {})
+      .finally(() => setLoadingRequests(false));
+  }, []);
+
+  const handleStatusChange = async (
+    requestId: string,
+    status: "accepted" | "declined",
+  ) => {
+    setActionLoading(requestId);
+    try {
+      const updated = await api.requests.updateStatus(requestId, { status });
+      setRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? updated : r)),
+      );
+    } catch {
+      // keep existing state
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/m/${slugify(fullName) || "your-profile"}`;
+  const shareLink = `pathfind.org/m/${user?.profile?.id ?? "your-profile"}`;
 
-  // Honest zero state: there's no real backend connecting mentees to a custom
-  // mentor, so a freshly published mentor genuinely has no bookings, mentees,
-  // or ratings yet — nothing here is a placeholder for hidden real data.
-  const sessionsBooked = 0;
-  const menteesGuided = 0;
-  const hasRatings = false;
+  const pendingCount = requests.filter((r) => r.status === "pending").length;
+  const sessionsBooked = requests.filter((r) => r.status === "accepted" || r.status === "completed").length;
+  const menteesGuided = new Set(requests.filter((r) => r.status === "completed").map((r) => r.mentee_id)).size;
 
   const readinessChecks = [
-    { label: "Profile Published", complete: hasCompletedOnboarding },
-    { label: "Availability Configured", complete: weeklyWindows.length > 0 },
+    { label: "Profile Published", complete: hasCompletedOnboarding || !!user?.profile },
+    { label: "Availability Configured", complete: weeklyWindows.length > 0 || !!user?.profile?.availability },
     { label: "Honor Code Signed", complete: agreedHonorCodeIds.length === mentorHonorCodeItems.length },
   ];
   const readinessCompleteCount = readinessChecks.filter((check) => check.complete).length;
