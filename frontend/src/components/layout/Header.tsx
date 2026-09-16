@@ -80,7 +80,11 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
         {/* Actions / User Profile Menu */}
         {isSignedIn ? (
           <div className="hidden lg:flex">
-            {isMentorSignedIn ? <MentorUserMenuLink /> : <UserMenuLink />}
+            {isMentorSignedIn ? (
+              <MentorUserMenuLink isOverlay={isOverlay} />
+            ) : (
+              <UserMenuLink isOverlay={isOverlay} />
+            )}
           </div>
         ) : (
           <div className="hidden items-center gap-3 lg:flex">
