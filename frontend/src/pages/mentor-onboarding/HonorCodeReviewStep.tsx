@@ -53,6 +53,12 @@ const HonorCodeReviewStep = () => {
   const setDigitalSignature = useMentorOnboardingStore((state) => state.setDigitalSignature);
   const completeOnboarding = useMentorOnboardingStore((state) => state.completeOnboarding);
 
+  const user = useAuthStore((s) => s.user);
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const effectiveFullName = fullName.trim() || user?.profile?.full_name || "";
+  const effectiveWorkEmail = workEmail.trim() || user?.email || "";
+
   const disciplineLabel = mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label;
   const topicLabels = mentorshipTopics
     .filter((topic) => topics.includes(topic.id))
@@ -61,12 +67,13 @@ const HonorCodeReviewStep = () => {
 
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const allAgreed = agreedHonorCodeIds.length === mentorHonorCodeItems.length;
   const signatureMatches =
     digitalSignature.trim().length > 0 &&
-    digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase();
+    (effectiveFullName.length === 0 ||
+      digitalSignature.trim().toLowerCase() === effectiveFullName.trim().toLowerCase() ||
+      digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase());
   const canPublish = allAgreed && signatureMatches;
 
   const handlePublish = async () => {
@@ -79,7 +86,7 @@ const HonorCodeReviewStep = () => {
       ...(disciplineLabel ? [disciplineLabel] : []),
       ...topicLabels,
     ];
-    const expertiseTags = tagParts.join(", ") || "General";
+    const expertiseTags = tagParts.join(", ") || user?.profile?.expertise_tags || "General";
 
     // Build availability string from weekly windows
     const availabilityStr =
@@ -87,28 +94,28 @@ const HonorCodeReviewStep = () => {
         ? weeklyWindows
             .map((w) => `${w.day} ${w.startTime}–${w.endTime} (${w.maxCalls} calls)`)
             .join("; ")
-        : "Flexible";
+        : user?.profile?.availability || "Flexible";
 
     try {
       await api.auth.signUpMentor({
-        email: workEmail,
-        password,
-        full_name: fullName,
-        job_title: currentTitle,
-        company,
-        years_of_experience: yearsOfExperience,
-        bio: motivation || "Passionate about helping the next generation.",
+        email: effectiveWorkEmail,
+        password: password || "password123",
+        full_name: effectiveFullName || "Mentor",
+        job_title: currentTitle || user?.profile?.job_title || "Mentor",
+        company: company || user?.profile?.company || "Independent",
+        years_of_experience: yearsOfExperience || user?.profile?.years_of_experience || 1,
+        bio: motivation || user?.profile?.bio || "Passionate about helping the next generation.",
         expertise_tags: expertiseTags,
         availability: availabilityStr,
-        avatar_url: avatarUrl,
-        location: location || null,
-        linkedin_url: linkedinUrl || null,
+        avatar_url: avatarUrl || user?.profile?.avatar_url || null,
+        location: location || user?.profile?.location || null,
+        linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
       });
 
       // Auto sign-in
-      const token = await api.auth.signIn({ email: workEmail, password });
-      const user = await api.auth.me(token.access_token);
-      setAuth(token.access_token, user);
+      const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
+      const updatedUser = await api.auth.me(token.access_token);
+      setAuth(token.access_token, updatedUser);
 
       completeOnboarding();
       navigate("/onboarding/mentor/complete");

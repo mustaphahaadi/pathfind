@@ -133,6 +133,7 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered with a different password")
 
         existing_user.role = "mentor"
+        existing_user.verification_status = VerificationStatus.VERIFIED
         if existing_user.profile:
             existing_user.profile.full_name = payload.full_name
             existing_user.profile.job_title = payload.job_title
@@ -163,14 +164,11 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
         db.refresh(existing_user)
         return existing_user
 
-    # Determine verification status (pending by default for mentors)
-    verification = VerificationStatus.PENDING_VERIFICATION
-
     new_user = User(
         email=payload.email,
         hashed_password=hash_password(payload.password),
         role="mentor",
-        verification_status=verification,
+        verification_status=VerificationStatus.VERIFIED,
     )
     db.add(new_user)
     db.commit()
@@ -212,7 +210,7 @@ def list_mentors(
     query: str | None = None,
     expertise: str | None = None,
     request_type: RequestType | None = None,
-    verified_only: bool = True,
+    verified_only: bool = False,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db),

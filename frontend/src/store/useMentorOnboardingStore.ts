@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { WeeklyAvailabilityWindow } from "../types/mentorOnboarding";
+import type { UserOut } from "../types/api";
 
 interface MentorOnboardingState {
   // Registration credentials (from MentorSignUpPage)
@@ -56,6 +57,7 @@ interface MentorOnboardingState {
 
   completeOnboarding: () => void;
   toggleAcceptingRequests: () => void;
+  hydrateFromUser: (user: UserOut) => void;
   reset: () => void;
 }
 
@@ -130,5 +132,20 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>((set) => (
   completeOnboarding: () => set({ hasCompletedOnboarding: true }),
   toggleAcceptingRequests: () =>
     set((state) => ({ acceptingRequests: !state.acceptingRequests })),
+  hydrateFromUser: (user) =>
+    set((state) => {
+      const profile = user.profile;
+      return {
+        fullName: state.fullName || profile?.full_name || "",
+        workEmail: state.workEmail || user.email || "",
+        currentTitle: state.currentTitle || profile?.job_title || "",
+        company: state.company || profile?.company || "",
+        yearsOfExperience: state.yearsOfExperience || profile?.years_of_experience || 0,
+        location: state.location || profile?.location || "",
+        linkedinUrl: state.linkedinUrl || profile?.linkedin_url || "",
+        avatarUrl: state.avatarUrl || profile?.avatar_url || null,
+        motivation: state.motivation || profile?.bio || "",
+      };
+    }),
   reset: () => set(initialState),
 }));

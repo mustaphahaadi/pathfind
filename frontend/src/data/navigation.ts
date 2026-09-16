@@ -5,6 +5,7 @@ export interface NavLink {
 
 /** Used on the transparent header over the marketing landing page hero. */
 export const marketingNavLinks: NavLink[] = [
+  { label: "Browse Mentors", to: "/mentors" },
   { label: "About Us", to: "/about" },
   { label: "How It Works", to: "/how-it-works" },
   { label: "Stories", to: "/stories" },
