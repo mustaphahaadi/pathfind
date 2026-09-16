@@ -275,13 +275,22 @@ export const api = {
   // ── Admin ──────────────────────────────────────────────────────────────────
 
   admin: {
+    getStats: () => request<import("../types/api").AdminStatsOut>("/admin/stats"),
+
     listPendingMentors: () => request<UserOut[]>("/admin/mentors/pending"),
+
+    listAllMentors: () => request<UserOut[]>("/admin/mentors"),
+
+    listAllMentees: () => request<UserOut[]>("/admin/mentees"),
 
     approveMentor: (mentorId: number) =>
       request<UserOut>(`/admin/mentors/${mentorId}/approve`, { method: "POST" }),
 
     rejectMentor: (mentorId: number) =>
       request<UserOut>(`/admin/mentors/${mentorId}/reject`, { method: "POST" }),
+
+    deleteUser: (userId: number) =>
+      request<void>(`/admin/users/${userId}`, { method: "DELETE" }),
   },
 
   // ── File upload ────────────────────────────────────────────────────────────
