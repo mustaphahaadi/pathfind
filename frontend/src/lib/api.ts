@@ -37,7 +37,13 @@ async function request<T>(
     let message = `Request failed: ${res.status}`;
     try {
       const body = await res.json();
-      message = body?.detail ?? message;
+      if (typeof body?.detail === "string") {
+        message = body.detail;
+      } else if (Array.isArray(body?.detail)) {
+        message = body.detail.map((d: { msg?: string }) => d.msg || JSON.stringify(d)).join(", ");
+      } else if (body?.detail) {
+        message = JSON.stringify(body.detail);
+      }
     } catch {
       // ignore JSON parse error
     }

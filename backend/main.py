@@ -129,7 +129,39 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        if not verify_password(payload.password, existing_user.hashed_password):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered with a different password")
+
+        existing_user.role = "mentor"
+        if existing_user.profile:
+            existing_user.profile.full_name = payload.full_name
+            existing_user.profile.job_title = payload.job_title
+            existing_user.profile.company = payload.company
+            existing_user.profile.years_of_experience = payload.years_of_experience
+            existing_user.profile.bio = payload.bio
+            existing_user.profile.expertise_tags = payload.expertise_tags
+            existing_user.profile.availability = payload.availability
+            existing_user.profile.avatar_url = payload.avatar_url
+            existing_user.profile.location = payload.location
+            existing_user.profile.linkedin_url = payload.linkedin_url
+        else:
+            profile = MentorProfile(
+                user_id=existing_user.id,
+                full_name=payload.full_name,
+                job_title=payload.job_title,
+                company=payload.company,
+                years_of_experience=payload.years_of_experience,
+                bio=payload.bio,
+                expertise_tags=payload.expertise_tags,
+                availability=payload.availability,
+                avatar_url=payload.avatar_url,
+                location=payload.location,
+                linkedin_url=payload.linkedin_url,
+            )
+            db.add(profile)
+        db.commit()
+        db.refresh(existing_user)
+        return existing_user
 
     # Determine verification status (pending by default for mentors)
     verification = VerificationStatus.PENDING_VERIFICATION
