@@ -15,7 +15,7 @@ export const marketingNavLinks: NavLink[] = [
 export const appNavLinks: NavLink[] = [
   { label: "Browse Mentors", to: "/mentors" },
   { label: "How It Works", to: "/how-it-works" },
-  { label: "Volunteer", to: "/join/mentor" },
+  { label: "Volunteer", to: "/volunteer" },
   { label: "About", to: "/about" },
 ];
 
