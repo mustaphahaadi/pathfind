@@ -21,7 +21,7 @@ const Footer = () => {
               Pathfind
             </span>
             <span className="mx-2 text-ink/30">·</span>
-            © 2024 Pathfind. 100% Free &amp; Open Tech Mentorship.
+            © 2026 Pathfind. 100% Free &amp; Open Tech Mentorship.
           </p>
 
           {healthy !== null && (
