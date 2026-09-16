@@ -33,6 +33,7 @@ const BrowseMentorsPage = () => {
   const [activeMatchFilters, setActiveMatchFilters] = useState<string[]>(buildMatchFilters);
   const [skillQuery, setSkillQuery] = useState("");
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
+  const [availableOnly, setAvailableOnly] = useState(false);
 
   const [mentors, setMentors] = useState<MentorProfileRead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +53,7 @@ const BrowseMentorsPage = () => {
       try {
         const result = await api.mentors.list({
           query: skillQuery || undefined,
-          expertise: selectedExpertise.length > 0 ? selectedExpertise[0] : undefined,
+          expertise: selectedExpertise.length > 0 ? selectedExpertise.join(",") : undefined,
           verified_only: true,
           limit: 50,
         });
@@ -70,9 +71,16 @@ const BrowseMentorsPage = () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [skillQuery, selectedExpertise]);
+  }, [skillQuery, selectedExpertise, availableOnly]);
 
-  const filteredMentors = useMemo(() => mentors, [mentors]);
+  // Client-side filter for availability when availableOnly is toggled
+  const filteredMentors = useMemo(
+    () =>
+      availableOnly
+        ? mentors.filter((m) => m.availability?.toLowerCase().includes("available"))
+        : mentors,
+    [mentors, availableOnly],
+  );
 
   const toggleExpertise = (label: string) => {
     setSelectedExpertise((current) =>
@@ -148,9 +156,12 @@ const BrowseMentorsPage = () => {
               onSkillQueryChange={setSkillQuery}
               selectedDisciplines={selectedExpertise as MentorCategory[]}
               onToggleDiscipline={toggleExpertise as (discipline: MentorCategory) => void}
-              availableOnly={false}
-              onToggleAvailableOnly={() => {}}
-              onClearAll={() => setSelectedExpertise([])}
+              availableOnly={availableOnly}
+              onToggleAvailableOnly={() => setAvailableOnly((prev) => !prev)}
+              onClearAll={() => {
+                setSelectedExpertise([]);
+                setAvailableOnly(false);
+              }}
             />
 
             {/* Mentor list */}
