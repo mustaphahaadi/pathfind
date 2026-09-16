@@ -29,7 +29,12 @@ import { useOnboardingStore } from "../store/useOnboardingStore";
 import { useSessionsStore } from "../store/useSessionsStore";
 import { useAuthStore } from "../store/useAuthStore";
 import { api } from "../lib/api";
-import type { MentorshipRequestRead, MentorProfileRead } from "../types/api";
+import type {
+  MentorshipRequestRead,
+  MentorProfileRead,
+  SavedMentorRead,
+  SessionNoteRead,
+} from "../types/api";
 import type { Mentor } from "../types/mentor";
 import { mentors } from "../data/mentors";
 import { getRecommendedMentors } from "../lib/getRecommendedMentors";
@@ -56,8 +61,8 @@ const ProfilePage = () => {
 
   const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
   const [dbMentors, setDbMentors] = useState<MentorProfileRead[]>([]);
-  const [dbSavedMentors, setDbSavedMentors] = useState<any[]>([]);
-  const [sessionNotes, setSessionNotes] = useState<any[]>([]);
+  const [dbSavedMentors, setDbSavedMentors] = useState<SavedMentorRead[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<SessionNoteRead[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 

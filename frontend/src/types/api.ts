@@ -119,3 +119,22 @@ export interface MentorshipStatusUpdatePayload {
   status: RequestStatus;
   response_message?: string | null;
 }
+
+export interface SavedMentorRead {
+  id: number;
+  user_id: number;
+  mentor_id: number;
+  created_at: string;
+  mentor?: MentorProfileRead | null;
+  mentor_profile?: MentorProfileRead | null;
+}
+
+export interface SessionNoteRead {
+  id: number;
+  user_id: number;
+  request_id?: string | null;
+  title: string;
+  content: string;
+  resource_url?: string | null;
+  created_at: string;
+}

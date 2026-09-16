@@ -29,9 +29,6 @@ const MentorProfilePage = () => {
   useEffect(() => {
     if (!mentorId) return;
 
-    setLoading(true);
-    setError(null);
-
     api.mentors
       .get(Number(mentorId))
       .then((data) => {

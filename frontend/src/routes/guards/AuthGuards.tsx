@@ -3,8 +3,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 
-/** Returns true if there is an active session (token, mentor store, or mentee store). */
-export function useIsAuthenticated() {
+/** Helper that returns true if there is an active session (token, mentor store, or mentee store). */
+function useIsAuthenticated() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const menteeName = useOnboardingStore((s) => s.fullName);

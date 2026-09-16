@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ShieldCheck, UserCheck, UserX, Clock, ExternalLink, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -12,22 +12,26 @@ export default function AdminDashboardPage() {
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const fetchPendingMentors = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await api.admin.listPendingMentors();
-      setPendingMentors(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load pending mentors.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchPendingMentors = useCallback(() => {
+    api.admin
+      .listPendingMentors()
+      .then(setPendingMentors)
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load pending mentors.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     fetchPendingMentors();
-  }, []);
+  }, [fetchPendingMentors]);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    fetchPendingMentors();
+  };
 
   const handleApprove = async (mentorId: number, mentorName: string) => {
     setProcessingId(mentorId);
@@ -81,7 +85,7 @@ export default function AdminDashboardPage() {
 
               <button
                 type="button"
-                onClick={fetchPendingMentors}
+                onClick={handleRefresh}
                 disabled={loading}
                 className="inline-flex items-center gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
               >

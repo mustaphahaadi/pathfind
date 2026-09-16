@@ -25,12 +25,18 @@ const MentorUserMenuLink = ({ className = "", isOverlay = false }: MentorUserMen
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const fullName = user?.profile?.full_name || useMentorOnboardingStore((state) => state.fullName) || "Volunteer Mentor";
-  const workEmail = user?.email || useMentorOnboardingStore((state) => state.workEmail);
-  const avatarUrl = user?.profile?.avatar_url || useMentorOnboardingStore((state) => state.avatarUrl);
-  const currentTitle = user?.profile?.job_title || useMentorOnboardingStore((state) => state.currentTitle);
-  const company = user?.profile?.company || useMentorOnboardingStore((state) => state.company);
+  const onboardingFullName = useMentorOnboardingStore((state) => state.fullName);
+  const onboardingWorkEmail = useMentorOnboardingStore((state) => state.workEmail);
+  const onboardingAvatarUrl = useMentorOnboardingStore((state) => state.avatarUrl);
+  const onboardingTitle = useMentorOnboardingStore((state) => state.currentTitle);
+  const onboardingCompany = useMentorOnboardingStore((state) => state.company);
   const resetOnboarding = useMentorOnboardingStore((state) => state.reset);
+
+  const fullName = user?.profile?.full_name || onboardingFullName || "Volunteer Mentor";
+  const workEmail = user?.email || onboardingWorkEmail;
+  const avatarUrl = user?.profile?.avatar_url || onboardingAvatarUrl;
+  const currentTitle = user?.profile?.job_title || onboardingTitle;
+  const company = user?.profile?.company || onboardingCompany;
 
   const subtitle = [currentTitle, company].filter(Boolean).join(" @ ") || "Volunteer Mentor";
 

@@ -10,6 +10,7 @@ import { technicalTracks } from "../data/onboarding/technicalTracks";
 import { statusOptions } from "../data/onboarding/statusOptions";
 import { api } from "../lib/api";
 import type { MentorProfileRead } from "../types/api";
+import type { MentorCategory } from "../types/mentor";
 
 const buildMatchFilters = (): string[] => {
   const state = useOnboardingStore.getState();
@@ -145,8 +146,8 @@ const BrowseMentorsPage = () => {
             <MentorFiltersSidebar
               skillQuery={skillQuery}
               onSkillQueryChange={setSkillQuery}
-              selectedDisciplines={selectedExpertise as any}
-              onToggleDiscipline={toggleExpertise as any}
+              selectedDisciplines={selectedExpertise as MentorCategory[]}
+              onToggleDiscipline={toggleExpertise as (discipline: MentorCategory) => void}
               availableOnly={false}
               onToggleAvailableOnly={() => {}}
               onClearAll={() => setSelectedExpertise([])}
