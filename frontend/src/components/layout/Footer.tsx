@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { footerNavLinks } from "../../data/navigation";
 import { api } from "../../lib/api";
 
+import { Logo } from "../ui/Logo";
+
 const Footer = () => {
   const [healthy, setHealthy] = useState<boolean | null>(null);
 
@@ -15,12 +17,10 @@ const Footer = () => {
   return (
     <footer className="border-t border-black/10 px-5 py-8 sm:px-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Logo size="sm" />
           <p className="text-sm text-ink/60">
-            <span className="font-extrabold tracking-tight text-ink">
-              Pathfind
-            </span>
-            <span className="mx-2 text-ink/30">·</span>
+            <span className="mx-2 text-ink/30 hidden sm:inline">·</span>
             © 2026 Pathfind. 100% Free &amp; Open Tech Mentorship.
           </p>
 

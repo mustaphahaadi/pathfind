@@ -1,1 +1,5 @@
-import {Link} from 'react-router-dom';export function Logo(){return <Link to="/" className="text-[22px] font-extrabold tracking-[-.04em]">Pathfind</Link>}
+import { Logo as UiLogo } from "./ui/Logo";
+
+export function Logo({ light = false, size = "md" }: { light?: boolean; size?: "sm" | "md" | "lg" }) {
+  return <UiLogo light={light} size={size} />;
+}
