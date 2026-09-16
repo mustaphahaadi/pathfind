@@ -221,10 +221,17 @@ const ScheduleSessionPage = () => {
 
             {/* Request type */}
             <div className="rounded-3xl border border-surface-line bg-white p-6">
-              <h2 className="text-base font-bold text-ink">
-                What type of session do you need?{" "}
-                <span className="text-red-500">*</span>
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-ink">
+                  What type of session do you need?{" "}
+                  <span className="text-red-500">*</span>
+                </h2>
+                {availableTypes.length > 0 && (
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
+                    Synced with API ({availableTypes.length} types)
+                  </span>
+                )}
+              </div>
               <div className="mt-4 flex flex-col gap-3">
                 {REQUEST_TYPES.map((type) => {
                   const isSelected = requestType === type.value;
