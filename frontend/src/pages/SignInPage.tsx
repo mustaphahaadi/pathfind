@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuthStore } from "../store/useAuthStore";
+import { useOnboardingStore } from "../store/useOnboardingStore";
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const SignInPage = () => {
       if (user.role === "mentor") {
         navigate("/mentor-dashboard");
       } else {
+        useOnboardingStore.getState().initFromUser(user);
         navigate("/profile");
       }
     } catch (err) {
