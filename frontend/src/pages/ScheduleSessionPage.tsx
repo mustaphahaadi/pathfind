@@ -48,6 +48,7 @@ const ScheduleSessionPage = () => {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
@@ -95,6 +96,7 @@ const ScheduleSessionPage = () => {
         subject: subject.trim(),
         message: message.trim(),
         resume_url: resumeUrl.trim() || null,
+        portfolio_url: portfolioUrl.trim() || null,
         github_url: githubUrl.trim() || null,
       });
       setSubmitted(true);
@@ -325,6 +327,19 @@ const ScheduleSessionPage = () => {
                     value={resumeUrl}
                     onChange={(e) => setResumeUrl(e.target.value)}
                     placeholder="https://drive.google.com/..."
+                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="portfolioUrl" className="text-sm font-medium text-ink">
+                    Portfolio / Website URL
+                  </label>
+                  <input
+                    id="portfolioUrl"
+                    type="url"
+                    value={portfolioUrl}
+                    onChange={(e) => setPortfolioUrl(e.target.value)}
+                    placeholder="https://yourportfolio.com"
                     className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
                   />
                 </div>
