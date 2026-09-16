@@ -39,7 +39,10 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
   const avatarUrl = user?.profile?.avatar_url || onboardingAvatarUrl;
 
   const statusLabel = statusOptions.find((option) => option.id === status)?.title;
-  const subtitle = `Mentee${statusLabel ? ` · ${statusLabel}` : ""}`;
+  const isAdmin = user?.role === "admin";
+  const subtitle = isAdmin
+    ? "Platform Administrator"
+    : `Mentee${statusLabel ? ` · ${statusLabel}` : ""}`;
 
   const avatar = avatarUrl ? (
     <img
@@ -59,31 +62,38 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
     </span>
   );
 
-  const menuItems: AccountMenuItem[] = [
-    ...(user?.role === "admin"
-      ? [{ label: "Admin Portal", icon: ShieldCheck, to: "/admin" }]
-      : []),
-    { label: "Dashboard", icon: LayoutGrid, to: "/profile" },
-    {
-      label: "My Sessions",
-      icon: CalendarDays,
-      to: "/profile",
-      badge:
-        upcomingSessionCount > 0 ? (
-          <span className="rounded-full bg-accent-blue/10 px-2 py-0.5 text-xs font-semibold text-accent-blue">
-            {upcomingSessionCount} upcoming
-          </span>
-        ) : undefined,
-    },
-    { label: "Saved Mentors", icon: Bookmark, to: "/profile" },
-    { label: "Goals & Career Tracks", icon: Target, to: "/onboarding/mentee/interests-goals" },
-    { label: "Notes & Resources", icon: FileText, to: "/profile" },
-  ];
+  const menuItems: AccountMenuItem[] = isAdmin
+    ? [
+        { label: "Admin Verification Queue", icon: ShieldCheck, to: "/admin" },
+        { label: "Verified Mentors Directory", icon: LayoutGrid, to: "/mentors" },
+        { label: "Community Stories", icon: FileText, to: "/stories" },
+      ]
+    : [
+        { label: "Dashboard", icon: LayoutGrid, to: "/profile" },
+        {
+          label: "My Sessions",
+          icon: CalendarDays,
+          to: "/profile",
+          badge:
+            upcomingSessionCount > 0 ? (
+              <span className="rounded-full bg-accent-blue/10 px-2 py-0.5 text-xs font-semibold text-accent-blue">
+                {upcomingSessionCount} upcoming
+              </span>
+            ) : undefined,
+        },
+        { label: "Saved Mentors", icon: Bookmark, to: "/profile" },
+        { label: "Goals & Career Tracks", icon: Target, to: "/onboarding/mentee/interests-goals" },
+        { label: "Notes & Resources", icon: FileText, to: "/profile" },
+      ];
 
-  const secondaryItems: AccountMenuItem[] = [
-    { label: "Settings & Preferences", icon: Settings, to: "/profile" },
-    { label: "Honor Code & Guidelines", icon: ShieldCheck, to: "/honor-code" },
-  ];
+  const secondaryItems: AccountMenuItem[] = isAdmin
+    ? [
+        { label: "Platform Honor Code", icon: ShieldCheck, to: "/honor-code" },
+      ]
+    : [
+        { label: "Settings & Preferences", icon: Settings, to: "/profile" },
+        { label: "Honor Code & Guidelines", icon: ShieldCheck, to: "/honor-code" },
+      ];
 
   return (
     <AccountMenu
@@ -92,7 +102,7 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
       name={fullName}
       subtitle={subtitle}
       email={email}
-      profileTo="/profile"
+      profileTo={isAdmin ? "/admin" : "/profile"}
       menuItems={menuItems}
       secondaryItems={secondaryItems}
       isOverlay={isOverlay}
