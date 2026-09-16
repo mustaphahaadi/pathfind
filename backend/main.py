@@ -25,6 +25,7 @@ from .models import (
     VerificationStatus,
 )
 from .schemas import (
+    AdminStatsOut,
     FileUploadResponse,
     MentorshipRequestCreate,
     MentorshipRequestRead,
@@ -532,6 +533,85 @@ def reject_mentor(
         status="REJECTED",
     )
     return user
+
+
+@app.get("/admin/stats", response_model=AdminStatsOut)
+def get_admin_stats(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """Retrieve comprehensive real-time statistics for the Admin Portal."""
+    total_users = db.query(User).count()
+    total_mentors = db.query(User).filter(User.role == "mentor").count()
+    verified_mentors = (
+        db.query(User)
+        .filter(User.role == "mentor", User.verification_status == VerificationStatus.VERIFIED)
+        .count()
+    )
+    pending_mentors = (
+        db.query(User)
+        .filter(User.role == "mentor", User.verification_status == VerificationStatus.PENDING_VERIFICATION)
+        .count()
+    )
+    total_mentees = db.query(User).filter(User.role == "mentee").count()
+    total_requests = db.query(MentorshipRequest).count()
+    pending_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.PENDING).count()
+    accepted_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.ACCEPTED).count()
+    completed_requests = db.query(MentorshipRequest).filter(MentorshipRequest.status == RequestStatus.COMPLETED).count()
+    total_session_notes = db.query(SessionNote).count()
+    total_saved_mentors = db.query(SavedMentor).count()
+
+    return AdminStatsOut(
+        total_users=total_users,
+        total_mentors=total_mentors,
+        verified_mentors=verified_mentors,
+        pending_mentors=pending_mentors,
+        total_mentees=total_mentees,
+        total_requests=total_requests,
+        pending_requests=pending_requests,
+        accepted_requests=accepted_requests,
+        completed_requests=completed_requests,
+        total_session_notes=total_session_notes,
+        total_saved_mentors=total_saved_mentors,
+    )
+
+
+@app.get("/admin/mentors", response_model=list[UserOut])
+def list_all_admin_mentors(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """List all mentors regardless of verification status."""
+    return db.query(User).filter(User.role == "mentor").order_by(User.created_at.desc()).all()
+
+
+@app.get("/admin/mentees", response_model=list[UserOut])
+def list_all_admin_mentees(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """List all registered mentees on the platform."""
+    return db.query(User).filter(User.role == "mentee").order_by(User.created_at.desc()).all()
+
+
+@app.delete("/admin/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(get_current_admin_user),
+):
+    """Delete a user account and associated profile."""
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user.id == admin_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin cannot delete own account")
+
+    if user.profile:
+        db.delete(user.profile)
+    db.delete(user)
+    db.commit()
+    return None
 
 
 # ── File Upload Endpoint ───────────────────────────────────────────────────────

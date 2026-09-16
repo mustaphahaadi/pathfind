@@ -138,3 +138,17 @@ export interface SessionNoteRead {
   resource_url?: string | null;
   created_at: string;
 }
+
+export interface AdminStatsOut {
+  total_users: number;
+  total_mentors: number;
+  verified_mentors: number;
+  pending_mentors: number;
+  total_mentees: number;
+  total_requests: number;
+  pending_requests: number;
+  accepted_requests: number;
+  completed_requests: number;
+  total_session_notes: number;
+  total_saved_mentors: number;
+}

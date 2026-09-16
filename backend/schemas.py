@@ -197,3 +197,17 @@ class SessionNoteRead(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
+
+
+class AdminStatsOut(BaseModel):
+    total_users: int
+    total_mentors: int
+    verified_mentors: int
+    pending_mentors: int
+    total_mentees: int
+    total_requests: int
+    pending_requests: int
+    accepted_requests: int
+    completed_requests: int
+    total_session_notes: int
+    total_saved_mentors: int
