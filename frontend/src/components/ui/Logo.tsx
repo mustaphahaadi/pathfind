@@ -15,7 +15,7 @@ export function Logo({ light = false, className = "", size = "md" }: LogoProps) 
       ? "h-16 sm:h-20"
       : "h-12 sm:h-14 lg:h-16";
 
-  const logoSrc = light ? "/assets/logo-white.png" : "/assets/logo-blue.png";
+  const logoSrc = light ? "/assets/logo-white.png" : "/assets/logo-black.png";
 
   return (
     <Link
