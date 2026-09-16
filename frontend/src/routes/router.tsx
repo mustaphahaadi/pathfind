@@ -34,8 +34,10 @@ import MentorProfileCreatedPage from "../pages/mentor-onboarding/MentorProfileCr
 import AuthLayout from "../layouts/AuthLayout";
 import OnboardingLayout from "../layouts/OnboardingLayout";
 import MentorOnboardingLayout from "../layouts/MentorOnboardingLayout";
+import { ProtectedRoute, GuestOnlyRoute, AdminRoute, MentorRoute } from "./guards/AuthGuards";
 
 export const router = createBrowserRouter([
+  // Public Marketing / Content Routes
   {
     path: "/",
     element: <LandingPage />,
@@ -69,46 +71,6 @@ export const router = createBrowserRouter([
     element: <TermsPage />,
   },
   {
-    path: "/auth",
-    element: <AuthLayout />,
-    children: [
-      {
-        index: true,
-        element: <SignInPage />,
-      },
-    ],
-  },
-  {
-    path: "/join",
-    element: <AuthLayout />,
-    children: [
-      {
-        index: true,
-        element: <JoinPage />,
-      },
-    ],
-  },
-  {
-    path: "/join/mentee",
-    element: <MenteeSignUpPage />,
-  },
-  {
-    path: "/join/mentor",
-    element: <MentorSignUpPage />,
-  },
-  {
-    path: "/profile",
-    element: <ProfilePage />,
-  },
-  {
-    path: "/mentor-dashboard",
-    element: <MentorDashboardPage />,
-  },
-  {
-    path: "/admin",
-    element: <AdminDashboardPage />,
-  },
-  {
     path: "/mentors",
     element: <BrowseMentorsPage />,
   },
@@ -116,66 +78,136 @@ export const router = createBrowserRouter([
     path: "/mentors/:mentorId",
     element: <MentorProfilePage />,
   },
+
+  // Guest Only Routes (Redirects already logged-in users away from Auth/Signup pages)
   {
-    path: "/mentors/:mentorId/schedule",
-    element: <ScheduleSessionPage />,
-  },
-  {
-    path: "/booking-confirmed",
-    element: <BookingConfirmedPage />,
-  },
-  {
-    path: "/onboarding/mentee",
-    element: <OnboardingLayout />,
+    element: <GuestOnlyRoute />,
     children: [
       {
-        index: true,
-        element: <Navigate to="about-you" replace />,
+        path: "/auth",
+        element: <AuthLayout />,
+        children: [
+          {
+            index: true,
+            element: <SignInPage />,
+          },
+        ],
       },
       {
-        path: "about-you",
-        element: <AboutYouStep />,
+        path: "/join",
+        element: <AuthLayout />,
+        children: [
+          {
+            index: true,
+            element: <JoinPage />,
+          },
+        ],
       },
       {
-        path: "interests-goals",
-        element: <InterestsGoalsStep />,
+        path: "/join/mentee",
+        element: <MenteeSignUpPage />,
       },
       {
-        path: "experience-readiness",
-        element: <ExperienceReadinessStep />,
+        path: "/join/mentor",
+        element: <MentorSignUpPage />,
       },
     ],
   },
+
+  // Protected User Routes (Requires logged in user)
   {
-    path: "/onboarding/mentor/complete",
-    element: <MentorProfileCreatedPage />,
-  },
-  {
-    path: "/onboarding/mentor",
-    element: <MentorOnboardingLayout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <Navigate to="identity-verification" replace />,
+        path: "/profile",
+        element: <ProfilePage />,
       },
       {
-        path: "identity-verification",
-        element: <IdentityVerificationStep />,
+        path: "/mentors/:mentorId/schedule",
+        element: <ScheduleSessionPage />,
       },
       {
-        path: "domain-skills",
-        element: <DomainSkillsStep />,
+        path: "/booking-confirmed",
+        element: <BookingConfirmedPage />,
       },
       {
-        path: "availability-capacity",
-        element: <AvailabilityCapacityStep />,
+        path: "/onboarding/mentee",
+        element: <OnboardingLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="about-you" replace />,
+          },
+          {
+            path: "about-you",
+            element: <AboutYouStep />,
+          },
+          {
+            path: "interests-goals",
+            element: <InterestsGoalsStep />,
+          },
+          {
+            path: "experience-readiness",
+            element: <ExperienceReadinessStep />,
+          },
+        ],
       },
       {
-        path: "honor-code-review",
-        element: <HonorCodeReviewStep />,
+        path: "/onboarding/mentor/complete",
+        element: <MentorProfileCreatedPage />,
+      },
+      {
+        path: "/onboarding/mentor",
+        element: <MentorOnboardingLayout />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="identity-verification" replace />,
+          },
+          {
+            path: "identity-verification",
+            element: <IdentityVerificationStep />,
+          },
+          {
+            path: "domain-skills",
+            element: <DomainSkillsStep />,
+          },
+          {
+            path: "availability-capacity",
+            element: <AvailabilityCapacityStep />,
+          },
+          {
+            path: "honor-code-review",
+            element: <HonorCodeReviewStep />,
+          },
+        ],
       },
     ],
   },
+
+  // Mentor Only Routes
+  {
+    element: <MentorRoute />,
+    children: [
+      {
+        path: "/mentor-dashboard",
+        element: <MentorDashboardPage />,
+      },
+    ],
+  },
+
+  // Admin Only Routes
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        path: "/admin",
+        element: <AdminDashboardPage />,
+      },
+    ],
+  },
+
+  // Fallback 404 Route
   {
     path: "*",
     element: (
