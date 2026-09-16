@@ -18,11 +18,16 @@ const Header = ({ variant = "overlay" }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const authUser = useAuthStore((s) => s.user);
-  const isAuthSignedIn = !!useAuthStore((s) => s.token);
-  const isMenteeSignedIn = useOnboardingStore((state) => state.fullName.trim().length > 0);
+  const token = useAuthStore((s) => s.token);
+  const menteeFullName = useOnboardingStore((state) => state.fullName);
+  const mentorHasCompleted = useMentorOnboardingStore((state) => state.hasCompletedOnboarding);
+  const mentorFullName = useMentorOnboardingStore((state) => state.fullName);
+
+  const isAuthSignedIn = !!token;
+  const isMenteeSignedIn = menteeFullName.trim().length > 0;
   const isMentorSignedIn =
     authUser?.role === "mentor" ||
-    useMentorOnboardingStore((state) => state.hasCompletedOnboarding && state.fullName.trim().length > 0);
+    (mentorHasCompleted && mentorFullName.trim().length > 0);
   const isSignedIn = isAuthSignedIn || isMentorSignedIn || isMenteeSignedIn;
 
   if (variant === "solid") {
