@@ -2,6 +2,9 @@ import { create } from "zustand";
 import type { WeeklyAvailabilityWindow } from "../types/mentorOnboarding";
 
 interface MentorOnboardingState {
+  // Registration credentials (from MentorSignUpPage)
+  password: string;
+
   // Step 1 — Identity & Verification
   avatarUrl: string | null;
   fullName: string;
@@ -28,6 +31,7 @@ interface MentorOnboardingState {
   hasCompletedOnboarding: boolean;
   acceptingRequests: boolean;
 
+  setPassword: (value: string) => void;
   setAvatarUrl: (url: string | null) => void;
   setFullName: (value: string) => void;
   setWorkEmail: (value: string) => void;
@@ -54,6 +58,8 @@ interface MentorOnboardingState {
 }
 
 const initialState = {
+  password: "",
+
   avatarUrl: null,
   fullName: "",
   workEmail: "",
@@ -83,6 +89,7 @@ const toggleInList = (list: string[], id: string) =>
 export const useMentorOnboardingStore = create<MentorOnboardingState>((set) => ({
   ...initialState,
 
+  setPassword: (value) => set({ password: value }),
   setAvatarUrl: (url) => set({ avatarUrl: url }),
   setFullName: (value) => set({ fullName: value }),
   setWorkEmail: (value) => set({ workEmail: value }),
