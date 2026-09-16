@@ -27,12 +27,16 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const fullName = user?.profile?.full_name || useOnboardingStore((state) => state.fullName) || "Mentee User";
-  const email = user?.email || useOnboardingStore((state) => state.email);
-  const avatarUrl = user?.profile?.avatar_url || useOnboardingStore((state) => state.avatarUrl);
+  const onboardingFullName = useOnboardingStore((state) => state.fullName);
+  const onboardingEmail = useOnboardingStore((state) => state.email);
+  const onboardingAvatarUrl = useOnboardingStore((state) => state.avatarUrl);
   const status = useOnboardingStore((state) => state.status);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const upcomingSessionCount = useSessionsStore((state) => state.sessions.length);
+
+  const fullName = user?.profile?.full_name || onboardingFullName || "Mentee User";
+  const email = user?.email || onboardingEmail;
+  const avatarUrl = user?.profile?.avatar_url || onboardingAvatarUrl;
 
   const statusLabel = statusOptions.find((option) => option.id === status)?.title;
   const subtitle = `Mentee${statusLabel ? ` · ${statusLabel}` : ""}`;

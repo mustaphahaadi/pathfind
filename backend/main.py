@@ -715,4 +715,3 @@ def delete_session_note(
         db.delete(note)
         db.commit()
     return None
-
