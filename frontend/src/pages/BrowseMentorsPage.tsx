@@ -145,10 +145,11 @@ const BrowseMentorsPage = () => {
             <MentorFiltersSidebar
               skillQuery={skillQuery}
               onSkillQueryChange={setSkillQuery}
-              selectedDisciplines={selectedExpertise as never[]}
-              onDisciplineToggle={toggleExpertise as never}
+              selectedDisciplines={selectedExpertise as any}
+              onToggleDiscipline={toggleExpertise as any}
               availableOnly={false}
-              onAvailableOnlyChange={() => {}}
+              onToggleAvailableOnly={() => {}}
+              onClearAll={() => setSelectedExpertise([])}
             />
 
             {/* Mentor list */}

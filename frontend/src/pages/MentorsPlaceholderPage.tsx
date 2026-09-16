@@ -40,7 +40,7 @@ export function MentorsPlaceholderPage() {
                 className="overflow-hidden rounded-2xl border border-line bg-white"
               >
                 <img
-                  src={mentor.photoUrl}
+                  src={mentor.imageUrl}
                   alt={mentor.name}
                   className="aspect-[4/3] w-full object-cover"
                   loading="lazy"

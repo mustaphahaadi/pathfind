@@ -35,6 +35,9 @@ const HonorCodeReviewStep = () => {
 
   const avatarUrl = useMentorOnboardingStore((state) => state.avatarUrl);
   const fullName = useMentorOnboardingStore((state) => state.fullName);
+  const workEmail = useMentorOnboardingStore((state) => state.workEmail);
+  const password = useMentorOnboardingStore((state) => state.password);
+  const yearsOfExperience = useMentorOnboardingStore((state) => state.yearsOfExperience);
   const currentTitle = useMentorOnboardingStore((state) => state.currentTitle);
   const company = useMentorOnboardingStore((state) => state.company);
   const location = useMentorOnboardingStore((state) => state.location);
@@ -59,9 +62,6 @@ const HonorCodeReviewStep = () => {
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const setAuth = useAuthStore((s) => s.setAuth);
-
-  const password = useMentorOnboardingStore((state) => state.password);
-  const yearsOfExperience = useMentorOnboardingStore((state) => state.yearsOfExperience);
 
   const allAgreed = agreedHonorCodeIds.length === mentorHonorCodeItems.length;
   const signatureMatches =

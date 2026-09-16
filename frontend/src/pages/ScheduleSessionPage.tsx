@@ -38,7 +38,6 @@ const REQUEST_TYPES: { value: RequestType; label: string; description: string }[
 
 const ScheduleSessionPage = () => {
   const { mentorId } = useParams<{ mentorId: string }>();
-  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
   const [mentor, setMentor] = useState<MentorProfileRead | null>(null);

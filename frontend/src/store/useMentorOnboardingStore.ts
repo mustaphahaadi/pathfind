@@ -22,6 +22,7 @@ interface MentorOnboardingState {
   targetStages: string[];
 
   // Step 3 — Availability & Capacity
+  timezone: string;
   weeklyWindows: WeeklyAvailabilityWindow[];
 
   // Step 4 — Honor Code & Review
@@ -46,6 +47,7 @@ interface MentorOnboardingState {
   setMotivation: (value: string) => void;
   toggleTargetStage: (id: string) => void;
 
+  setTimezone: (value: string) => void;
   addWeeklyWindow: (window: Omit<WeeklyAvailabilityWindow, "id">) => void;
   removeWeeklyWindow: (id: string) => void;
 
@@ -74,6 +76,7 @@ const initialState = {
   motivation: "",
   targetStages: [] as string[],
 
+  timezone: "GMT (UTC+0)",
   weeklyWindows: [] as WeeklyAvailabilityWindow[],
 
   agreedHonorCodeIds: [] as string[],
@@ -105,6 +108,7 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>((set) => (
   toggleTargetStage: (id) =>
     set((state) => ({ targetStages: toggleInList(state.targetStages, id) })),
 
+  setTimezone: (value) => set({ timezone: value }),
   addWeeklyWindow: (window) =>
     set((state) => ({
       weeklyWindows: [

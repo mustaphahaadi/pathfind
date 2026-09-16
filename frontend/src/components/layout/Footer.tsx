@@ -28,4 +28,5 @@ const Footer = () => {
   );
 };
 
+export { Footer, Footer as MinimalFooter };
 export default Footer;

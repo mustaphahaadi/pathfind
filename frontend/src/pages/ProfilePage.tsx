@@ -61,6 +61,33 @@ const ProfilePage = () => {
       .finally(() => setLoadingRequests(false));
   }, []);
 
+  const sessions = requests.map((r) => ({
+    id: r.id,
+    mentorId: String(r.mentor_id),
+    mentorName: r.mentor_profile?.full_name || "Mentor",
+    mentorRole: r.mentor_profile?.job_title || "Tech Professional",
+    mentorCompany: r.mentor_profile?.company || "",
+    mentorImage: r.mentor_profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+    dateLabel: new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    timeLabel: new Date(r.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+    durationMinutes: 45,
+    videoLink: "#",
+    focusTopicLabels: [r.request_type],
+    note: r.message,
+    status: r.status,
+  }));
+
+  const latestSession = sessions.find((s) => s.status === "accepted" || s.status === "pending");
+  const latestSessionMentor = latestSession
+    ? {
+        id: latestSession.mentorId,
+        name: latestSession.mentorName,
+        role: latestSession.mentorRole,
+        company: latestSession.mentorCompany,
+        imageUrl: latestSession.mentorImage,
+      }
+    : null;
+
   const firstName = fullName.split(" ")[0] || "there";
   const recommended = getRecommendedMentors(technicalTracks, 4);
   const savedMentors = mentors.filter((mentor) => savedMentorIds.includes(mentor.id));

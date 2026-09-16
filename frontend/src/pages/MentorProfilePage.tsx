@@ -33,7 +33,7 @@ const MentorProfilePage = () => {
     setError(null);
 
     api.mentors
-      .get(mentorId)
+      .get(Number(mentorId))
       .then((data) => {
         setMentor(data);
       })

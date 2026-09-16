@@ -17,9 +17,6 @@ import {
   Circle,
   Lightbulb,
   HandCoins,
-  Loader2,
-  Check,
-  X,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -39,9 +36,6 @@ const tabs: { id: TabId; label: string }[] = [
   { id: "availability", label: "Availability & Settings" },
 ];
 
-const slugify = (value: string) =>
-  value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-
 const MentorDashboardPage = () => {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
@@ -54,32 +48,12 @@ const MentorDashboardPage = () => {
   const toggleAcceptingRequests = useMentorOnboardingStore((state) => state.toggleAcceptingRequests);
 
   const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
-  const [loadingRequests, setLoadingRequests] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     api.requests.list()
       .then(setRequests)
-      .catch(() => {})
-      .finally(() => setLoadingRequests(false));
+      .catch(() => {});
   }, []);
-
-  const handleStatusChange = async (
-    requestId: string,
-    status: "accepted" | "declined",
-  ) => {
-    setActionLoading(requestId);
-    try {
-      const updated = await api.requests.updateStatus(requestId, { status });
-      setRequests((prev) =>
-        prev.map((r) => (r.id === requestId ? updated : r)),
-      );
-    } catch {
-      // keep existing state
-    } finally {
-      setActionLoading(null);
-    }
-  };
 
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
@@ -88,6 +62,7 @@ const MentorDashboardPage = () => {
   const pendingCount = requests.filter((r) => r.status === "pending").length;
   const sessionsBooked = requests.filter((r) => r.status === "accepted" || r.status === "completed").length;
   const menteesGuided = new Set(requests.filter((r) => r.status === "completed").map((r) => r.mentee_id)).size;
+  const hasRatings = menteesGuided > 0;
 
   const readinessChecks = [
     { label: "Profile Published", complete: hasCompletedOnboarding || !!user?.profile },

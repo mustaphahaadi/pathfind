@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { FileText, ShieldCheck } from "lucide-react";
+import { FileText } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
