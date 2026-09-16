@@ -25,9 +25,8 @@ const ProfileHeaderCard = () => {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-surface-line bg-white shadow-sm transition-all hover:shadow-md">
-      {/* Rich dark executive banner */}
-      <div className="relative h-24 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:h-28">
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-transparent to-transparent pointer-events-none" />
+      {/* Rich dark solid executive banner */}
+      <div className="relative h-24 bg-slate-950 p-6 sm:h-28">
         <div className="flex items-center justify-between text-white/80">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md ring-1 ring-white/10">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -41,15 +40,15 @@ const ProfileHeaderCard = () => {
 
       <div className="px-6 pb-6 sm:px-8">
         <div className="-mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-end gap-4">
+          <div className="relative z-10 flex items-end gap-4">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={name}
-                className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-md ring-2 ring-indigo-500/20"
+                className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-md ring-2 ring-slate-900/10"
               />
             ) : (
-              <span className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-indigo-600 to-slate-900 text-2xl font-black text-white shadow-md">
+              <span className="flex h-20 w-20 items-center justify-center rounded-2xl border-4 border-white bg-slate-900 text-2xl font-black text-white shadow-md">
                 {getInitials(name)}
               </span>
             )}
