@@ -45,6 +45,9 @@ const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
   );
 
   const menuItems: AccountMenuItem[] = [
+    ...(user?.role === "admin"
+      ? [{ label: "Admin Portal", icon: ShieldCheck, to: "/admin" }]
+      : []),
     { label: "Dashboard", icon: LayoutGrid, to: "/profile" },
     {
       label: "My Sessions",

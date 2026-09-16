@@ -7,6 +7,7 @@ import MenteeSignUpPage from "../pages/MenteeSignUpPage";
 import MentorSignUpPage from "../pages/MentorSignUpPage";
 import ProfilePage from "../pages/ProfilePage";
 import MentorDashboardPage from "../pages/MentorDashboardPage";
+import AdminDashboardPage from "../pages/AdminDashboardPage";
 import BrowseMentorsPage from "../pages/BrowseMentorsPage";
 import MentorProfilePage from "../pages/MentorProfilePage";
 import ScheduleSessionPage from "../pages/ScheduleSessionPage";
@@ -102,6 +103,10 @@ export const router = createBrowserRouter([
   {
     path: "/mentor-dashboard",
     element: <MentorDashboardPage />,
+  },
+  {
+    path: "/admin",
+    element: <AdminDashboardPage />,
   },
   {
     path: "/mentors",
