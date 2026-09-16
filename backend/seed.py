@@ -27,7 +27,10 @@ SEED_MENTORS = [
         "availability": "Weekday evenings",
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/kwame-mensah",
-        "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "abena.owusu@amalitech.org",
@@ -43,7 +46,10 @@ SEED_MENTORS = [
         "availability": "Saturday mornings",
         "location": "Kumasi, Ghana",
         "linkedin_url": "https://linkedin.com/in/abena-owusu",
-        "avatar_url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "kofi.asante@amalitech.org",
@@ -59,7 +65,10 @@ SEED_MENTORS = [
         "availability": "Weekday evenings",
         "location": "Takoradi, Ghana",
         "linkedin_url": "https://linkedin.com/in/kofi-asante",
-        "avatar_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "nana.yeboah@amalitech.org",
@@ -75,7 +84,10 @@ SEED_MENTORS = [
         "availability": "Saturday afternoons",
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/nana-yeboah",
-        "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "akosua.boateng@amalitech.org",
@@ -91,7 +103,10 @@ SEED_MENTORS = [
         "availability": "Weekday evenings",
         "location": "Tema, Ghana",
         "linkedin_url": "https://linkedin.com/in/akosua-boateng",
-        "avatar_url": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "yaw.ofori@amalitech.org",
@@ -104,7 +119,10 @@ SEED_MENTORS = [
         "availability": "Saturday mornings",
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/yaw-ofori",
-        "avatar_url": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "adwoa.addo@amalitech.org",
@@ -120,7 +138,10 @@ SEED_MENTORS = [
         "availability": "Weekday evenings",
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/adwoa-addo",
-        "avatar_url": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
     {
         "email": "kojo.antwi@amalitech.org",
@@ -136,7 +157,10 @@ SEED_MENTORS = [
         "availability": "Sunday afternoons",
         "location": "Kumasi, Ghana",
         "linkedin_url": "https://linkedin.com/in/kojo-antwi",
-        "avatar_url": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=300&h=300&fit=crop&crop=faces&q=80",
+        "avatar_url": (
+            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61"
+            "?w=300&h=300&fit=crop&crop=faces&q=80"
+        ),
     },
 ]
 
