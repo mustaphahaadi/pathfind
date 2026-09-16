@@ -97,8 +97,7 @@ const MentorDashboardPage = () => {
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
           {/* Executive Mentor Hero Banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-indigo-950/20">
-            <div className="absolute right-0 top-0 h-full w-1/2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-500/15 via-indigo-500/5 to-transparent pointer-events-none" />
+          <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-8 text-white shadow-xl">
             
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2.5">
