@@ -205,6 +205,52 @@ class SessionNoteRead(BaseModel):
         from_attributes = True
 
 
+class GoalCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    category: str = Field("Technical Skill", max_length=100)
+    target_date: str = Field("Q4 2026", max_length=100)
+    completed: bool = False
+
+
+class GoalUpdate(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=255)
+    category: str | None = Field(None, max_length=100)
+    target_date: str | None = Field(None, max_length=100)
+    completed: bool | None = None
+
+
+class GoalRead(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    category: str
+    target_date: str
+    completed: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class UserSettingsRead(BaseModel):
+    user_id: int
+    email_notifications: bool
+    session_reminders: bool
+    weekly_digest: bool
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class UserSettingsUpdate(BaseModel):
+    email_notifications: bool | None = None
+    session_reminders: bool | None = None
+    weekly_digest: bool | None = None
+
+
 class AdminStatsOut(BaseModel):
     total_users: int
     total_mentors: int
