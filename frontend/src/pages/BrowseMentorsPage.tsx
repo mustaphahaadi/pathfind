@@ -1,15 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BadgeCheck, X, HandCoins } from "lucide-react";
+import { BadgeCheck, X, HandCoins, Loader2 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import MentorListCard from "../components/mentors/MentorListCard";
 import MentorFiltersSidebar from "../components/mentors/MentorFiltersSidebar";
-import { mentors } from "../data/mentors";
 import { useOnboardingStore } from "../store/useOnboardingStore";
 import { technicalTracks } from "../data/onboarding/technicalTracks";
 import { statusOptions } from "../data/onboarding/statusOptions";
-import type { MentorCategory } from "../types/mentor";
+import { api } from "../lib/api";
+import type { MentorProfileRead } from "../types/api";
 
 const buildMatchFilters = (): string[] => {
   const state = useOnboardingStore.getState();
@@ -31,45 +31,53 @@ const BrowseMentorsPage = () => {
 
   const [activeMatchFilters, setActiveMatchFilters] = useState<string[]>(buildMatchFilters);
   const [skillQuery, setSkillQuery] = useState("");
-  const [selectedDisciplines, setSelectedDisciplines] = useState<MentorCategory[]>([]);
-  const [availableOnly, setAvailableOnly] = useState(false);
+  const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
+
+  const [mentors, setMentors] = useState<MentorProfileRead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const firstName = fullName.split(" ")[0] || "there";
   const trackLabels = technicalTracks
     .filter((track) => technicalTrackIds.includes(track.id))
     .map((track) => track.label);
 
-  const filteredMentors = useMemo(() => {
-    const query = skillQuery.trim().toLowerCase();
+  // Fetch mentors from the real API
+  useEffect(() => {
+    let cancelled = false;
+    const fetchMentors = async () => {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const result = await api.mentors.list({
+          query: skillQuery || undefined,
+          expertise: selectedExpertise.length > 0 ? selectedExpertise[0] : undefined,
+          verified_only: true,
+          limit: 50,
+        });
+        if (!cancelled) setMentors(result);
+      } catch (err) {
+        if (!cancelled)
+          setLoadError(err instanceof Error ? err.message : "Failed to load mentors.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-    let list = mentors.filter((mentor) => {
-      const matchesQuery =
-        query.length === 0 ||
-        mentor.name.toLowerCase().includes(query) ||
-        mentor.company.toLowerCase().includes(query) ||
-        mentor.role.toLowerCase().includes(query) ||
-        mentor.tags.some((tag) => tag.toLowerCase().includes(query));
+    const timer = setTimeout(fetchMentors, 300); // debounce
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [skillQuery, selectedExpertise]);
 
-      const matchesDiscipline =
-        selectedDisciplines.length === 0 || selectedDisciplines.includes(mentor.category);
+  const filteredMentors = useMemo(() => mentors, [mentors]);
 
-      const matchesAvailability = !availableOnly || mentor.available;
-
-      return matchesQuery && matchesDiscipline && matchesAvailability;
-    });
-
-    if (isPersonalized) {
-      list = [...list].sort((a, b) => b.matchScore - a.matchScore);
-    }
-
-    return list;
-  }, [skillQuery, selectedDisciplines, availableOnly, isPersonalized]);
-
-  const toggleDiscipline = (discipline: MentorCategory) => {
-    setSelectedDisciplines((current) =>
-      current.includes(discipline)
-        ? current.filter((item) => item !== discipline)
-        : [...current, discipline],
+  const toggleExpertise = (label: string) => {
+    setSelectedExpertise((current) =>
+      current.includes(label)
+        ? current.filter((item) => item !== label)
+        : [...current, label],
     );
   };
 
@@ -79,131 +87,104 @@ const BrowseMentorsPage = () => {
 
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-7xl">
-          {isPersonalized ? (
-            <div className="rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-blue/10 px-3 py-1.5 text-xs font-semibold text-accent-blue">
-                <BadgeCheck size={14} />
-                Onboarding Complete &middot; Profile Activated
-              </span>
 
-              <h1 className="mt-4 text-3xl font-extrabold text-ink sm:text-4xl">
-                Welcome to Pathfind, {firstName}.
-              </h1>
-              <p className="mt-2 max-w-2xl text-base text-ink/60">
-                Here are {mentors.length} vetted mentors matched to your career transition
-                goals{trackLabels.length > 0 ? ` in ${trackLabels.join(" & ")}` : ""}.
-              </p>
-
-              {activeMatchFilters.length > 0 && (
-                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-surface-line pt-4">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-ink/40">
-                    Active match filters:
-                  </span>
-                  {activeMatchFilters.map((filter) => (
-                    <span
-                      key={filter}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      {filter}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setActiveMatchFilters((current) =>
-                            current.filter((item) => item !== filter),
-                          )
-                        }
-                        aria-label={`Remove ${filter} filter`}
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setActiveMatchFilters(buildMatchFilters())}
-                    className="text-xs font-medium text-accent-blue hover:underline"
+          {/* Personalized banner */}
+          {isPersonalized && activeMatchFilters.length > 0 && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent-blue/20 bg-accent-blue/5 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <BadgeCheck size={16} className="text-accent-blue" />
+                <span className="text-sm font-semibold text-ink">
+                  Matched for {firstName} based on:
+                </span>
+                {activeMatchFilters.map((filter) => (
+                  <span
+                    key={filter}
+                    className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-ink"
                   >
-                    Reset match criteria
-                  </button>
-                </div>
+                    {filter}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveMatchFilters((f) => f.filter((item) => item !== filter))
+                      }
+                      className="text-ink/40 hover:text-ink"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              {trackLabels.length > 0 && (
+                <span className="text-xs text-ink/50">
+                  Showing mentors aligned with: {trackLabels.join(", ")}
+                </span>
               )}
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-ink/50">
-                <Link to="/profile" className="hover:text-ink">
-                  Dashboard
-                </Link>{" "}
-                &gt; <span className="font-medium text-ink">Find a Mentor</span>
-              </p>
-              <h1 className="mt-2 text-3xl font-extrabold text-ink sm:text-4xl">
-                Find a Mentor
-              </h1>
-              <p className="mt-2 max-w-2xl text-base text-ink/60">
-                Explore verified senior tech professionals offering 1:1 volunteer
-                mentorship sessions. Filter by domain, skills, or company.
-              </p>
             </div>
           )}
 
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">
+                {isPersonalized ? `Your Mentor Matches, ${firstName}` : "Explore Mentors"}
+              </h1>
+              <p className="mt-1 text-sm text-ink/60">
+                {loading ? "Loading…" : `${filteredMentors.length} verified volunteer mentor${filteredMentors.length !== 1 ? "s" : ""} available`}
+              </p>
+            </div>
+            <Link
+              to="/join"
+              className="hidden shrink-0 items-center gap-1.5 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface sm:inline-flex"
+            >
+              <HandCoins size={16} className="text-accent-green" />
+              Become a Mentor
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
+            {/* Sidebar filters */}
             <MentorFiltersSidebar
               skillQuery={skillQuery}
               onSkillQueryChange={setSkillQuery}
-              selectedDisciplines={selectedDisciplines}
-              onToggleDiscipline={toggleDiscipline}
-              availableOnly={availableOnly}
-              onToggleAvailableOnly={() => setAvailableOnly((value) => !value)}
-              onClearAll={() => {
-                setSelectedDisciplines([]);
-                setAvailableOnly(false);
-                setSkillQuery("");
-              }}
+              selectedDisciplines={selectedExpertise as never[]}
+              onDisciplineToggle={toggleExpertise as never}
+              availableOnly={false}
+              onAvailableOnlyChange={() => {}}
             />
 
+            {/* Mentor list */}
             <div>
-              <p className="text-sm text-ink/60">
-                {filteredMentors.length} curated mentor
-                {filteredMentors.length === 1 ? "" : "s"} found
-              </p>
-
-              <div className="mt-3 flex flex-col gap-4">
-                {filteredMentors.map((mentor) => (
-                  <MentorListCard
-                    key={mentor.id}
-                    mentor={mentor}
-                    showMatchBadge={isPersonalized && trackLabels.length > 0 && mentor.matchScore >= 90}
-                  />
-                ))}
-
-                {filteredMentors.length === 0 && (
-                  <div className="rounded-2xl border border-dashed border-surface-line bg-white p-10 text-center text-sm text-ink/60">
-                    No mentors match your current filters — try clearing a few.
-                  </div>
-                )}
-              </div>
+              {loading && (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 size={28} className="animate-spin text-ink/30" />
+                </div>
+              )}
+              {loadError && (
+                <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+                  <p className="text-sm font-semibold text-red-700">{loadError}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    Make sure the backend server is running on localhost:8000.
+                  </p>
+                </div>
+              )}
+              {!loading && !loadError && (
+                <>
+                  {filteredMentors.length === 0 ? (
+                    <div className="rounded-2xl border border-surface-line bg-white p-10 text-center">
+                      <p className="text-sm font-semibold text-ink">No mentors found</p>
+                      <p className="mt-1 text-sm text-ink/60">
+                        Try adjusting your search or filters.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      {filteredMentors.map((mentor) => (
+                        <MentorListCard key={mentor.user_id} mentor={mentor} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-4 rounded-2xl bg-accent-blue/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-accent-blue">
-                <HandCoins size={18} strokeWidth={1.75} />
-              </span>
-              <div>
-                <p className="text-sm font-bold text-ink">The Pathfind Pledge</p>
-                <p className="mt-0.5 text-sm text-ink/60">
-                  Every session on Pathfind is completely voluntary, free of charge,
-                  and strictly educational.
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/honor-code"
-              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-            >
-              Read Our Honor Code
-            </Link>
           </div>
         </div>
       </main>

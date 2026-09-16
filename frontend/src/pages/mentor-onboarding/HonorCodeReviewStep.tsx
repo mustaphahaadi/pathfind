@@ -310,24 +310,29 @@ const HonorCodeReviewStep = () => {
             <ArrowLeft size={16} />
             Back to Step 3: Availability
           </Link>
-          <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
-            <Link
-              to="/mentors"
-              className="text-sm font-medium text-ink/60 transition-colors hover:text-ink"
-            >
-              Save Draft
-            </Link>
-            <button
-              type="button"
-              onClick={handlePublish}
-              disabled={!canPublish}
-              className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity sm:w-auto ${
-                canPublish ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"
-              }`}
-            >
-              Agree &amp; Publish Profile
-              <ArrowRight size={16} />
-            </button>
+          <div className="flex flex-col gap-2 sm:items-end">
+            {publishError && (
+              <p className="text-xs text-red-500">{publishError}</p>
+            )}
+            <div className="flex flex-col-reverse items-center gap-3 sm:flex-row">
+              <Link
+                to="/mentors"
+                className="text-sm font-medium text-ink/60 transition-colors hover:text-ink"
+              >
+                Save Draft
+              </Link>
+              <button
+                type="button"
+                onClick={handlePublish}
+                disabled={!canPublish || publishing}
+                className={`inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity sm:w-auto ${
+                  canPublish && !publishing ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"
+                }`}
+              >
+                {publishing ? "Publishing…" : "Agree & Publish Profile"}
+                <ArrowRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

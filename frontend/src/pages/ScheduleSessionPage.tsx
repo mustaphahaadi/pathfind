@@ -1,362 +1,358 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Calendar,
-  Clock,
-  Video,
-  Star,
-  HandCoins,
-  Lightbulb,
-} from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-import { mentors } from "../data/mentors";
-import { useOnboardingStore } from "../store/useOnboardingStore";
-import { useSessionsStore } from "../store/useSessionsStore";
-import { getUpcomingDays } from "../lib/getUpcomingDays";
+import { getInitials } from "../lib/getInitials";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/useAuthStore";
+import type { MentorProfileRead, RequestType } from "../types/api";
 
-const timeSlots = ["10:00 AM", "11:30 AM", "2:00 PM", "3:30 PM", "4:15 PM"];
-const MAX_FOCUS_TOPICS = 2;
+const REQUEST_TYPES: { value: RequestType; label: string; description: string }[] = [
+  {
+    value: "cv_review",
+    label: "CV / Resume Review",
+    description: "Get specific feedback on your resume for tech roles.",
+  },
+  {
+    value: "portfolio_feedback",
+    label: "Portfolio Feedback",
+    description: "Improve the way you present your projects and design work.",
+  },
+  {
+    value: "career_path_conversation",
+    label: "Career Path Conversation",
+    description: "Discuss your long-term direction and how to get there.",
+  },
+  {
+    value: "interview_preparation",
+    label: "Interview Preparation",
+    description: "Practice technical or behavioural interviews with an expert.",
+  },
+  {
+    value: "role_industry_insight",
+    label: "Role & Industry Insight",
+    description: "Understand day-to-day realities of a specific role or company.",
+  },
+];
 
 const ScheduleSessionPage = () => {
   const { mentorId } = useParams<{ mentorId: string }>();
   const navigate = useNavigate();
-  const mentor = mentors.find((item) => item.id === mentorId);
+  const user = useAuthStore((s) => s.user);
 
-  const fullName = useOnboardingStore((state) => state.fullName);
-  const email = useOnboardingStore((state) => state.email);
-  const addSession = useSessionsStore((state) => state.addSession);
+  const [mentor, setMentor] = useState<MentorProfileRead | null>(null);
+  const [loadingMentor, setLoadingMentor] = useState(true);
+  const [mentorError, setMentorError] = useState<string | null>(null);
 
-  const upcomingDays = useMemo(() => getUpcomingDays(7), []);
-  const [selectedDayIso, setSelectedDayIso] = useState(upcomingDays[0]?.iso ?? "");
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [note, setNote] = useState("");
+  const [requestType, setRequestType] = useState<RequestType>("career_path_conversation");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [resumeUrl, setResumeUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
 
-  if (!mentor) {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!mentorId) return;
+    const load = async () => {
+      try {
+        const data = await api.mentors.get(Number(mentorId));
+        setMentor(data);
+      } catch (err) {
+        setMentorError(err instanceof Error ? err.message : "Could not load mentor.");
+      } finally {
+        setLoadingMentor(false);
+      }
+    };
+    load();
+  }, [mentorId]);
+
+  const canSubmit =
+    subject.trim().length > 0 &&
+    message.trim().length > 20 &&
+    !!user;
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!canSubmit || !mentor) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await api.requests.create({
+        mentor_id: mentor.user_id,
+        request_type: requestType,
+        subject: subject.trim(),
+        message: message.trim(),
+        resume_url: resumeUrl.trim() || null,
+        github_url: githubUrl.trim() || null,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to send request.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loadingMentor) {
     return (
       <div className="flex min-h-screen flex-col bg-surface">
         <Header variant="solid" />
-        <main className="flex flex-1 flex-col items-center justify-center px-5 py-20 text-center">
-          <h1 className="text-2xl font-extrabold text-ink">Mentor not found</h1>
-          <p className="mt-2 text-sm text-ink/60">
-            This mentor profile doesn&apos;t exist or may have been removed.
-          </p>
-          <Link
-            to="/mentors"
-            className="mt-6 inline-flex items-center gap-1.5 rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            <ArrowLeft size={15} />
-            Back to Mentors
-          </Link>
+        <main className="flex flex-1 items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-ink/30" />
         </main>
         <Footer />
       </div>
     );
   }
 
-  const selectedDay = upcomingDays.find((day) => day.iso === selectedDayIso) ?? null;
-  const canConfirm = selectedDay !== null && selectedTime !== null;
+  if (mentorError || !mentor) {
+    return (
+      <div className="flex min-h-screen flex-col bg-surface">
+        <Header variant="solid" />
+        <main className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-ink">Mentor not found</p>
+            <Link to="/mentors" className="mt-3 text-sm text-accent-blue hover:underline">
+              Back to mentors
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-  const toggleTopic = (tag: string) => {
-    setSelectedTopics((current) => {
-      if (current.includes(tag)) return current.filter((item) => item !== tag);
-      if (current.length >= MAX_FOCUS_TOPICS) return current;
-      return [...current, tag];
-    });
-  };
-
-  const handleConfirm = () => {
-    if (!canConfirm || !selectedDay || !selectedTime) return;
-
-    addSession({
-      mentorId: mentor.id,
-      dateLabel: selectedDay.fullLabel,
-      timeLabel: selectedTime,
-      durationMinutes: mentor.durationMinutes,
-      focusTopicLabels: selectedTopics,
-      note,
-      videoLink: `https://meet.google.com/${mentor.id}-session`,
-    });
-
-    navigate("/booking-confirmed");
-  };
+  if (submitted) {
+    return (
+      <div className="flex min-h-screen flex-col bg-surface">
+        <Header variant="solid" />
+        <main className="flex flex-1 items-center justify-center px-5">
+          <div className="mx-auto max-w-md rounded-3xl border border-surface-line bg-white p-8 text-center">
+            <CheckCircle2 size={44} className="mx-auto text-accent-green" />
+            <h1 className="mt-4 text-2xl font-extrabold text-ink">Request sent!</h1>
+            <p className="mt-2 text-sm leading-relaxed text-ink/60">
+              Your mentorship request has been sent to{" "}
+              <strong>{mentor.full_name}</strong>. They will review your message and
+              respond within a few days.
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Link
+                to="/profile"
+                className="inline-flex items-center justify-center rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white hover:opacity-90"
+              >
+                View my requests
+              </Link>
+              <Link
+                to="/mentors"
+                className="text-sm font-medium text-ink/60 hover:text-ink"
+              >
+                Explore more mentors
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
       <Header variant="solid" />
 
       <main className="flex-1 px-5 py-8 sm:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-1.5 text-sm text-ink/50">
-              <Link to="/mentors" className="hover:text-ink">
-                Back to Mentors
-              </Link>
-              <span>/</span>
-              <span>{mentor.name}</span>
-              <span>/</span>
-              <span className="font-medium text-ink">Schedule Session</span>
-            </p>
-            <span className="rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-white">
-              Step 1 of 2: Schedule &amp; Agenda
-            </span>
+        <div className="mx-auto max-w-3xl">
+          {/* Back link */}
+          <Link
+            to={`/mentors/${mentor.user_id}`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-ink/60 hover:text-ink"
+          >
+            <ArrowLeft size={15} />
+            Back to profile
+          </Link>
+
+          <h1 className="mt-5 text-2xl font-extrabold text-ink sm:text-3xl">
+            Request Mentorship
+          </h1>
+
+          {/* Mentor summary */}
+          <div className="mt-4 flex items-center gap-3 rounded-2xl border border-surface-line bg-white p-4">
+            {mentor.avatar_url ? (
+              <img
+                src={mentor.avatar_url}
+                alt={mentor.full_name}
+                className="h-12 w-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-sm font-bold text-white">
+                {getInitials(mentor.full_name)}
+              </div>
+            )}
+            <div>
+              <p className="font-bold text-ink">{mentor.full_name}</p>
+              <p className="text-sm text-ink/60">
+                {mentor.job_title} at {mentor.company}
+              </p>
+            </div>
           </div>
 
-          <h1 className="mt-4 text-3xl font-extrabold text-ink sm:text-4xl">
-            Select Date &amp; Details
-          </h1>
-          <p className="mt-1 text-base text-ink/60">
-            Choose an available time slot on {mentor.name.split(" ")[0]}&apos;s calendar
-            and outline topics for your {mentor.durationMinutes}-minute discussion.
-          </p>
+          {/* Auth guard */}
+          {!user && (
+            <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+              You need to{" "}
+              <Link to="/auth" className="underline font-medium">sign in</Link>
+              {" "}before sending a request.
+            </div>
+          )}
 
-          <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <div className="flex flex-col gap-6">
-              <div className="rounded-2xl border border-surface-line bg-white p-5">
-                <p className="flex items-center gap-1.5 text-sm font-bold text-ink">
-                  <Calendar size={15} />
-                  Pick a day
-                </p>
-                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {upcomingDays.map((day) => {
-                    const isSelected = day.iso === selectedDayIso;
-                    return (
-                      <button
-                        key={day.iso}
-                        type="button"
-                        onClick={() => {
-                          setSelectedDayIso(day.iso);
-                          setSelectedTime(null);
-                        }}
-                        className={`flex shrink-0 flex-col items-center rounded-xl border px-4 py-2.5 text-center transition-colors ${
-                          isSelected
-                            ? "border-ink bg-ink text-white"
-                            : "border-surface-line bg-white text-ink hover:border-ink/30"
+          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-6">
+
+            {/* Request type */}
+            <div className="rounded-3xl border border-surface-line bg-white p-6">
+              <h2 className="text-base font-bold text-ink">
+                What type of session do you need?{" "}
+                <span className="text-red-500">*</span>
+              </h2>
+              <div className="mt-4 flex flex-col gap-3">
+                {REQUEST_TYPES.map((type) => {
+                  const isSelected = requestType === type.value;
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setRequestType(type.value)}
+                      className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-colors ${
+                        isSelected
+                          ? "border-ink bg-surface/50"
+                          : "border-surface-line bg-white hover:border-ink/30"
+                      }`}
+                    >
+                      <span
+                        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                          isSelected ? "border-ink bg-ink" : "border-surface-line"
                         }`}
                       >
-                        <span className="text-xs font-medium uppercase opacity-70">
-                          {day.weekdayShort}
+                        {isSelected && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                        )}
+                      </span>
+                      <span>
+                        <span className="block text-sm font-semibold text-ink">
+                          {type.label}
                         </span>
-                        <span className="text-lg font-bold">{day.dayNumber}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedDay && (
-                  <div className="mt-4 border-t border-surface-line pt-4">
-                    <p className="flex items-center gap-1.5 text-sm font-bold text-ink">
-                      <Clock size={15} />
-                      Available slots for {selectedDay.fullLabel}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {timeSlots.map((time) => {
-                        const isSelected = time === selectedTime;
-                        return (
-                          <button
-                            key={time}
-                            type="button"
-                            onClick={() => setSelectedTime(time)}
-                            className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
-                              isSelected
-                                ? "border-ink bg-ink text-white"
-                                : "border-surface-line bg-white text-ink hover:border-ink/30"
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-3 flex items-center gap-1.5 text-xs text-ink/50">
-                      <Video size={13} />
-                      Google Meet link automatically generated upon confirmation
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-surface-line bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-ink">What would you like to focus on?</p>
-                  <span className="text-xs font-medium text-ink/50">
-                    {selectedTopics.length} of {MAX_FOCUS_TOPICS} selected
-                  </span>
-                </div>
-                <p className="mt-0.5 text-sm text-ink/60">
-                  Select up to {MAX_FOCUS_TOPICS} areas you&apos;d like {mentor.name.split(" ")[0]}{" "}
-                  to concentrate on.
-                </p>
-
-                <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {mentor.tags.map((tag) => {
-                    const isSelected = selectedTopics.includes(tag);
-                    const isDisabled = !isSelected && selectedTopics.length >= MAX_FOCUS_TOPICS;
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        disabled={isDisabled}
-                        onClick={() => toggleTopic(tag)}
-                        className={`flex items-start gap-2.5 rounded-xl border p-3 text-left text-sm transition-colors ${
-                          isSelected
-                            ? "border-ink bg-surface"
-                            : isDisabled
-                              ? "cursor-not-allowed border-surface-line bg-surface/40 text-ink/40"
-                              : "border-surface-line bg-white hover:border-ink/30"
-                        }`}
-                      >
-                        <span
-                          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
-                            isSelected ? "border-ink bg-ink" : "border-surface-line"
-                          }`}
-                        >
-                          {isSelected && <span className="h-1.5 w-1.5 rounded-sm bg-white" />}
+                        <span className="mt-0.5 block text-sm text-ink/60">
+                          {type.description}
                         </span>
-                        <span className="font-medium text-ink">{tag}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-surface-line bg-white p-5">
-                <p className="text-sm font-bold text-ink">
-                  Specific questions or topics{" "}
-                  <span className="font-normal text-ink/50">(Optional)</span>
-                </p>
-                <p className="mt-0.5 text-sm text-ink/60">
-                  Providing context helps your mentor prepare tactical, high-impact advice.
-                </p>
-                <textarea
-                  value={note}
-                  onChange={(event) => setNote(event.target.value.slice(0, 500))}
-                  rows={4}
-                  placeholder={`Share any specific context, dilemmas, or links you'd like ${mentor.name.split(" ")[0]} to review prior to the call...`}
-                  className="mt-3 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
-                />
-                <p className="mt-1.5 text-right text-xs text-ink/40">{note.length} / 500 words</p>
-              </div>
-
-              <div className="rounded-2xl border border-surface-line bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold text-ink">Mentee Details</p>
-                  <Link
-                    to="/onboarding/mentee/about-you"
-                    className="text-xs font-medium text-accent-blue hover:underline"
-                  >
-                    Edit in Profile
-                  </Link>
-                </div>
-                <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <p className="text-xs text-ink/50">Full Name</p>
-                    <p className="text-sm font-medium text-ink">{fullName || "Not set"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-ink/50">Email Address</p>
-                    <p className="text-sm font-medium text-ink">{email || "Not set"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                <Link
-                  to="/mentors"
-                  className="inline-flex items-center justify-center rounded-xl border border-surface-line bg-white px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface"
-                >
-                  Cancel / Return
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleConfirm}
-                  disabled={!canConfirm}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-opacity ${
-                    canConfirm ? "bg-ink hover:opacity-90" : "cursor-not-allowed bg-ink/40"
-                  }`}
-                >
-                  Confirm &amp; Book Session
-                  <ArrowRight size={16} />
-                </button>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <aside className="h-fit rounded-2xl border border-surface-line bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
-                Mentorship Session
-              </p>
-              <p className="mt-1 text-lg font-bold text-ink">Booking Overview</p>
+            {/* Subject + Message */}
+            <div className="rounded-3xl border border-surface-line bg-white p-6">
+              <h2 className="text-base font-bold text-ink">Your request</h2>
 
-              <div className="mt-4 flex items-center gap-3 border-b border-surface-line pb-4">
-                <img
-                  src={mentor.imageUrl}
-                  alt={mentor.name}
-                  className="h-12 w-12 rounded-full object-cover"
+              <div className="mt-4">
+                <label htmlFor="subject" className="text-sm font-medium text-ink">
+                  Subject <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="subject"
+                  type="text"
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g. Feedback on my SWE resume before applying to Google"
+                  className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
                 />
-                <div>
-                  <p className="text-sm font-bold text-ink">{mentor.name}</p>
-                  <p className="text-xs text-ink/60">
-                    {mentor.role} at {mentor.company}
-                  </p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink/60">
-                    <Star size={11} className="text-accent-gold" fill="currentColor" strokeWidth={0} />
-                    {mentor.rating} ({mentor.reviewCount} reviews) &middot; {mentor.sessionsGiven}{" "}
-                    sessions given
-                  </p>
-                </div>
               </div>
 
-              <div className="mt-4 space-y-3 text-sm">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">Date</p>
-                  <p className="font-medium text-ink">{selectedDay?.fullLabel ?? "Select a date"}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
-                    Time &amp; Duration
-                  </p>
-                  <p className="font-medium text-ink">
-                    {selectedTime ?? "Select a time"} &middot; {mentor.durationMinutes} minutes
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
-                    Location
-                  </p>
-                  <p className="font-medium text-ink">Google Meet</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/40">
-                    Selected Focus
-                  </p>
-                  <p className="font-medium text-ink">
-                    {selectedTopics.length > 0 ? selectedTopics.join(", ") : "None selected yet"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-surface p-3.5 text-sm text-ink/70">
-                <HandCoins size={16} className="mt-0.5 shrink-0 text-accent-blue" />
-                <p>
-                  <span className="font-semibold text-ink">Free &amp; Voluntary: </span>
-                  No payment or card required. Rescheduling is available up to 24 hours
-                  before the session.
+              <div className="mt-4">
+                <label htmlFor="message" className="text-sm font-medium text-ink">
+                  Detailed message <span className="text-red-500">*</span>
+                </label>
+                <p className="mb-1.5 text-xs text-ink/50">
+                  Describe your background, specific questions, and what you hope to get out of the session. Mentors are more likely to accept well-prepared requests.
                 </p>
+                <textarea
+                  id="message"
+                  required
+                  rows={6}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="I am a self-taught developer with 2 years of experience in React... I would love feedback on..."
+                  className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                />
               </div>
+            </div>
 
-              <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-accent-gold/10 p-3.5 text-sm text-ink/70">
-                <Lightbulb size={16} className="mt-0.5 shrink-0 text-accent-gold" />
-                <p>
-                  <span className="font-semibold text-ink">Tip: </span>
-                  Come with 1-2 specific questions rather than a broad overview for the
-                  best outcome.
-                </p>
+            {/* Optional links */}
+            <div className="rounded-3xl border border-surface-line bg-white p-6">
+              <h2 className="text-base font-bold text-ink">Supporting links (optional)</h2>
+              <p className="mt-1 text-sm text-ink/60">
+                Helps your mentor review your work before the session.
+              </p>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="resumeUrl" className="text-sm font-medium text-ink">
+                    Resume / CV URL
+                  </label>
+                  <input
+                    id="resumeUrl"
+                    type="url"
+                    value={resumeUrl}
+                    onChange={(e) => setResumeUrl(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="githubUrl" className="text-sm font-medium text-ink">
+                    GitHub Profile / Repo URL
+                  </label>
+                  <input
+                    id="githubUrl"
+                    type="url"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    placeholder="https://github.com/yourname"
+                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                  />
+                </div>
               </div>
-            </aside>
-          </div>
+            </div>
+
+            {submitError && (
+              <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                {submitError}
+              </p>
+            )}
+
+            <div className="flex items-center justify-between">
+              <Link
+                to={`/mentors/${mentor.user_id}`}
+                className="text-sm font-medium text-ink/60 hover:text-ink"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={!canSubmit || submitting}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {submitting ? "Sending…" : "Send Request"}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </form>
         </div>
       </main>
 
