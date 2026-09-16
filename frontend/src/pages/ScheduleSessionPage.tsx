@@ -54,12 +54,20 @@ const ScheduleSessionPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
+  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
+
   useEffect(() => {
     if (!mentorId) return;
     const load = async () => {
       try {
-        const data = await api.mentors.get(Number(mentorId));
+        const [data, typesData] = await Promise.all([
+          api.mentors.get(Number(mentorId)),
+          api.requests.listTypes().catch(() => []),
+        ]);
         setMentor(data);
+        if (typesData.length > 0) {
+          setAvailableTypes(typesData);
+        }
       } catch (err) {
         setMentorError(err instanceof Error ? err.message : "Could not load mentor.");
       } finally {

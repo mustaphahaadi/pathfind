@@ -16,6 +16,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Plus,
+  Trash2,
+  ExternalLink,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -53,8 +56,16 @@ const ProfilePage = () => {
 
   const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
   const [dbMentors, setDbMentors] = useState<MentorProfileRead[]>([]);
+  const [dbSavedMentors, setDbSavedMentors] = useState<any[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const [newNoteTitle, setNewNoteTitle] = useState("");
+  const [newNoteContent, setNewNoteContent] = useState("");
+  const [newNoteResource, setNewNoteResource] = useState("");
+  const [creatingNote, setCreatingNote] = useState(false);
+  const [showNoteForm, setShowNoteForm] = useState(false);
 
   useEffect(() => {
     api.requests
@@ -67,7 +78,48 @@ const ProfilePage = () => {
       .list()
       .then(setDbMentors)
       .catch(() => {});
+
+    api.savedMentors
+      .list()
+      .then(setDbSavedMentors)
+      .catch(() => {});
+
+    api.notes
+      .list()
+      .then(setSessionNotes)
+      .catch(() => {});
   }, []);
+
+  const handleCreateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteTitle.trim() || !newNoteContent.trim()) return;
+    setCreatingNote(true);
+    try {
+      const created = await api.notes.create({
+        title: newNoteTitle,
+        content: newNoteContent,
+        resource_url: newNoteResource.trim() || undefined,
+      });
+      setSessionNotes((prev) => [created, ...prev]);
+      setNewNoteTitle("");
+      setNewNoteContent("");
+      setNewNoteResource("");
+      setShowNoteForm(false);
+    } catch {
+      // fallback
+    } finally {
+      setCreatingNote(false);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: number) => {
+    try {
+      await api.notes.delete(noteId);
+      setSessionNotes((prev) => prev.filter((n) => n.id !== noteId));
+    } catch {
+      // fallback
+    }
+  };
 
   const handleCancelRequest = async (requestId: string) => {
     setCancellingId(requestId);
@@ -526,12 +578,46 @@ const ProfilePage = () => {
           {activeTab === "saved" && (
             <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6">
               <p className="text-base font-bold text-ink">Saved Mentors</p>
-              {savedMentors.length === 0 ? (
+              {dbSavedMentors.length === 0 && savedMentors.length === 0 ? (
                 <p className="mt-2 text-sm text-ink/60">
-                  You haven&apos;t saved any mentors yet.
+                  You haven&apos;t saved any mentors yet. Browse mentors and click the bookmark button to save them.
                 </p>
               ) : (
-                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {dbSavedMentors.map((item) => {
+                    const p = item.mentor_profile;
+                    if (!p) return null;
+                    const mappedMentor: Mentor = {
+                      id: String(p.user_id),
+                      name: p.full_name,
+                      role: p.job_title,
+                      company: p.company,
+                      imageUrl: p.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+                      category: "Software Engineering",
+                      trackId: "software-engineering",
+                      tags: p.expertise_tags ? p.expertise_tags.split(",").map((s: string) => s.trim()) : ["Software Engineering"],
+                      available: true,
+                      verified: true,
+                      rating: 5,
+                      reviewCount: 12,
+                      sessionsGiven: 24,
+                      bio: p.bio,
+                      nextOpening: "Available this week",
+                      sessionFormat: "1:1 Video (45m)",
+                      durationMinutes: 45,
+                      matchScore: 98,
+                      location: p.location || "Ghana / Remote",
+                      language: "English",
+                      attendanceRate: 100,
+                      responseTime: "Usually responds in 2 hours",
+                      philosophy: "Mentorship for career growth",
+                      aboutParagraphs: [p.bio],
+                      skillGroups: [],
+                      experience: [],
+                      reviews: [],
+                    };
+                    return <MentorMiniCard key={item.id} mentor={mappedMentor} />;
+                  })}
                   {savedMentors.map((mentor) => (
                     <MentorMiniCard key={mentor.id} mentor={mentor} />
                   ))}
@@ -540,12 +626,125 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {(activeTab === "notes" || activeTab === "goals" || activeTab === "settings") && (
+          {activeTab === "notes" && (
+            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-bold text-ink">Notes &amp; Session Resources</p>
+                  <p className="mt-0.5 text-xs text-ink/60">
+                    Keep track of key takeaways, action items, and resources shared during your mentorship calls.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNoteForm(!showNoteForm)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+                >
+                  <Plus size={14} />
+                  {showNoteForm ? "Close Form" : "Add Note"}
+                </button>
+              </div>
+
+              {showNoteForm && (
+                <form onSubmit={handleCreateNote} className="mt-5 rounded-2xl border border-surface-line bg-surface/30 p-4 space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-ink">Title</label>
+                    <input
+                      type="text"
+                      value={newNoteTitle}
+                      onChange={(e) => setNewNoteTitle(e.target.value)}
+                      placeholder="e.g., CV Feedback & Portfolio Action Items"
+                      className="mt-1 w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm text-ink focus:border-ink"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-ink">Note &amp; Action Plan</label>
+                    <textarea
+                      value={newNoteContent}
+                      onChange={(e) => setNewNoteContent(e.target.value)}
+                      placeholder="Write down the key advice and bullet points discussed..."
+                      rows={3}
+                      className="mt-1 w-full rounded-xl border border-surface-line p-3.5 text-sm text-ink focus:border-ink"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-ink">Resource Link (Optional)</label>
+                    <input
+                      type="url"
+                      value={newNoteResource}
+                      onChange={(e) => setNewNoteResource(e.target.value)}
+                      placeholder="https://github.com/..."
+                      className="mt-1 w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm text-ink focus:border-ink"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={creatingNote}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-5 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {creatingNote ? "Saving Note…" : "Save Note"}
+                  </button>
+                </form>
+              )}
+
+              {sessionNotes.length === 0 ? (
+                <div className="mt-6 flex flex-col items-center justify-center py-10 text-center">
+                  <p className="text-sm font-semibold text-ink/60">No notes created yet.</p>
+                  <p className="mt-1 text-xs text-ink/40 max-w-sm">
+                    Click &ldquo;Add Note&rdquo; above to record notes, links, and homework from your mentorship sessions.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-6 space-y-4">
+                  {sessionNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/20 p-4 transition-all hover:bg-surface/50 sm:flex-row sm:items-start sm:justify-between"
+                    >
+                      <div className="space-y-1">
+                        <h4 className="text-base font-extrabold text-ink">{note.title}</h4>
+                        <p className="text-xs text-ink/50">
+                          {new Date(note.created_at).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                        <p className="pt-1 text-sm text-ink/80 whitespace-pre-line">{note.content}</p>
+                        {note.resource_url && (
+                          <a
+                            href={note.resource_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline pt-1"
+                          >
+                            Resource Link <ExternalLink size={12} />
+                          </a>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        <Trash2 size={13} />
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {(activeTab === "goals" || activeTab === "settings") && (
             <div className="mt-6 rounded-3xl border border-surface-line bg-white p-10 text-center">
               <p className="text-base font-bold text-ink">
                 {tabs.find((tab) => tab.id === activeTab)?.label}
               </p>
-              <p className="mt-2 text-sm text-ink/60">This section is coming soon.</p>
+              <p className="mt-2 text-sm text-ink/60">Manage your mentorship goals and account preferences directly from onboarding setup.</p>
             </div>
           )}
         </div>
