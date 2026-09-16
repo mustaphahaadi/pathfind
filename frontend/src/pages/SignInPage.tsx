@@ -1,11 +1,42 @@
-import { Link } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import AuthModeToggle from "../components/auth/AuthModeToggle";
-import GoogleIcon from "../components/icons/GoogleIcon";
-import GitHubIcon from "../components/icons/GitHubIcon";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/useAuthStore";
 
-/** Rendered inside AuthLayout's <Outlet />, which supplies the header/footer shell. */
 const SignInPage = () => {
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const token = await api.auth.signIn({ email, password });
+      const user = await api.auth.me();
+      setAuth(token.access_token, user);
+
+      if (user.role === "mentor") {
+        navigate("/mentor-dashboard");
+      } else {
+        navigate("/profile");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="mx-auto max-w-md text-center">
@@ -20,39 +51,10 @@ const SignInPage = () => {
         <p className="mt-3 text-base leading-relaxed text-ink/60">
           Sign in to manage your sessions, mentors, and mentee progress.
         </p>
-
-        <div className="mt-7 flex justify-center">
-          <AuthModeToggle active="sign-in" />
-        </div>
       </div>
 
       <div className="mx-auto mt-10 max-w-md rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-line py-3 text-sm font-medium text-ink transition-colors hover:bg-surface"
-          >
-            <GoogleIcon size={18} />
-            Continue with Google
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-surface-line py-3 text-sm font-medium text-ink transition-colors hover:bg-surface"
-          >
-            <GitHubIcon size={18} />
-            Continue with GitHub
-          </button>
-        </div>
-
-        <div className="my-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-surface-line" />
-          <span className="text-xs font-medium tracking-wide text-surface-muted">
-            OR WITH EMAIL
-          </span>
-          <div className="h-px flex-1 bg-surface-line" />
-        </div>
-
-        <form className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>
             <label htmlFor="email" className="text-sm font-medium text-ink">
               Email address
@@ -81,11 +83,18 @@ const SignInPage = () => {
             />
           </div>
 
+          {error && (
+            <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Sign In
+            {loading ? "Signing in…" : "Sign In"}
             <ArrowRight size={16} />
           </button>
 

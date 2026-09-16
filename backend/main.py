@@ -154,6 +154,8 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
         expertise_tags=payload.expertise_tags,
         availability=payload.availability,
         avatar_url=payload.avatar_url,
+        location=payload.location,
+        linkedin_url=payload.linkedin_url,
     )
     db.add(profile)
     db.commit()

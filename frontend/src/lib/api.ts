@@ -1,0 +1,153 @@
+import { useAuthStore } from "../store/useAuthStore";
+import type {
+  Token,
+  UserOut,
+  MentorProfileRead,
+  MentorshipRequestRead,
+  FileUploadResponse,
+  UserLoginPayload,
+  UserCreatePayload,
+  UserCreateMentorPayload,
+  MentorshipRequestCreatePayload,
+  MentorshipStatusUpdatePayload,
+} from "../types/api";
+
+const BASE_URL = "http://localhost:8000";
+
+// ── Core fetch wrapper ─────────────────────────────────────────────────────────
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = useAuthStore.getState().token;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+
+  if (!res.ok) {
+    let message = `Request failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      message = body?.detail ?? message;
+    } catch {
+      // ignore JSON parse error
+    }
+    throw new Error(message);
+  }
+
+  // 204 No Content
+  if (res.status === 204) return undefined as T;
+
+  return res.json() as Promise<T>;
+}
+
+// ── Multipart (file upload) — no Content-Type header so browser sets boundary ──
+
+async function upload(file: File): Promise<FileUploadResponse> {
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${BASE_URL}/upload`, {
+    method: "POST",
+    headers,
+    body: form,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.detail ?? `Upload failed: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────────
+
+export const api = {
+  auth: {
+    signIn: (payload: UserLoginPayload) =>
+      request<Token>("/auth/signin", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    signUp: (payload: UserCreatePayload) =>
+      request<UserOut>("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    signUpMentor: (payload: UserCreateMentorPayload) =>
+      request<UserOut>("/auth/signup/mentor", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    me: () => request<UserOut>("/auth/me"),
+  },
+
+  // ── Mentors ────────────────────────────────────────────────────────────────
+
+  mentors: {
+    list: (params?: {
+      query?: string;
+      expertise?: string;
+      verified_only?: boolean;
+      limit?: number;
+      offset?: number;
+    }) => {
+      const qs = new URLSearchParams();
+      if (params?.query) qs.set("query", params.query);
+      if (params?.expertise) qs.set("expertise", params.expertise);
+      if (params?.verified_only !== undefined)
+        qs.set("verified_only", String(params.verified_only));
+      if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+      if (params?.offset !== undefined) qs.set("offset", String(params.offset));
+      const q = qs.toString();
+      return request<MentorProfileRead[]>(`/mentors${q ? `?${q}` : ""}`);
+    },
+
+    get: (mentorId: number) =>
+      request<MentorProfileRead>(`/mentors/${mentorId}`),
+  },
+
+  // ── Mentorship requests ────────────────────────────────────────────────────
+
+  requests: {
+    create: (payload: MentorshipRequestCreatePayload) =>
+      request<MentorshipRequestRead>("/mentorship-requests", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    list: () => request<MentorshipRequestRead[]>("/mentorship-requests"),
+
+    get: (id: string) => request<MentorshipRequestRead>(`/mentorship-requests/${id}`),
+
+    updateStatus: (id: string, payload: MentorshipStatusUpdatePayload) =>
+      request<MentorshipRequestRead>(`/mentorship-requests/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    cancel: (id: string) =>
+      request<void>(`/mentorship-requests/${id}`, { method: "DELETE" }),
+  },
+
+  // ── File upload ────────────────────────────────────────────────────────────
+
+  upload,
+};

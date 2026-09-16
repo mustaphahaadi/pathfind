@@ -62,6 +62,8 @@ class MentorProfile(Base):
     expertise_tags: Mapped[str] = mapped_column(String(500), nullable=False)
     availability: Mapped[str] = mapped_column(String(255), nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="profile")
 

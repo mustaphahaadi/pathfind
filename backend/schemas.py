@@ -15,6 +15,8 @@ class MentorProfileCreate(BaseModel):
     expertise_tags: str = Field(..., min_length=1, max_length=500)
     availability: str = Field(..., min_length=1, max_length=255)
     avatar_url: str | None = None
+    location: str | None = None
+    linkedin_url: str | None = None
 
 
 class MentorProfileRead(BaseModel):
@@ -28,6 +30,8 @@ class MentorProfileRead(BaseModel):
     expertise_tags: str
     availability: str
     avatar_url: str | None = None
+    location: str | None = None
+    linkedin_url: str | None = None
 
     class Config:
         orm_mode = True
@@ -50,6 +54,8 @@ class UserCreateMentor(BaseModel):
     expertise_tags: str = Field(..., min_length=1, max_length=500)
     availability: str = Field(..., min_length=1, max_length=255)
     avatar_url: str | None = None
+    location: str | None = None
+    linkedin_url: str | None = None
 
 
 class UserLogin(BaseModel):
