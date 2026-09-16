@@ -52,6 +52,7 @@ const ProfilePage = () => {
 
   const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
     api.requests
@@ -60,6 +61,18 @@ const ProfilePage = () => {
       .catch(() => {})
       .finally(() => setLoadingRequests(false));
   }, []);
+
+  const handleCancelRequest = async (requestId: string) => {
+    setCancellingId(requestId);
+    try {
+      await api.requests.cancel(requestId);
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch {
+      // ignore
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const sessions = requests.map((r) => ({
     id: r.id,
@@ -374,11 +387,11 @@ const ProfilePage = () => {
                   {requests.map((req) => (
                     <li
                       key={req.id}
-                      className="flex flex-col gap-3 rounded-xl border border-surface-line p-4 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-white p-5 sm:flex-row sm:items-start sm:justify-between"
                     >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-ink">{req.subject}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-base font-bold text-ink">{req.subject}</p>
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                               req.status === "accepted"
@@ -399,24 +412,49 @@ const ProfilePage = () => {
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-ink/60">
-                          Type: {req.request_type.replace("_", " ")} &middot; Submitted on{" "}
-                          {new Date(req.created_at).toLocaleDateString()}
+                          Type: <span className="font-medium text-ink/80">{req.request_type.replace(/_/g, " ")}</span> &middot; Submitted on{" "}
+                          {new Date(req.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </p>
-                        <p className="mt-1.5 text-xs text-ink/70 line-clamp-2">
+                        <p className="mt-2 text-xs text-ink/70">
+                          <span className="font-semibold text-ink">Your Note: </span>
                           &ldquo;{req.message}&rdquo;
                         </p>
+
+                        {req.response_message && (
+                          <div
+                            className={`mt-3 rounded-xl border p-3 text-xs ${
+                              req.status === "accepted"
+                                ? "border-accent-green/20 bg-accent-green/5 text-accent-green"
+                                : "border-red-200 bg-red-50 text-red-700"
+                            }`}
+                          >
+                            <span className="font-bold">Mentor Note: </span>
+                            &ldquo;{req.response_message}&rdquo;
+                          </div>
+                        )}
                       </div>
 
-                      <div className="shrink-0">
+                      <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end sm:justify-center">
                         {req.mentor_profile ? (
                           <Link
                             to={`/mentors/${req.mentor_profile.id}`}
-                            className="inline-flex items-center justify-center rounded-lg border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface"
+                            className="inline-flex items-center justify-center rounded-xl border border-surface-line bg-white px-3.5 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface"
                           >
-                            View Mentor
+                            View {req.mentor_profile.full_name}
                           </Link>
                         ) : (
-                          <span className="text-xs text-ink/40">Mentor ID: {req.mentor_id}</span>
+                          <span className="text-xs text-ink/40">Mentor #{req.mentor_id}</span>
+                        )}
+
+                        {req.status === "pending" && (
+                          <button
+                            type="button"
+                            disabled={cancellingId === req.id}
+                            onClick={() => handleCancelRequest(req.id)}
+                            className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-3.5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                          >
+                            {cancellingId === req.id ? "Cancelling…" : "Cancel Request"}
+                          </button>
                         )}
                       </div>
                     </li>
