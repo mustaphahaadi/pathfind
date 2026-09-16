@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import {
   Inbox,
   CalendarDays,
+  CalendarClock,
+  MessageCircle,
   Users,
   Settings,
   Eye,

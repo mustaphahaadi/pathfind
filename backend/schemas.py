@@ -34,7 +34,7 @@ class MentorProfileRead(BaseModel):
     linkedin_url: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserCreate(BaseModel):
@@ -71,7 +71,7 @@ class UserOut(BaseModel):
     profile: MentorProfileRead | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):
@@ -113,7 +113,7 @@ class MentorshipRequestRead(BaseModel):
     mentor_profile: MentorProfileRead | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class FileUploadResponse(BaseModel):

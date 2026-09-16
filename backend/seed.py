@@ -1,7 +1,16 @@
-"""Seed script to populate mock mentor profiles and demo accounts into the database."""
-from backend.auth import hash_password
-from backend.database import Base, SessionLocal, engine
-from backend.models import MentorProfile, User, VerificationStatus
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+try:
+    from backend.auth import hash_password
+    from backend.database import Base, SessionLocal, engine
+    from backend.models import MentorProfile, User, VerificationStatus
+except ImportError:
+    from auth import hash_password
+    from database import Base, SessionLocal, engine
+    from models import MentorProfile, User, VerificationStatus
 
 SEED_MENTORS = [
     {

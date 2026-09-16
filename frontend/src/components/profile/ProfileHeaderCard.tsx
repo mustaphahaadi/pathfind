@@ -2,15 +2,19 @@ import { Link } from "react-router-dom";
 import { Pencil, SlidersHorizontal, ShieldCheck, HandCoins, Clock } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useSessionsStore } from "../../store/useSessionsStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { technicalTracks } from "../../data/onboarding/technicalTracks";
 import { getInitials } from "../../lib/getInitials";
 import { getProfileReadiness } from "../../lib/getProfileReadiness";
 
 const ProfileHeaderCard = () => {
+  const user = useAuthStore((s) => s.user);
   const onboarding = useOnboardingStore();
   const sessions = useSessionsStore((state) => state.sessions);
 
-  const name = onboarding.fullName || "Your Pathfind Profile";
+  const name = user?.profile?.full_name || onboarding.fullName || "Your Pathfind Profile";
+  const avatarUrl = user?.profile?.avatar_url || onboarding.avatarUrl;
+  const location = user?.profile?.location || onboarding.location;
   const seekingLabels = technicalTracks
     .filter((track) => onboarding.technicalTracks.includes(track.id))
     .slice(0, 2)
@@ -26,9 +30,9 @@ const ProfileHeaderCard = () => {
       <div className="px-6 pb-6 sm:px-8">
         <div className="-mt-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-end gap-4">
-            {onboarding.avatarUrl ? (
+            {avatarUrl ? (
               <img
-                src={onboarding.avatarUrl}
+                src={avatarUrl}
                 alt={name}
                 className="h-20 w-20 rounded-full border-4 border-white object-cover"
               />
@@ -60,9 +64,9 @@ const ProfileHeaderCard = () => {
         <h1 className="mt-4 text-2xl font-extrabold text-ink">{name}</h1>
         <p className="mt-1 text-sm text-ink/60">
           {seekingLabels.length > 0 && (
-            <>Seeking: {seekingLabels.join(" & ")}{onboarding.location ? " · " : ""}</>
+            <>Seeking: {seekingLabels.join(" & ")}{location ? " · " : ""}</>
           )}
-          {onboarding.location}
+          {location}
         </p>
 
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">

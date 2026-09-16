@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
-from .email import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
+from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .models import MentorshipRequest, MentorProfile, RequestStatus, RequestType, User, VerificationStatus
 from .schemas import (
     FileUploadResponse,
