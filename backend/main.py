@@ -406,8 +406,10 @@ def create_mentorship_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    mentor_user = db.get(User, payload.mentor_id)
-    if mentor_user is None or mentor_user.role != "mentor":
+    # verify mentor exists and is a mentor
+    # pyrefly: ignore [unnecessary-type-conversion]
+    mentor = db.get(User, int(payload.mentor_id))
+    if mentor is None or mentor.role != "mentor":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentor not found")
 
     request_record = MentorshipRequest(
@@ -428,7 +430,7 @@ def create_mentorship_request(
 
     background_tasks.add_task(
         notify_mentor_new_request,
-        mentor_email=mentor_user.email,
+        mentor_email=mentor.email,
         mentee_name=_get_user_display_name(current_user),
         mentee_email=current_user.email,
         subject_title=payload.subject,
