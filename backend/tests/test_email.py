@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from backend.email import (
+from backend.email_service import (
     notify_mentee_status_update,
     notify_mentor_new_request,
     notify_mentor_verification_status,
@@ -18,7 +18,7 @@ def test_send_email_console():
     assert success is True
 
 
-@patch("backend.email.send_email")
+@patch("backend.email_service.send_email")
 def test_notify_mentor_new_request(mock_send):
     mock_send.return_value = True
     notify_mentor_new_request(
@@ -35,7 +35,7 @@ def test_notify_mentor_new_request(mock_send):
     assert "Python Career Guidance" in kwargs["subject"]
 
 
-@patch("backend.email.send_email")
+@patch("backend.email_service.send_email")
 def test_notify_mentee_status_update(mock_send):
     mock_send.return_value = True
     notify_mentee_status_update(
@@ -51,7 +51,7 @@ def test_notify_mentee_status_update(mock_send):
     assert "Glad to help!" in kwargs["body_text"]
 
 
-@patch("backend.email.send_email")
+@patch("backend.email_service.send_email")
 def test_notify_mentor_verification_status(mock_send):
     mock_send.return_value = True
     notify_mentor_verification_status(
