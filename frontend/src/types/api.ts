@@ -138,6 +138,44 @@ export interface SessionNoteRead {
   created_at: string;
 }
 
+export interface GoalRead {
+  id: number;
+  user_id: number;
+  title: string;
+  category: string;
+  target_date: string;
+  completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GoalCreatePayload {
+  title: string;
+  category?: string;
+  target_date?: string;
+  completed?: boolean;
+}
+
+export interface GoalUpdatePayload {
+  title?: string;
+  category?: string;
+  target_date?: string;
+  completed?: boolean;
+}
+
+export interface UserSettingsRead {
+  user_id: number;
+  email_notifications: boolean;
+  session_reminders: boolean;
+  weekly_digest: boolean;
+}
+
+export interface UserSettingsUpdatePayload {
+  email_notifications?: boolean;
+  session_reminders?: boolean;
+  weekly_digest?: boolean;
+}
+
 export interface AdminStatsOut {
   total_users: number;
   total_mentors: number;
