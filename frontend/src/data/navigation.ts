@@ -3,22 +3,16 @@ export interface NavLink {
   to: string;
 }
 
-/** Used on the transparent header over the marketing landing page hero. */
+/** Primary navigation links displayed across floating navbar on all pages. */
 export const marketingNavLinks: NavLink[] = [
   { label: "Browse Mentors", to: "/mentors" },
   { label: "About Us", to: "/about" },
   { label: "How It Works", to: "/how-it-works" },
   { label: "Stories", to: "/stories" },
-  { label: "Sign In", to: "/auth" },
+  { label: "Volunteer", to: "/volunteer" },
 ];
 
-/** Used on the solid white header across in-product pages (sign up/in, browse mentors, etc). */
-export const appNavLinks: NavLink[] = [
-  { label: "Browse Mentors", to: "/mentors" },
-  { label: "How It Works", to: "/how-it-works" },
-  { label: "Volunteer", to: "/volunteer" },
-  { label: "About", to: "/about" },
-];
+export const appNavLinks: NavLink[] = marketingNavLinks;
 
 export const footerNavLinks: NavLink[] = [
   { label: "Community Guidelines", to: "/community-guidelines" },
