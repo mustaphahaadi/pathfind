@@ -112,10 +112,15 @@ const HonorCodeReviewStep = () => {
         linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
       });
 
-      // Auto sign-in
-      const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
-      const updatedUser = await api.auth.me(token.access_token);
-      setAuth(token.access_token, updatedUser);
+      const existingToken = useAuthStore.getState().token;
+      if (existingToken) {
+        const updatedUser = await api.auth.me(existingToken);
+        setAuth(existingToken, updatedUser);
+      } else {
+        const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
+        const updatedUser = await api.auth.me(token.access_token);
+        setAuth(token.access_token, updatedUser);
+      }
 
       completeOnboarding();
       navigate("/onboarding/mentor/complete");

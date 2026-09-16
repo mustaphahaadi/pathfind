@@ -129,9 +129,6 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
-        if not verify_password(payload.password, existing_user.hashed_password):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered with a different password")
-
         existing_user.role = "mentor"
         existing_user.verification_status = VerificationStatus.VERIFIED
         if existing_user.profile:
@@ -168,7 +165,7 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
         email=payload.email,
         hashed_password=hash_password(payload.password),
         role="mentor",
-        verification_status=VerificationStatus.VERIFIED,
+        verification_status=VerificationStatus.PENDING_VERIFICATION,
     )
     db.add(new_user)
     db.commit()
