@@ -455,7 +455,6 @@ const ProfilePage = () => {
                   ) : (
                     <ul className="mt-4 space-y-3">
                       {[...sessions].reverse().map((session) => {
-                        const mentor = mentors.find((m) => m.id === session.mentorId);
                         return (
                           <li
                             key={session.id}
@@ -463,7 +462,7 @@ const ProfilePage = () => {
                           >
                             Booked a session with{" "}
                             <span className="font-semibold text-ink">
-                              {mentor?.name ?? "a mentor"}
+                              {session.mentorName}
                             </span>{" "}
                             for {session.dateLabel} at {session.timeLabel}.
                           </li>
