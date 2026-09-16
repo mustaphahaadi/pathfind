@@ -12,7 +12,7 @@ interface MentorOnboardingState {
   currentTitle: string;
   company: string;
   location: string;
-  timezone: string;
+  yearsOfExperience: number;
   linkedinUrl: string;
 
   // Step 2 — Domain & Skills
@@ -38,7 +38,7 @@ interface MentorOnboardingState {
   setCurrentTitle: (value: string) => void;
   setCompany: (value: string) => void;
   setLocation: (value: string) => void;
-  setTimezone: (value: string) => void;
+  setYearsOfExperience: (value: number) => void;
   setLinkedinUrl: (value: string) => void;
 
   setPrimaryDiscipline: (id: string) => void;
@@ -66,7 +66,7 @@ const initialState = {
   currentTitle: "",
   company: "",
   location: "",
-  timezone: "",
+  yearsOfExperience: 0,
   linkedinUrl: "",
 
   primaryDiscipline: null as string | null,
@@ -96,7 +96,7 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>((set) => (
   setCurrentTitle: (value) => set({ currentTitle: value }),
   setCompany: (value) => set({ company: value }),
   setLocation: (value) => set({ location: value }),
-  setTimezone: (value) => set({ timezone: value }),
+  setYearsOfExperience: (value) => set({ yearsOfExperience: value }),
   setLinkedinUrl: (value) => set({ linkedinUrl: value }),
 
   setPrimaryDiscipline: (id) => set({ primaryDiscipline: id }),

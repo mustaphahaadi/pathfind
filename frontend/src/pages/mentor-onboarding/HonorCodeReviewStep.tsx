@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Rocket, Star, LifeBuoy, Link2, PenLine } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
@@ -5,6 +6,8 @@ import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 import { mentorDisciplines, mentorshipTopics, mentorHonorCodeItems } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
+import { api } from "../../lib/api";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const whatHappensNext = [
   {
@@ -53,16 +56,67 @@ const HonorCodeReviewStep = () => {
     .map((topic) => topic.label);
   const monthlyCeiling = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
 
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const password = useMentorOnboardingStore((state) => state.password);
+  const yearsOfExperience = useMentorOnboardingStore((state) => state.yearsOfExperience);
+
   const allAgreed = agreedHonorCodeIds.length === mentorHonorCodeItems.length;
   const signatureMatches =
     digitalSignature.trim().length > 0 &&
     digitalSignature.trim().toLowerCase() === fullName.trim().toLowerCase();
   const canPublish = allAgreed && signatureMatches;
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!canPublish) return;
-    completeOnboarding();
-    navigate("/onboarding/mentor/complete");
+    setPublishError(null);
+    setPublishing(true);
+
+    // Build expertise_tags: "Discipline, Topic1, Topic2, ..."
+    const tagParts = [
+      ...(disciplineLabel ? [disciplineLabel] : []),
+      ...topicLabels,
+    ];
+    const expertiseTags = tagParts.join(", ") || "General";
+
+    // Build availability string from weekly windows
+    const availabilityStr =
+      weeklyWindows.length > 0
+        ? weeklyWindows
+            .map((w) => `${w.day} ${w.startTime}–${w.endTime} (${w.maxCalls} calls)`)
+            .join("; ")
+        : "Flexible";
+
+    try {
+      await api.auth.signUpMentor({
+        email: workEmail,
+        password,
+        full_name: fullName,
+        job_title: currentTitle,
+        company,
+        years_of_experience: yearsOfExperience,
+        bio: motivation || "Passionate about helping the next generation.",
+        expertise_tags: expertiseTags,
+        availability: availabilityStr,
+        avatar_url: avatarUrl,
+        location: location || null,
+        linkedin_url: linkedinUrl || null,
+      });
+
+      // Auto sign-in
+      const token = await api.auth.signIn({ email: workEmail, password });
+      const user = await api.auth.me();
+      setAuth(token.access_token, user);
+
+      completeOnboarding();
+      navigate("/onboarding/mentor/complete");
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : "Registration failed.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   return (
