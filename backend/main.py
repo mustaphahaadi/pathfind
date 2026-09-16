@@ -38,6 +38,7 @@ from .schemas import (
     SavedMentorRead,
     SessionNoteCreate,
     SessionNoteRead,
+    SessionNoteUpdate,
     Token,
     UserCreate,
     UserCreateMentor,
@@ -804,3 +805,25 @@ def delete_session_note(
         db.delete(note)
         db.commit()
     return None
+
+
+@app.patch("/session-notes/{note_id}", response_model=SessionNoteRead)
+def update_session_note(
+    note_id: int,
+    payload: SessionNoteUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update title, content or resource_url of an existing session note."""
+    note = db.get(SessionNote, note_id)
+    if note is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    if note.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    for field, value in payload.dict(exclude_unset=True).items():
+        setattr(note, field, value)
+
+    db.commit()
+    db.refresh(note)
+    return note

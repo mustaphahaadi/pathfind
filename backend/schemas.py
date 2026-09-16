@@ -185,6 +185,12 @@ class SessionNoteCreate(BaseModel):
     resource_url: str | None = None
 
 
+class SessionNoteUpdate(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=255)
+    content: str | None = Field(None, min_length=1)
+    resource_url: str | None = None
+
+
 class SessionNoteRead(BaseModel):
     id: int
     user_id: int

@@ -19,6 +19,7 @@ import {
   Plus,
   Trash2,
   ExternalLink,
+  Pencil,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -72,6 +73,12 @@ const ProfilePage = () => {
   const [creatingNote, setCreatingNote] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
 
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editResource, setEditResource] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
   useEffect(() => {
     api.requests
       .list()
@@ -123,6 +130,33 @@ const ProfilePage = () => {
       setSessionNotes((prev) => prev.filter((n) => n.id !== noteId));
     } catch {
       // fallback
+    }
+  };
+
+  const startEditNote = (note: SessionNoteRead) => {
+    setEditingNoteId(note.id);
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setEditResource(note.resource_url ?? "");
+  };
+
+  const handleSaveNote = async (noteId: number) => {
+    if (!editTitle.trim() || !editContent.trim()) return;
+    setSavingNote(true);
+    try {
+      const updated = await api.notes.update(noteId, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        resource_url: editResource.trim() || null,
+      });
+      setSessionNotes((prev) =>
+        prev.map((n) => (n.id === noteId ? { ...n, ...updated } : n)),
+      );
+      setEditingNoteId(null);
+    } catch {
+      // fallback
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -705,37 +739,94 @@ const ProfilePage = () => {
                   {sessionNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/20 p-4 transition-all hover:bg-surface/50 sm:flex-row sm:items-start sm:justify-between"
+                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/20 p-4 transition-all hover:bg-surface/50"
                     >
-                      <div className="space-y-1">
-                        <h4 className="text-base font-extrabold text-ink">{note.title}</h4>
-                        <p className="text-xs text-ink/50">
-                          {new Date(note.created_at).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                        <p className="pt-1 text-sm text-ink/80 whitespace-pre-line">{note.content}</p>
-                        {note.resource_url && (
-                          <a
-                            href={note.resource_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline pt-1"
-                          >
-                            Resource Link <ExternalLink size={12} />
-                          </a>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
-                      >
-                        <Trash2 size={13} />
-                        Delete
-                      </button>
+                      {editingNoteId === note.id ? (
+                        /* ── Inline Edit Form ── */
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="Title"
+                            className="w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm font-semibold text-ink focus:border-ink"
+                          />
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            placeholder="Note content…"
+                            rows={3}
+                            className="w-full rounded-xl border border-surface-line p-3.5 text-sm text-ink focus:border-ink"
+                          />
+                          <input
+                            type="url"
+                            value={editResource}
+                            onChange={(e) => setEditResource(e.target.value)}
+                            placeholder="Resource link (optional)"
+                            className="w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm font-semibold text-ink focus:border-ink"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveNote(note.id)}
+                              disabled={savingNote}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                            >
+                              {savingNote ? "Saving…" : "Save Changes"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingNoteId(null)}
+                              className="inline-flex items-center rounded-xl border border-surface-line bg-white px-4 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Read View ── */
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="space-y-1">
+                            <h4 className="text-base font-extrabold text-ink">{note.title}</h4>
+                            <p className="text-xs text-ink/50">
+                              {new Date(note.created_at).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                            <p className="pt-1 text-sm text-ink/80 whitespace-pre-line">{note.content}</p>
+                            {note.resource_url && (
+                              <a
+                                href={note.resource_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline pt-1"
+                              >
+                                Resource Link <ExternalLink size={12} />
+                              </a>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startEditNote(note)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface"
+                            >
+                              <Pencil size={12} />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                            >
+                              <Trash2 size={13} />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
