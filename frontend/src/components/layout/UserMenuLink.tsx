@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useSessionsStore } from "../../store/useSessionsStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { statusOptions } from "../../data/onboarding/statusOptions";
 import { getInitials } from "../../lib/getInitials";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
@@ -22,9 +23,12 @@ interface UserMenuLinkProps {
 const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
   const navigate = useNavigate();
 
-  const fullName = useOnboardingStore((state) => state.fullName);
-  const email = useOnboardingStore((state) => state.email);
-  const avatarUrl = useOnboardingStore((state) => state.avatarUrl);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const fullName = user?.profile?.full_name || useOnboardingStore((state) => state.fullName) || "Mentee User";
+  const email = user?.email || useOnboardingStore((state) => state.email);
+  const avatarUrl = user?.profile?.avatar_url || useOnboardingStore((state) => state.avatarUrl);
   const status = useOnboardingStore((state) => state.status);
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const upcomingSessionCount = useSessionsStore((state) => state.sessions.length);
@@ -74,6 +78,7 @@ const UserMenuLink = ({ className = "" }: UserMenuLinkProps) => {
       menuItems={menuItems}
       secondaryItems={secondaryItems}
       onSignOut={() => {
+        logout();
         resetOnboarding();
         navigate("/auth");
       }}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { marketingNavLinks, appNavLinks } from "../../data/navigation";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import UserMenuLink from "./UserMenuLink";
 import MentorUserMenuLink from "./MentorUserMenuLink";
 
@@ -16,12 +17,13 @@ interface HeaderProps {
 const Header = ({ variant = "overlay" }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const authUser = useAuthStore((s) => s.user);
+  const isAuthSignedIn = !!useAuthStore((s) => s.token);
   const isMenteeSignedIn = useOnboardingStore((state) => state.fullName.trim().length > 0);
-  const isMentorSignedIn = useMentorOnboardingStore(
-    (state) => state.hasCompletedOnboarding && state.fullName.trim().length > 0,
-  );
-  // A mentor who has published takes precedence if, hypothetically, both flows were touched.
-  const isSignedIn = isMentorSignedIn || isMenteeSignedIn;
+  const isMentorSignedIn =
+    authUser?.role === "mentor" ||
+    useMentorOnboardingStore((state) => state.hasCompletedOnboarding && state.fullName.trim().length > 0);
+  const isSignedIn = isAuthSignedIn || isMentorSignedIn || isMenteeSignedIn;
 
   if (variant === "solid") {
     return (

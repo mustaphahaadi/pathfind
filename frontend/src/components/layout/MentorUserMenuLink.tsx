@@ -9,6 +9,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { getInitials } from "../../lib/getInitials";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 
@@ -20,11 +21,14 @@ interface MentorUserMenuLinkProps {
 const MentorUserMenuLink = ({ className = "" }: MentorUserMenuLinkProps) => {
   const navigate = useNavigate();
 
-  const fullName = useMentorOnboardingStore((state) => state.fullName);
-  const workEmail = useMentorOnboardingStore((state) => state.workEmail);
-  const avatarUrl = useMentorOnboardingStore((state) => state.avatarUrl);
-  const currentTitle = useMentorOnboardingStore((state) => state.currentTitle);
-  const company = useMentorOnboardingStore((state) => state.company);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const fullName = user?.profile?.full_name || useMentorOnboardingStore((state) => state.fullName) || "Volunteer Mentor";
+  const workEmail = user?.email || useMentorOnboardingStore((state) => state.workEmail);
+  const avatarUrl = user?.profile?.avatar_url || useMentorOnboardingStore((state) => state.avatarUrl);
+  const currentTitle = user?.profile?.job_title || useMentorOnboardingStore((state) => state.currentTitle);
+  const company = user?.profile?.company || useMentorOnboardingStore((state) => state.company);
   const resetOnboarding = useMentorOnboardingStore((state) => state.reset);
 
   const subtitle = [currentTitle, company].filter(Boolean).join(" @ ") || "Volunteer Mentor";
@@ -65,6 +69,7 @@ const MentorUserMenuLink = ({ className = "" }: MentorUserMenuLinkProps) => {
       menuItems={menuItems}
       secondaryItems={secondaryItems}
       onSignOut={() => {
+        logout();
         resetOnboarding();
         navigate("/auth");
       }}

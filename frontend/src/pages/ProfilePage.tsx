@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   LayoutGrid,
@@ -13,6 +13,9 @@ import {
   History,
   Lightbulb,
   Video,
+  Clock,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -21,6 +24,9 @@ import QuickStartRoadmap from "../components/profile/QuickStartRoadmap";
 import MentorMiniCard from "../components/profile/MentorMiniCard";
 import { useOnboardingStore } from "../store/useOnboardingStore";
 import { useSessionsStore } from "../store/useSessionsStore";
+import { useAuthStore } from "../store/useAuthStore";
+import { api } from "../lib/api";
+import type { MentorshipRequestRead } from "../types/api";
 import { mentors } from "../data/mentors";
 import { getRecommendedMentors } from "../lib/getRecommendedMentors";
 
@@ -38,18 +44,24 @@ const tabs: { id: TabId; label: string; icon: typeof LayoutGrid }[] = [
 const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
-  const fullName = useOnboardingStore((state) => state.fullName);
+  const user = useAuthStore((s) => s.user);
+  const fullName = user?.profile?.full_name || useOnboardingStore.getState().fullName;
   const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
   const technicalTracks = useOnboardingStore((state) => state.technicalTracks);
-  const sessions = useSessionsStore((state) => state.sessions);
   const savedMentorIds = useSessionsStore((state) => state.savedMentorIds);
 
-  const firstName = fullName.split(" ")[0] || "there";
-  const latestSession = sessions[sessions.length - 1] ?? null;
-  const latestSessionMentor = latestSession
-    ? mentors.find((mentor) => mentor.id === latestSession.mentorId)
-    : null;
+  const [requests, setRequests] = useState<MentorshipRequestRead[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
 
+  useEffect(() => {
+    api.requests
+      .list()
+      .then(setRequests)
+      .catch(() => {})
+      .finally(() => setLoadingRequests(false));
+  }, []);
+
+  const firstName = fullName.split(" ")[0] || "there";
   const recommended = getRecommendedMentors(technicalTracks, 4);
   const savedMentors = mentors.filter((mentor) => savedMentorIds.includes(mentor.id));
 
@@ -319,52 +331,69 @@ const ProfilePage = () => {
 
           {activeTab === "sessions" && (
             <div className="mt-6 rounded-3xl border border-surface-line bg-white p-6">
-              <p className="text-base font-bold text-ink">Upcoming Sessions</p>
-              {sessions.length === 0 ? (
+              <p className="text-base font-bold text-ink">Submitted Requests &amp; Sessions</p>
+              {loadingRequests ? (
+                <p className="mt-2 text-sm text-ink/60">Loading requests…</p>
+              ) : requests.length === 0 ? (
                 <p className="mt-2 text-sm text-ink/60">
-                  You haven&apos;t booked any sessions yet.{" "}
+                  You haven&apos;t submitted any mentorship requests yet.{" "}
                   <Link to="/mentors" className="font-semibold text-accent-blue hover:underline">
                     Browse mentors
                   </Link>{" "}
-                  to book your first free 1:1.
+                  to request a 1:1 session.
                 </p>
               ) : (
                 <ul className="mt-4 space-y-3">
-                  {sessions.map((session) => {
-                    const mentor = mentors.find((m) => m.id === session.mentorId);
-                    return (
-                      <li
-                        key={session.id}
-                        className="flex flex-col gap-2 rounded-xl border border-surface-line p-4 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          {mentor && (
-                            <img
-                              src={mentor.imageUrl}
-                              alt={mentor.name}
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
-                          )}
-                          <div>
-                            <p className="text-sm font-bold text-ink">
-                              {mentor?.name ?? "Mentor"}
-                            </p>
-                            <p className="text-xs text-ink/60">
-                              {session.dateLabel} &middot; {session.timeLabel}
-                            </p>
-                          </div>
+                  {requests.map((req) => (
+                    <li
+                      key={req.id}
+                      className="flex flex-col gap-3 rounded-xl border border-surface-line p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-ink">{req.subject}</p>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              req.status === "accepted"
+                                ? "bg-accent-green/10 text-accent-green"
+                                : req.status === "declined"
+                                ? "bg-red-50 text-red-600"
+                                : "bg-accent-gold/10 text-accent-gold"
+                            }`}
+                          >
+                            {req.status === "accepted" ? (
+                              <CheckCircle2 size={12} />
+                            ) : req.status === "declined" ? (
+                              <XCircle size={12} />
+                            ) : (
+                              <Clock size={12} />
+                            )}
+                            {req.status.toUpperCase()}
+                          </span>
                         </div>
-                        <a
-                          href={session.videoLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-white"
-                        >
-                          Join Meeting Room
-                        </a>
-                      </li>
-                    );
-                  })}
+                        <p className="mt-1 text-xs text-ink/60">
+                          Type: {req.request_type.replace("_", " ")} &middot; Submitted on{" "}
+                          {new Date(req.created_at).toLocaleDateString()}
+                        </p>
+                        <p className="mt-1.5 text-xs text-ink/70 line-clamp-2">
+                          &ldquo;{req.message}&rdquo;
+                        </p>
+                      </div>
+
+                      <div className="shrink-0">
+                        {req.mentor_profile ? (
+                          <Link
+                            to={`/mentors/${req.mentor_profile.id}`}
+                            className="inline-flex items-center justify-center rounded-lg border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface"
+                          >
+                            View Mentor
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-ink/40">Mentor ID: {req.mentor_id}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>
