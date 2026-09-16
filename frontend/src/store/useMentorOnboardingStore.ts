@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { WeeklyAvailabilityWindow } from "../types/mentorOnboarding";
 import type { UserOut } from "../types/api";
 
@@ -91,61 +92,79 @@ const initialState = {
 const toggleInList = (list: string[], id: string) =>
   list.includes(id) ? list.filter((item) => item !== id) : [...list, id];
 
-export const useMentorOnboardingStore = create<MentorOnboardingState>((set) => ({
-  ...initialState,
+export const useMentorOnboardingStore = create<MentorOnboardingState>()(
+  persist(
+    (set) => ({
+      ...initialState,
 
-  setPassword: (value) => set({ password: value }),
-  setAvatarUrl: (url) => set({ avatarUrl: url }),
-  setFullName: (value) => set({ fullName: value }),
-  setWorkEmail: (value) => set({ workEmail: value }),
-  setCurrentTitle: (value) => set({ currentTitle: value }),
-  setCompany: (value) => set({ company: value }),
-  setLocation: (value) => set({ location: value }),
-  setYearsOfExperience: (value) => set({ yearsOfExperience: value }),
-  setLinkedinUrl: (value) => set({ linkedinUrl: value }),
+      setPassword: (value) => set({ password: value }),
+      setAvatarUrl: (url) => set({ avatarUrl: url }),
+      setFullName: (value) => set({ fullName: value }),
+      setWorkEmail: (value) => set({ workEmail: value }),
+      setCurrentTitle: (value) => set({ currentTitle: value }),
+      setCompany: (value) => set({ company: value }),
+      setLocation: (value) => set({ location: value }),
+      setYearsOfExperience: (value) => set({ yearsOfExperience: value }),
+      setLinkedinUrl: (value) => set({ linkedinUrl: value }),
 
-  setPrimaryDiscipline: (id) => set({ primaryDiscipline: id }),
-  toggleTopic: (id) => set((state) => ({ topics: toggleInList(state.topics, id) })),
-  setMotivation: (value) => set({ motivation: value }),
-  toggleTargetStage: (id) =>
-    set((state) => ({ targetStages: toggleInList(state.targetStages, id) })),
+      setPrimaryDiscipline: (id) => set({ primaryDiscipline: id }),
+      toggleTopic: (id) => set((state) => ({ topics: toggleInList(state.topics, id) })),
+      setMotivation: (value) => set({ motivation: value }),
+      toggleTargetStage: (id) =>
+        set((state) => ({ targetStages: toggleInList(state.targetStages, id) })),
 
-  setTimezone: (value) => set({ timezone: value }),
-  addWeeklyWindow: (window) =>
-    set((state) => ({
-      weeklyWindows: [
-        ...state.weeklyWindows,
-        { ...window, id: `window-${Date.now()}` },
-      ],
-    })),
-  removeWeeklyWindow: (id) =>
-    set((state) => ({
-      weeklyWindows: state.weeklyWindows.filter((window) => window.id !== id),
-    })),
+      setTimezone: (value) => set({ timezone: value }),
+      addWeeklyWindow: (window) =>
+        set((state) => ({
+          weeklyWindows: [
+            ...state.weeklyWindows,
+            { ...window, id: `window-${Date.now()}` },
+          ],
+        })),
+      removeWeeklyWindow: (id) =>
+        set((state) => ({
+          weeklyWindows: state.weeklyWindows.filter((window) => window.id !== id),
+        })),
 
-  toggleHonorCodeItem: (id) =>
-    set((state) => ({
-      agreedHonorCodeIds: toggleInList(state.agreedHonorCodeIds, id),
-    })),
-  setDigitalSignature: (value) => set({ digitalSignature: value }),
+      toggleHonorCodeItem: (id) =>
+        set((state) => ({
+          agreedHonorCodeIds: toggleInList(state.agreedHonorCodeIds, id),
+        })),
+      setDigitalSignature: (value) => set({ digitalSignature: value }),
 
-  completeOnboarding: () => set({ hasCompletedOnboarding: true }),
-  toggleAcceptingRequests: () =>
-    set((state) => ({ acceptingRequests: !state.acceptingRequests })),
-  hydrateFromUser: (user) =>
-    set((state) => {
-      const profile = user.profile;
-      return {
-        fullName: state.fullName || profile?.full_name || "",
-        workEmail: state.workEmail || user.email || "",
-        currentTitle: state.currentTitle || profile?.job_title || "",
-        company: state.company || profile?.company || "",
-        yearsOfExperience: state.yearsOfExperience || profile?.years_of_experience || 0,
-        location: state.location || profile?.location || "",
-        linkedinUrl: state.linkedinUrl || profile?.linkedin_url || "",
-        avatarUrl: state.avatarUrl || profile?.avatar_url || null,
-        motivation: state.motivation || profile?.bio || "",
-      };
+      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
+      toggleAcceptingRequests: () =>
+        set((state) => ({ acceptingRequests: !state.acceptingRequests })),
+      hydrateFromUser: (user) =>
+        set((state) => {
+          const profile = user.profile;
+          if (!profile) return state;
+
+          const tags = profile.expertise_tags
+            ? profile.expertise_tags.split(",").map((s) => s.trim()).filter(Boolean)
+            : [];
+          const hydratedDiscipline = state.primaryDiscipline || (tags.length > 0 ? tags[0] : null);
+          const hydratedTopics = state.topics.length > 0 ? state.topics : (tags.length > 1 ? tags.slice(1) : tags);
+
+          return {
+            fullName: state.fullName || profile.full_name || "",
+            workEmail: state.workEmail || user.email || "",
+            currentTitle: state.currentTitle || profile.job_title || "",
+            company: state.company || profile.company || "",
+            yearsOfExperience: state.yearsOfExperience || profile.years_of_experience || 0,
+            location: state.location || profile.location || "",
+            linkedinUrl: state.linkedinUrl || profile.linkedin_url || "",
+            avatarUrl: state.avatarUrl || profile.avatar_url || null,
+            motivation: state.motivation || profile.bio || "",
+            primaryDiscipline: hydratedDiscipline,
+            topics: hydratedTopics,
+            targetStages: state.targetStages.length > 0 ? state.targetStages : ["early_career", "career_switcher"],
+          };
+        }),
+      reset: () => set(initialState),
     }),
-  reset: () => set(initialState),
-}));
+    {
+      name: "pathfind-mentor-onboarding",
+    }
+  )
+);

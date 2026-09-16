@@ -59,10 +59,17 @@ const HonorCodeReviewStep = () => {
   const effectiveFullName = fullName.trim() || user?.profile?.full_name || "";
   const effectiveWorkEmail = workEmail.trim() || user?.email || "";
 
-  const disciplineLabel = mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label;
-  const topicLabels = mentorshipTopics
-    .filter((topic) => topics.includes(topic.id))
-    .map((topic) => topic.label);
+  const disciplineLabel =
+    mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label || primaryDiscipline;
+  const topicLabels =
+    topics.length > 0
+      ? topics.map((idOrName) => {
+          const found = mentorshipTopics.find((t) => t.id === idOrName);
+          return found ? found.label : idOrName;
+        })
+      : user?.profile?.expertise_tags
+      ? user.profile.expertise_tags.split(",").map((s) => s.trim())
+      : [];
   const monthlyCeiling = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
 
   const [publishing, setPublishing] = useState(false);
