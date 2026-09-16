@@ -259,7 +259,7 @@ const ProfilePage = () => {
                         isActive ? "bg-white/20" : "bg-surface"
                       }`}
                     >
-                      {savedMentorIds.length}
+                      {dbSavedMentors.length}
                     </span>
                   )}
                 </button>

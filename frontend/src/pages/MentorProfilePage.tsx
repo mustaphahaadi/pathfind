@@ -158,7 +158,7 @@ const MentorProfilePage = () => {
 
             <div className="shrink-0 sm:self-center">
               <Link
-                to={`/mentors/${mentor.id}/schedule`}
+                to={`/mentors/${mentor.user_id}/schedule`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 shadow-sm"
               >
                 <Video size={16} />
@@ -222,7 +222,7 @@ const MentorProfilePage = () => {
                 <p className="mt-1 text-xs text-ink/60">{mentor.availability}</p>
                 <div className="mt-4 border-t border-surface-line pt-3">
                   <Link
-                    to={`/mentors/${mentor.id}/schedule`}
+                    to={`/mentors/${mentor.user_id}/schedule`}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-ink py-2.5 text-xs font-semibold text-white"
                   >
                     <Mail size={14} />
