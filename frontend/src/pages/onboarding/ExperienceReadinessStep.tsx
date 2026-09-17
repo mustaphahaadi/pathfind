@@ -2,6 +2,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, HeartHandshake, PartyPopper } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useAuthStore } from "../../store/useAuthStore";
+import { api } from "../../lib/api";
 import { proficiencyOptions } from "../../data/onboarding/proficiencyOptions";
 import { meetingPreferences } from "../../data/onboarding/meetingPreferences";
 import { mentors } from "../../data/mentors";
@@ -30,31 +31,40 @@ const ExperienceReadinessStep = () => {
 
   const canComplete = proficiency !== null && pledgeAgreed;
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!canComplete) return;
     completeOnboarding();
 
     if (user) {
-      const updatedUser: UserOut = {
-        ...user,
-        profile: {
-          ...(user.profile || {
-            id: user.id,
-            user_id: user.id,
-            job_title: "Mentee",
-            company: "Pathfind Network",
-            years_of_experience: 1,
-            bio: "",
-            expertise_tags: "",
-            availability: "Available",
-            linkedin_url: null,
-          }),
+      try {
+        const updatedUser = await api.profiles.update({
           full_name: fullName || user.profile?.full_name || "Mentee User",
           avatar_url: avatarUrl || user.profile?.avatar_url || null,
           location: location || user.profile?.location || "Ghana / Remote",
-        },
-      };
-      updateUser(updatedUser);
+        });
+        updateUser(updatedUser);
+      } catch {
+        const updatedUser: UserOut = {
+          ...user,
+          profile: {
+            ...(user.profile || {
+              id: user.id,
+              user_id: user.id,
+              job_title: "Mentee",
+              company: "Pathfind Network",
+              years_of_experience: 1,
+              bio: "",
+              expertise_tags: "",
+              availability: "Available",
+              linkedin_url: null,
+            }),
+            full_name: fullName || user.profile?.full_name || "Mentee User",
+            avatar_url: avatarUrl || user.profile?.avatar_url || null,
+            location: location || user.profile?.location || "Ghana / Remote",
+          },
+        };
+        updateUser(updatedUser);
+      }
     }
 
     navigate("/profile", { state: { matched: true } });

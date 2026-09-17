@@ -8,11 +8,12 @@ function useIsAuthenticated() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const menteeName = useOnboardingStore((s) => s.fullName);
+  const menteeHasCompleted = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const mentorHasCompleted = useMentorOnboardingStore((s) => s.hasCompletedOnboarding);
   const mentorName = useMentorOnboardingStore((s) => s.fullName);
 
   const isAuthSignedIn = !!token || !!user;
-  const isMenteeSignedIn = menteeName.trim().length > 0;
+  const isMenteeSignedIn = menteeHasCompleted || menteeName.trim().length > 0;
   const isMentorSignedIn = mentorHasCompleted || mentorName.trim().length > 0;
 
   return isAuthSignedIn || isMenteeSignedIn || isMentorSignedIn;

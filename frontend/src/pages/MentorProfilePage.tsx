@@ -12,12 +12,22 @@ import {
   ArrowLeft,
   Loader2,
   Calendar,
+  Star,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { api } from "../lib/api";
 import { getInitials } from "../lib/getInitials";
 import type { MentorProfileRead } from "../types/api";
+interface ReviewData {
+  id: number;
+  rating: number;
+  reviewer_name: string;
+  reviewer_role: string;
+  session_topic: string;
+  quote: string;
+  created_at: string;
+}
 
 const MentorProfilePage = () => {
   const { mentorId } = useParams<{ mentorId: string }>();
@@ -25,6 +35,7 @@ const MentorProfilePage = () => {
   const [mentor, setMentor] = useState<MentorProfileRead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<ReviewData[]>([]);
 
   useEffect(() => {
     if (!mentorId) return;
@@ -33,6 +44,11 @@ const MentorProfilePage = () => {
       .get(Number(mentorId))
       .then((data) => {
         setMentor(data);
+        // Fetch reviews for this mentor (mentor_id = user_id = mentorId param)
+        return api.reviews.list(Number(mentorId));
+      })
+      .then((reviewData) => {
+        setReviews(reviewData as ReviewData[]);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load mentor profile.");
@@ -117,6 +133,10 @@ const MentorProfilePage = () => {
                 <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">
                   {mentor.full_name}
                 </h1>
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent-blue/10 px-2.5 py-1 text-xs font-semibold text-accent-blue">
+                  <BadgeCheck size={13} />
+                  Verified Mentor
+                </span>
                 {mentor.linkedin_url && (
                   <a
                     href={mentor.linkedin_url}
@@ -124,8 +144,7 @@ const MentorProfilePage = () => {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 rounded-full bg-accent-blue/10 px-2.5 py-1 text-xs font-semibold text-accent-blue hover:underline"
                   >
-                    <BadgeCheck size={13} />
-                    Verified Expert
+                    LinkedIn Profile
                   </a>
                 )}
                 <span className="inline-flex items-center gap-1 rounded-full bg-accent-green/10 px-2.5 py-1 text-xs font-semibold text-accent-green">
@@ -158,7 +177,7 @@ const MentorProfilePage = () => {
 
             <div className="shrink-0 sm:self-center">
               <Link
-                to={`/mentors/${mentor.id}/schedule`}
+                to={`/mentors/${mentor.user_id || mentor.id}/schedule`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 shadow-sm"
               >
                 <Video size={16} />
@@ -204,6 +223,47 @@ const MentorProfilePage = () => {
                   )}
                 </div>
               </div>
+              {/* Reviews Section */}
+              {reviews.length > 0 && (
+                <div className="rounded-2xl border border-surface-line bg-white p-5 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <p className="flex items-center gap-2 text-lg font-bold text-ink">
+                      <Star size={17} className="text-accent-gold" fill="currentColor" />
+                      Mentee Reviews
+                    </p>
+                    <span className="text-xs font-medium text-ink/50">
+                      {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-4">
+                    {reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="rounded-xl border border-surface-line bg-surface/40 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-ink">{review.reviewer_name}</p>
+                            <p className="text-xs text-ink/50">{review.reviewer_role}</p>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                size={13}
+                                className={i < review.rating ? "text-accent-gold" : "text-ink/20"}
+                                fill="currentColor"
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="mt-2 text-xs font-medium text-accent-blue">{review.session_topic}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-ink/70 italic">&ldquo;{review.quote}&rdquo;</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-5">
@@ -222,7 +282,7 @@ const MentorProfilePage = () => {
                 <p className="mt-1 text-xs text-ink/60">{mentor.availability}</p>
                 <div className="mt-4 border-t border-surface-line pt-3">
                   <Link
-                    to={`/mentors/${mentor.id}/schedule`}
+                    to={`/mentors/${mentor.user_id || mentor.id}/schedule`}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-ink py-2.5 text-xs font-semibold text-white"
                   >
                     <Mail size={14} />

@@ -8,7 +8,7 @@ A web platform connecting people transitioning into tech careers in Ghana (stude
 
 ## 💡 The Idea
 
-Mentees search a directory of verified tech mentors and send a structured mentorship request (resume review, portfolio feedback, career conversation, interview prep). Mentors review and respond to requests that fit their expertise and availability, while administrators review and verify incoming mentor profile applications.
+Mentees search a directory of verified tech mentors and send structured mentorship requests (resume review, portfolio feedback, career path conversation, interview preparation, role/industry insights). Mentors review and respond to requests that fit their expertise and availability, participants can take private session notes and save favorite mentors, while administrators have full platform control with real-time analytics, user directories, and mentor application verification queues.
 
 ---
 
@@ -17,13 +17,14 @@ Mentees search a directory of verified tech mentors and send a structured mentor
 | Layer | Technology |
 |---|---|
 | **Frontend** | React 19 + TypeScript, built with Vite & Vanilla CSS |
-| **Backend** | Python 3.11/3.14 (FastAPI), SQLAlchemy 2.0 |
-| **Database** | PostgreSQL (Docker container locally / AWS RDS in prod), SQLite for testing |
+| **State & Router** | React Router v7, Zustand for global auth state |
+| **Backend** | Python 3.11 / 3.14 (FastAPI), SQLAlchemy 2.0 ORM |
+| **Database** | PostgreSQL (Docker container locally / AWS RDS in prod), SQLite for dev & testing |
 | **Email Service** | AWS SES / SMTP / Console Mock via FastAPI BackgroundTasks |
 | **Storage & Uploads** | Multipart local storage (`/static/uploads/`) with size & format validation |
 | **Containerization** | Docker, Docker Compose |
-| **Authentication** | JWT Auth with OAuth2 password bearer |
-| **CI/CD** | GitHub Actions |
+| **Authentication** | JWT Auth with OAuth2 password bearer flow |
+| **CI/CD & Quality** | GitHub Actions (automated flake8 linting & npm build/eslint checks) |
 
 ---
 
@@ -32,20 +33,20 @@ Mentees search a directory of verified tech mentors and send a structured mentor
 ```text
 pathfind/
 ├── .github/
-│   └── workflows/          # GitHub Actions CI pipelines (frontend & backend)
+│   └── workflows/          # GitHub Actions CI pipelines (frontend build/lint & backend flake8/tests)
 ├── backend/
-│   ├── tests/              # Pytest test suite (21 unit tests covering Auth, Requests, Email, Uploads)
+│   ├── tests/              # Pytest test suite covering Auth, Requests, Email, Uploads
 │   │   ├── test_auth.py
 │   │   ├── test_mentorship_requests.py
 │   │   ├── test_email.py
 │   │   └── test_upload.py
-│   ├── static/uploads/     # Local storage directory for uploaded avatars, resumes & portfolios
+│   ├── static/uploads/     # Storage directory for uploaded avatars, resumes & portfolios
 │   ├── auth.py             # Password hashing & JWT token generation
 │   ├── database.py         # SQLAlchemy engine & session setup
-│   ├── email.py            # AWS SES / SMTP / Console background email notification service
-│   ├── main.py             # FastAPI app routes, static file server & middleware
-│   ├── models.py           # Database models (User, MentorProfile, MentorshipRequest)
-│   ├── schemas.py          # Pydantic validation schemas
+│   ├── email_service.py    # AWS SES / SMTP / Console background email notification service
+│   ├── main.py             # FastAPI app routes, admin endpoints, static file server & middleware
+│   ├── models.py           # Database models (User, MentorProfile, MentorshipRequest, SavedMentor, SessionNote, MentorReview)
+│   ├── schemas.py          # Pydantic validation schemas & response models
 │   ├── seed.py             # Database seed script (populates mock mentors & admin)
 │   ├── Dockerfile          # Multi-stage Docker build for backend API
 │   └── requirements.txt    # Python dependencies
@@ -53,83 +54,160 @@ pathfind/
 │   ├── Pathfind_Backend_Developer_Implementation_Report.pdf (.docx)
 │   ├── Pathfind_Frontend_Developer_Implementation_Report.pdf (.docx)
 │   ├── Pathfind_Full_Developer_Implementation_Report.pdf (.docx)
+│   ├── Pathfind_Project_Review.md
 │   └── mentor_profiles_seed.md
 ├── frontend/               # React + TypeScript + Vite app
-│   ├── src/                # React UI components & styles
+│   ├── src/                # React UI components, layouts, pages, store & API client
+│   │   ├── components/     # UI components (Navbar, Footer, Admin, Cards, Modals)
+│   │   ├── pages/          # Page components (Landing, Mentors, AdminDashboard, SessionDetails, etc.)
+│   │   ├── lib/api.ts      # Axios API client connecting to FastAPI backend
+│   │   └── types/api.ts    # TypeScript interface contracts matching FastAPI backend schemas
 │   ├── index.html
 │   └── package.json
 ├── docker-compose.yml      # Local dev stack (Postgres 15 + FastAPI with auto-reload)
-├── .dockerignore           # Build exclusions for Docker context
 ├── CONTRIBUTING.md         # Contribution guidelines and Git workflow
 └── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Local Setup Guide
 
-### Method 1: Docker Compose (Recommended for Full Stack)
-
-Run the backend API and PostgreSQL database simultaneously using Docker Compose:
-
-```bash
-# Build and start services in containerized environment
-docker compose up --build
-```
-
-The API will be available at `http://localhost:8000` (interactive API docs at `http://localhost:8000/docs`).
+Follow one of the two methods below to set up and run the application locally.
 
 ---
 
-### Method 2: Local Development Setup
+### 🐳 Method 1: Docker Compose Setup (Recommended)
 
-#### Backend Setup
+Docker Compose provisions a local PostgreSQL 15 database container alongside the FastAPI backend with live code hot-reloading.
 
-1. **Create and activate a Python virtual environment**:
+#### 1. Start Docker Containers
+```bash
+# Build images and start Postgres DB & FastAPI API in foreground
+docker compose up --build
+```
+> *Tip: Add `-d` flag to run in detached background mode (`docker compose up --build -d`).*
+
+#### 2. Seed Mock Database Data
+In a new terminal window, populate the database with 8 verified mentor profiles and the admin account:
+```bash
+docker compose exec api python3 backend/seed.py
+```
+
+#### 3. Start Frontend Development Server
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+#### 4. Access Local Services
+- 🌐 **Frontend App**: `http://localhost:5173`
+- ⚙️ **Backend API**: `http://localhost:8000`
+- 📚 **Interactive Swagger API Docs**: `http://localhost:8000/docs`
+- 🗄️ **PostgreSQL Database**: `localhost:5432` (`user: pathfind`, `password: pathfind`, `db: pathfind`)
+
+#### 🛠️ Useful Docker Commands
+```bash
+# View backend logs in real time
+docker compose logs -f api
+
+# Stop all container services
+docker compose down
+
+# Stop and wipe database volume data
+docker compose down -v
+```
+
+---
+
+### 💻 Method 2: Normal Local Setup (Manual Environment)
+
+#### Prerequisites
+Ensure you have the following installed on your system:
+- **Python**: 3.11 or higher (`python3 --version`)
+- **Node.js**: 18.0 or higher (`node -v`)
+- **npm**: 9.0 or higher (`npm -v`)
+
+---
+
+#### 🔧 Step-by-Step Backend Setup
+
+1. **Navigate to project root and create virtual environment**:
    ```bash
    python3 -m venv backend/.venv
-   source backend/.venv/bin/activate
    ```
 
-2. **Install dependencies**:
+2. **Activate the virtual environment**:
+   - **Linux / macOS**:
+     ```bash
+     source backend/.venv/bin/activate
+     ```
+   - **Windows (PowerShell)**:
+     ```powershell
+     .\backend\.venv\Scripts\Activate.ps1
+     ```
+
+3. **Install Python dependencies**:
    ```bash
    pip install -r backend/requirements.txt
    ```
 
-3. **Seed mock data** (Populates 8 verified mentor profiles & 1 admin account):
+4. **Seed mock data into SQLite database** (Populates mock Ghanaian mentors & admin `admin@pathfind.org` / `admin123`):
    ```bash
-   python -m backend.seed
+   python3 backend/seed.py
    ```
 
-4. **Run the development server**:
+5. **Start the Uvicorn development server**:
    ```bash
    uvicorn backend.main:app --reload --port 8000
    ```
+   The backend API will start at `http://localhost:8000`.
 
-5. **Run backend tests** (21 unit tests, 100% pass rate):
+6. **(Optional) Run tests and linting**:
    ```bash
+   # Run Pytest unit test suite
    pytest backend/tests
+
+   # Run Flake8 code style linter
+   python3 -m flake8 backend --exclude=.venv,venv,tests --max-line-length=120
    ```
 
-6. **Run linting checks**:
-   ```bash
-   flake8 backend --exclude=.venv,venv,tests --max-line-length=120
-   ```
+---
 
-#### Frontend Setup
+#### 🎨 Step-by-Step Frontend Setup
 
-1. **Navigate to frontend directory and install dependencies**:
+1. **Navigate to the frontend directory**:
    ```bash
    cd frontend
+   ```
+
+2. **Install Node modules**:
+   ```bash
    npm install
    ```
 
-2. **Start the Vite development server**:
+3. **Configure environment variable** (Optional):
+   Create a `.env` file in `frontend/` (defaults to `http://localhost:8000`):
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000
+   ```
+
+4. **Start the Vite development server**:
    ```bash
    npm run dev
    ```
+   The application will open at `http://localhost:5173`.
 
-The frontend will run at `http://localhost:5173`.
+5. **(Optional) Verify production build and linting**:
+   ```bash
+   # Build production bundle
+   npm run build
+
+   # Run ESLint static check
+   npx eslint .
+   ```
+
 
 ---
 
@@ -155,21 +233,34 @@ Configure environment variables in a `.env` file in the root or `backend/` direc
 |---|---|---|---|---|
 | **System** | `GET` | `/` | No | API root welcome message |
 | **System** | `GET` | `/health` | No | Health check status |
-| **Auth** | `POST` | `/auth/signup` | No | Register a new mentee user |
-| **Auth** | `POST` | `/auth/signup/mentor` | No | Register a mentor profile (sets `pending_verification`) |
-| **Auth** | `POST` | `/auth/signin` | No | Authenticate user & return OAuth2 JWT token |
-| **Auth** | `GET` | `/auth/me` | 🔒 Yes | Restore current user session & profile details |
-| **Mentors** | `GET` | `/mentors` | No | Discover mentors (search text, expertise, request type, verified filters) |
-| **Mentors** | `GET` | `/mentors/{id}` | No | Retrieve detailed profile of a specific mentor |
+| **Auth** | `POST` | `/auth/signup` | No | Register a new mentee account |
+| **Auth** | `POST` | `/auth/signup/mentor` | No | Register a mentor profile (sets status to `pending_verification`) |
+| **Auth** | `POST` | `/auth/signin` | No | Authenticate user & return OAuth2 JWT access token |
+| **Auth & Profile** | `GET` | `/auth/me` | 🔒 Yes | Restore current user session & profile details |
+| **Auth & Profile** | `PATCH` | `/profiles/me` | 🔒 Yes | Update current user profile details |
+| **Mentors** | `GET` | `/mentors` | No | Discover mentors (supports query, expertise, request type, & status filters) |
+| **Mentors** | `GET` | `/mentors/{mentor_id}` | No | Retrieve detailed profile of a specific mentor |
+| **Mentors** | `POST` | `/mentors/{mentor_id}/reviews` | 🔒 Mentee | Submit a rating review for a mentor |
+| **Mentors** | `GET` | `/mentors/{mentor_id}/reviews` | No | List reviews submitted for a mentor |
 | **Requests** | `POST` | `/mentorship-requests` | 🔒 Mentee | Create a new mentorship request with optional attachments |
-| **Requests** | `GET` | `/mentorship-requests` | 🔒 Yes | List user's mentorship requests (as mentee or mentor) |
-| **Requests** | `GET` | `/mentorship-requests/{id}` | 🔒 Yes | Retrieve detailed view of a specific request |
-| **Requests** | `PATCH` | `/mentorship-requests/{id}/status` | 🔒 Mentor | Accept or decline request with an optional response message |
-| **Requests** | `DELETE` | `/mentorship-requests/{id}` | 🔒 Mentee | Cancel a pending request |
+| **Requests** | `GET` | `/mentorship-requests` | 🔒 Yes | List mentorship requests (role-filtered for mentee or mentor) |
+| **Requests** | `GET` | `/mentorship-requests/{request_id}` | 🔒 Yes | Retrieve detailed view of a specific request |
+| **Requests** | `PATCH` | `/mentorship-requests/{request_id}/status` | 🔒 Mentor | Accept or decline request with an optional response message |
+| **Requests** | `DELETE` | `/mentorship-requests/{request_id}` | 🔒 Mentee | Cancel a pending mentorship request |
 | **Requests** | `GET` | `/mentorship-request-types` | No | List supported mentorship categories |
-| **Admin** | `GET` | `/admin/mentors/pending` | 🔒 Admin | List unverified mentor applications |
-| **Admin** | `POST` | `/admin/mentors/{id}/approve` | 🔒 Admin | Verify and approve a mentor profile |
-| **Admin** | `POST` | `/admin/mentors/{id}/reject` | 🔒 Admin | Reject a mentor profile application |
+| **Bookmarks** | `POST` | `/saved-mentors` | 🔒 Mentee | Bookmark a mentor profile |
+| **Bookmarks** | `GET` | `/saved-mentors` | 🔒 Mentee | List bookmarked mentors for logged-in user |
+| **Bookmarks** | `DELETE` | `/saved-mentors/{mentor_id}` | 🔒 Mentee | Remove a saved mentor bookmark |
+| **Session Notes** | `POST` | `/session-notes` | 🔒 Yes | Add a private note for a mentorship session |
+| **Session Notes** | `GET` | `/session-notes` | 🔒 Yes | List session notes for logged-in user |
+| **Session Notes** | `DELETE` | `/session-notes/{note_id}` | 🔒 Yes | Delete a session note |
+| **Admin Control** | `GET` | `/admin/stats` | 🔒 Admin | Real-time platform analytics & count metrics |
+| **Admin Control** | `GET` | `/admin/mentors/pending` | 🔒 Admin | List unverified mentor applications queue |
+| **Admin Control** | `GET` | `/admin/mentors` | 🔒 Admin | Directory of all mentors (verified, pending, rejected) |
+| **Admin Control** | `GET` | `/admin/mentees` | 🔒 Admin | Directory of all registered mentees |
+| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/approve` | 🔒 Admin | Approve a pending mentor application |
+| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/reject` | 🔒 Admin | Reject a mentor application |
+| **Admin Control** | `DELETE` | `/admin/users/{user_id}` | 🔒 Admin | Remove a user account from the platform |
 | **Uploads** | `POST` | `/upload` | 🔒 Yes | Upload avatar/resume/portfolio files (Max 5 MB) |
 
 ---

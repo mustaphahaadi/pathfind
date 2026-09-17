@@ -1,75 +1,100 @@
-# React + TypeScript + Vite
+# Pathfind — Frontend Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern React 19 + TypeScript frontend for the Pathfind mentorship platform, built with Vite and Tailwind/Vanilla CSS.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Features & Capabilities
 
-## React Compiler
+- **Authentication & Roles**: Mentee signup, Mentor profile application flow, Signin, JWT session persistence via Axios & Zustand.
+- **Mentor Discovery & Filtering**: Search by keyword, expertise tags, request types, and verification status with real-time UI filtering.
+- **Structured Request Workflow**: Interactive request scheduling modal supporting 5 mentorship categories (*CV Review*, *Portfolio Feedback*, *Career Conversation*, *Interview Prep*, *Role Insight*) with file attachment uploads.
+- **Mentee & Mentor Dashboards**:
+  - **Mentee Dashboard**: Outgoing requests status tracker, session details modal, saved mentors directory, private session notes.
+  - **Mentor Dashboard**: Incoming pending request queue, accept/decline action modals, session management.
+- **Real-Time Admin Management Portal**:
+  - Live metric stat cards (`GET /admin/stats`).
+  - Pending Mentor Verification Queue with one-click Approve/Reject.
+  - All Mentors Directory with badges and Delete controls.
+  - Registered Mentees Directory with Remove Account controls.
+- **User Profile Management**: Edit profile modal for updating bio, location, job title, company, avatar, and social links.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Framework**: React 19 + TypeScript
+- **Build Tool**: Vite 6
+- **Routing**: React Router v7 (`BrowserRouter`, `Routes`, `Route`, `Navigate`)
+- **State Management**: Zustand (`useAuthStore`)
+- **HTTP Client**: Axios with Bearer Authorization token interceptor
+- **Icons**: Lucide React
+- **Linting**: ESLint v9
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📂 Directory Structure
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```text
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── admin/          # Admin verification cards & roster components
+│   │   ├── auth/           # Login, Register, & Role Selection cards
+│   │   ├── layout/         # Navbar, Footer, UserMenuLink, ProtectedRoute
+│   │   ├── mentors/        # MentorCard, MentorFilter, BookingModal
+│   │   └── ui/             # Reusable UI elements (Badge, Button, Modal)
+│   ├── lib/
+│   │   └── api.ts          # Axios API client & endpoint wrapper functions
+│   ├── pages/
+│   │   ├── AdminDashboardPage.tsx
+│   │   ├── LandingPage.tsx
+│   │   ├── MenteeDashboardPage.tsx
+│   │   ├── MentorDashboardPage.tsx
+│   │   ├── MentorDetailPage.tsx
+│   │   ├── MentorsPage.tsx
+│   │   ├── ScheduleSessionPage.tsx
+│   │   └── SessionDetailsPage.tsx
+│   ├── store/
+│   │   └── useAuthStore.ts # Global user auth & profile store
+│   ├── types/
+│   │   └── api.ts          # TypeScript interfaces matching backend models
+│   ├── App.tsx             # Application routing & layout frame
+│   ├── main.tsx            # App entrypoint
+│   └── index.css           # Design tokens, variables & utility classes
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ⚡ Quick Start
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Install Dependencies
+```bash
+npm install
+```
 
+### 2. Environment Setup
+Create a `.env` file in `frontend/`:
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+### 3. Run Development Server
+```bash
+npm run dev
+```
+The development server will run at `http://localhost:5173`.
+
+### 4. Build for Production
+```bash
+npm run build
+```
+
+### 5. Run Lint Checks
+```bash
+npx eslint .
 ```

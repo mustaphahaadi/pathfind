@@ -19,6 +19,11 @@ import {
   Plus,
   Trash2,
   ExternalLink,
+  Pencil,
+  Save,
+  Bell,
+  User,
+  Check,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -34,6 +39,7 @@ import type {
   MentorProfileRead,
   SavedMentorRead,
   SessionNoteRead,
+  GoalRead,
 } from "../types/api";
 import type { Mentor } from "../types/mentor";
 import { mentors } from "../data/mentors";
@@ -72,6 +78,105 @@ const ProfilePage = () => {
   const [creatingNote, setCreatingNote] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
 
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editResource, setEditResource] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+
+  // Fix 16 — Goals state (backed by DB)
+  const [goals, setGoals] = useState<GoalRead[]>([]);
+  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [newGoalCategory, setNewGoalCategory] = useState("Technical Skill");
+  const [newGoalTargetDate, setNewGoalTargetDate] = useState("Q4 2026");
+  const [showGoalForm, setShowGoalForm] = useState(false);
+
+  // Fix 16 — Settings state (backed by DB & profile endpoint)
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const [settingsName, setSettingsName] = useState(user?.profile?.full_name || "");
+  const [settingsLocation, setSettingsLocation] = useState(user?.profile?.location || "");
+  const [settingsBio, setSettingsBio] = useState(user?.profile?.bio || "");
+  const [emailNotifs, setEmailNotifs] = useState(true);
+  const [sessionReminders, setSessionReminders] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
+
+  const [prevProfile, setPrevProfile] = useState(user?.profile);
+  if (user?.profile !== prevProfile) {
+    setPrevProfile(user?.profile);
+    if (user?.profile) {
+      setSettingsName(user.profile.full_name || "");
+      setSettingsLocation(user.profile.location || "");
+      setSettingsBio(user.profile.bio || "");
+    }
+  }
+
+  const handleAddGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim()) return;
+    try {
+      const created = await api.goals.create({
+        title: newGoalTitle.trim(),
+        category: newGoalCategory,
+        target_date: newGoalTargetDate.trim() || "Q4 2026",
+      });
+      setGoals((prev) => [created, ...prev]);
+      setNewGoalTitle("");
+      setShowGoalForm(false);
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleToggleGoal = async (goalId: number, currentCompleted: boolean) => {
+    try {
+      const updated = await api.goals.update(goalId, { completed: !currentCompleted });
+      setGoals((prev) => prev.map((g) => (g.id === goalId ? updated : g)));
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleDeleteGoal = async (goalId: number) => {
+    try {
+      await api.goals.delete(goalId);
+      setGoals((prev) => prev.filter((g) => g.id !== goalId));
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    setSettingsMessage(null);
+    try {
+      if (user) {
+        const updatedUser = await api.profiles.update({
+          full_name: settingsName.trim() || user.profile?.full_name || "Mentee User",
+          location: settingsLocation.trim() || user.profile?.location || "Ghana / Remote",
+          bio: settingsBio.trim(),
+        });
+        updateUser(updatedUser);
+      }
+      const updatedSettings = await api.settings.update({
+        email_notifications: emailNotifs,
+        session_reminders: sessionReminders,
+        weekly_digest: weeklyDigest,
+      });
+      setEmailNotifs(updatedSettings.email_notifications);
+      setSessionReminders(updatedSettings.session_reminders);
+      setWeeklyDigest(updatedSettings.weekly_digest);
+      setSettingsMessage("Settings saved successfully!");
+    } catch {
+      setSettingsMessage("Failed to save settings. Please try again.");
+    } finally {
+      setSavingSettings(false);
+      setTimeout(() => setSettingsMessage(null), 4000);
+    }
+  };
+
   useEffect(() => {
     api.requests
       .list()
@@ -92,6 +197,19 @@ const ProfilePage = () => {
     api.notes
       .list()
       .then(setSessionNotes)
+      .catch(() => {});
+    api.goals
+      .list()
+      .then(setGoals)
+      .catch(() => {});
+
+    api.settings
+      .get()
+      .then((s) => {
+        setEmailNotifs(s.email_notifications);
+        setSessionReminders(s.session_reminders);
+        setWeeklyDigest(s.weekly_digest);
+      })
       .catch(() => {});
   }, []);
 
@@ -126,6 +244,32 @@ const ProfilePage = () => {
     }
   };
 
+  const startEditNote = (note: SessionNoteRead) => {
+    setEditingNoteId(note.id);
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setEditResource(note.resource_url ?? "");
+  };
+
+  const handleSaveNote = async (noteId: number) => {
+    if (!editTitle.trim() || !editContent.trim()) return;
+    setSavingNote(true);
+    try {
+      const updated = await api.notes.update(noteId, {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        resource_url: editResource.trim() || null,
+      });
+      setSessionNotes((prev) =>
+        prev.map((n) => (n.id === noteId ? { ...n, ...updated } : n)),
+      );
+      setEditingNoteId(null);
+    } catch {
+      // fallback
+    } finally {
+      setSavingNote(false);
+    }
+  };
   const handleCancelRequest = async (requestId: string) => {
     setCancellingId(requestId);
     try {
@@ -259,7 +403,7 @@ const ProfilePage = () => {
                         isActive ? "bg-white/20" : "bg-surface"
                       }`}
                     >
-                      {savedMentorIds.length}
+                      {dbSavedMentors.length}
                     </span>
                   )}
                 </button>
@@ -455,7 +599,6 @@ const ProfilePage = () => {
                   ) : (
                     <ul className="mt-4 space-y-3">
                       {[...sessions].reverse().map((session) => {
-                        const mentor = mentors.find((m) => m.id === session.mentorId);
                         return (
                           <li
                             key={session.id}
@@ -463,7 +606,7 @@ const ProfilePage = () => {
                           >
                             Booked a session with{" "}
                             <span className="font-semibold text-ink">
-                              {mentor?.name ?? "a mentor"}
+                              {session.mentorName}
                             </span>{" "}
                             for {session.dateLabel} at {session.timeLabel}.
                           </li>
@@ -706,37 +849,94 @@ const ProfilePage = () => {
                   {sessionNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/20 p-4 transition-all hover:bg-surface/50 sm:flex-row sm:items-start sm:justify-between"
+                      className="flex flex-col gap-3 rounded-2xl border border-surface-line bg-surface/20 p-4 transition-all hover:bg-surface/50"
                     >
-                      <div className="space-y-1">
-                        <h4 className="text-base font-extrabold text-ink">{note.title}</h4>
-                        <p className="text-xs text-ink/50">
-                          {new Date(note.created_at).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </p>
-                        <p className="pt-1 text-sm text-ink/80 whitespace-pre-line">{note.content}</p>
-                        {note.resource_url && (
-                          <a
-                            href={note.resource_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline pt-1"
-                          >
-                            Resource Link <ExternalLink size={12} />
-                          </a>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
-                      >
-                        <Trash2 size={13} />
-                        Delete
-                      </button>
+                      {editingNoteId === note.id ? (
+                        /* ── Inline Edit Form ── */
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="Title"
+                            className="w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm font-semibold text-ink focus:border-ink"
+                          />
+                          <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            placeholder="Note content…"
+                            rows={3}
+                            className="w-full rounded-xl border border-surface-line p-3.5 text-sm text-ink focus:border-ink"
+                          />
+                          <input
+                            type="url"
+                            value={editResource}
+                            onChange={(e) => setEditResource(e.target.value)}
+                            placeholder="Resource link (optional)"
+                            className="w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm font-semibold text-ink focus:border-ink"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveNote(note.id)}
+                              disabled={savingNote}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+                            >
+                              {savingNote ? "Saving…" : "Save Changes"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingNoteId(null)}
+                              className="inline-flex items-center rounded-xl border border-surface-line bg-white px-4 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Read View ── */
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="space-y-1">
+                            <h4 className="text-base font-extrabold text-ink">{note.title}</h4>
+                            <p className="text-xs text-ink/50">
+                              {new Date(note.created_at).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                            <p className="pt-1 text-sm text-ink/80 whitespace-pre-line">{note.content}</p>
+                            {note.resource_url && (
+                              <a
+                                href={note.resource_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline pt-1"
+                              >
+                                Resource Link <ExternalLink size={12} />
+                              </a>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startEditNote(note)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface"
+                            >
+                              <Pencil size={12} />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteNote(note.id)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50"
+                            >
+                              <Trash2 size={13} />
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -744,12 +944,280 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {(activeTab === "goals" || activeTab === "settings") && (
-            <div className="mt-6 rounded-3xl border border-surface-line bg-white p-10 text-center">
-              <p className="text-base font-bold text-ink">
-                {tabs.find((tab) => tab.id === activeTab)?.label}
-              </p>
-              <p className="mt-2 text-sm text-ink/60">Manage your mentorship goals and account preferences directly from onboarding setup.</p>
+          {/* ── Goals Tab ── */}
+          {activeTab === "goals" && (
+            <div className="mt-6 space-y-6">
+              <div className="flex flex-col gap-4 rounded-3xl border border-surface-line bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-ink">Mentorship Goals & Trackers</h3>
+                  <p className="mt-1 text-xs text-ink/60">
+                    Track your skill progression, career milestones, and project goals during your mentorship journey.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGoalForm(!showGoalForm)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                >
+                  <Plus size={14} />
+                  {showGoalForm ? "Cancel" : "Add New Goal"}
+                </button>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="rounded-2xl border border-surface-line bg-surface/30 p-5">
+                <div className="flex items-center justify-between text-xs font-semibold text-ink">
+                  <span>Overall Goals Completion</span>
+                  <span>
+                    {goals.filter((g) => g.completed).length} of {goals.length} completed (
+                    {goals.length > 0
+                      ? Math.round((goals.filter((g) => g.completed).length / goals.length) * 100)
+                      : 0}
+                    %)
+                  </span>
+                </div>
+                <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-line">
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-300"
+                    style={{
+                      width: `${
+                        goals.length > 0
+                          ? Math.round((goals.filter((g) => g.completed).length / goals.length) * 100)
+                          : 0
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Goal Form */}
+              {showGoalForm && (
+                <form
+                  onSubmit={handleAddGoal}
+                  className="space-y-4 rounded-2xl border border-surface-line bg-white p-5 shadow-sm"
+                >
+                  <h4 className="text-sm font-bold text-ink">Set a New Mentorship Goal</h4>
+                  <div>
+                    <label className="text-xs font-semibold text-ink/80">Goal Title</label>
+                    <input
+                      type="text"
+                      required
+                      value={newGoalTitle}
+                      onChange={(e) => setNewGoalTitle(e.target.value)}
+                      placeholder="e.g. Master React Server Components & Streaming"
+                      className="mt-1 w-full rounded-xl border border-surface-line px-3.5 py-2 text-sm text-ink focus:border-ink"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold text-ink/80">Category</label>
+                      <select
+                        value={newGoalCategory}
+                        onChange={(e) => setNewGoalCategory(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-surface-line px-3 py-2 text-sm text-ink focus:border-ink"
+                      >
+                        <option value="Technical Skill">Technical Skill</option>
+                        <option value="Career Growth">Career Growth</option>
+                        <option value="Open Source">Open Source</option>
+                        <option value="Leadership">Leadership & Management</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-ink/80">Target Timeline</label>
+                      <input
+                        type="text"
+                        value={newGoalTargetDate}
+                        onChange={(e) => setNewGoalTargetDate(e.target.value)}
+                        placeholder="e.g. Q4 2026 or Dec 2026"
+                        className="mt-1 w-full rounded-xl border border-surface-line px-3 py-2 text-sm text-ink focus:border-ink"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-white hover:opacity-90"
+                    >
+                      Save Goal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowGoalForm(false)}
+                      className="rounded-xl border border-surface-line bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-surface"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Goals List */}
+              <div className="space-y-3">
+                {goals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className={`flex items-center justify-between gap-4 rounded-2xl border p-4 transition-all ${
+                      goal.completed
+                        ? "border-emerald-200 bg-emerald-50/30 text-ink/70"
+                        : "border-surface-line bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleGoal(goal.id, goal.completed)}
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors ${
+                          goal.completed
+                            ? "border-emerald-500 bg-emerald-500 text-white"
+                            : "border-surface-line hover:border-ink"
+                        }`}
+                      >
+                        {goal.completed && <Check size={14} strokeWidth={3} />}
+                      </button>
+                      <div>
+                        <p
+                          className={`text-sm font-semibold text-ink ${
+                            goal.completed ? "line-through opacity-60" : ""
+                          }`}
+                        >
+                          {goal.title}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-medium text-ink/70">
+                            {goal.category}
+                          </span>
+                          <span className="text-xs text-ink/40">• Target: {goal.target_date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteGoal(goal.id)}
+                      className="rounded-lg p-1.5 text-ink/40 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Settings Tab ── */}
+          {activeTab === "settings" && (
+            <div className="mt-6 space-y-6">
+              <form onSubmit={handleSaveSettings} className="space-y-6 rounded-3xl border border-surface-line bg-white p-6 sm:p-8">
+                <div>
+                  <h3 className="text-lg font-bold text-ink">Account & Profile Settings</h3>
+                  <p className="mt-1 text-xs text-ink/60">
+                    Update your display profile details and platform preferences.
+                  </p>
+                </div>
+
+                {settingsMessage && (
+                  <div
+                    className={`rounded-2xl p-4 text-xs font-semibold ${
+                      settingsMessage.includes("successfully")
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-red-50 text-red-800 border border-red-200"
+                    }`}
+                  >
+                    {settingsMessage}
+                  </div>
+                )}
+
+                <div className="space-y-4 border-t border-surface-line pt-5">
+                  <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+                    <User size={16} /> Profile Details
+                  </h4>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold text-ink/80">Full Name</label>
+                      <input
+                        type="text"
+                        value={settingsName}
+                        onChange={(e) => setSettingsName(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-surface-line px-3.5 py-2.5 text-sm text-ink focus:border-ink"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-ink/80">Location</label>
+                      <input
+                        type="text"
+                        value={settingsLocation}
+                        onChange={(e) => setSettingsLocation(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-surface-line px-3.5 py-2.5 text-sm text-ink focus:border-ink"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-ink/80">Bio / About</label>
+                    <textarea
+                      rows={3}
+                      value={settingsBio}
+                      onChange={(e) => setSettingsBio(e.target.value)}
+                      placeholder="Brief summary of your background and what you hope to achieve with mentorship…"
+                      className="mt-1 w-full rounded-xl border border-surface-line p-3.5 text-sm text-ink focus:border-ink"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 border-t border-surface-line pt-5">
+                  <h4 className="text-sm font-bold text-ink flex items-center gap-2">
+                    <Bell size={16} /> Notification Preferences
+                  </h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={emailNotifs}
+                        onChange={(e) => setEmailNotifs(e.target.checked)}
+                        className="h-4 w-4 rounded border-surface-line accent-ink"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-ink">Session Request Notifications</p>
+                        <p className="text-xs text-ink/50">Receive email alerts when session requests are created or updated.</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sessionReminders}
+                        onChange={(e) => setSessionReminders(e.target.checked)}
+                        className="h-4 w-4 rounded border-surface-line accent-ink"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-ink">Session Reminders</p>
+                        <p className="text-xs text-ink/50">Receive reminder emails 15 minutes before scheduled mentorship calls.</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={weeklyDigest}
+                        onChange={(e) => setWeeklyDigest(e.target.checked)}
+                        className="h-4 w-4 rounded border-surface-line accent-ink"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-ink">Weekly Mentorship Digest</p>
+                        <p className="text-xs text-ink/50">Summary of upcoming community events, recommended mentors, and goals progress.</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="border-t border-surface-line pt-5">
+                  <button
+                    type="submit"
+                    disabled={savingSettings}
+                    className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    <Save size={16} />
+                    {savingSettings ? "Saving…" : "Save Preferences"}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>

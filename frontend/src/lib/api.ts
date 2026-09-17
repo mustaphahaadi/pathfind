@@ -10,6 +10,11 @@ import type {
   UserCreateMentorPayload,
   MentorshipRequestCreatePayload,
   MentorshipStatusUpdatePayload,
+  GoalRead,
+  GoalCreatePayload,
+  GoalUpdatePayload,
+  UserSettingsRead,
+  UserSettingsUpdatePayload,
 } from "../types/api";
 
 const BASE_URL = "http://localhost:8000";
@@ -268,10 +273,56 @@ export const api = {
         }>
       >("/session-notes"),
 
+    update: (noteId: number, payload: { title?: string; content?: string; resource_url?: string | null }) =>
+      request<{
+        id: number;
+        user_id: number;
+        request_id?: string;
+        title: string;
+        content: string;
+        resource_url?: string;
+        created_at: string;
+      }>(`/session-notes/${noteId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
     delete: (noteId: number) =>
       request<void>(`/session-notes/${noteId}`, { method: "DELETE" }),
   },
 
+  // ── Goals ─────────────────────────────────────────────────────────────────
+
+  goals: {
+    list: () => request<GoalRead[]>("/goals"),
+
+    create: (payload: GoalCreatePayload) =>
+      request<GoalRead>("/goals", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    update: (goalId: number, payload: GoalUpdatePayload) =>
+      request<GoalRead>(`/goals/${goalId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    delete: (goalId: number) =>
+      request<void>(`/goals/${goalId}`, { method: "DELETE" }),
+  },
+
+  // ── User Settings ──────────────────────────────────────────────────────────
+
+  settings: {
+    get: () => request<UserSettingsRead>("/settings/me"),
+
+    update: (payload: UserSettingsUpdatePayload) =>
+      request<UserSettingsRead>("/settings/me", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+  },
   // ── Admin ──────────────────────────────────────────────────────────────────
 
   admin: {

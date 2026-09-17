@@ -72,7 +72,7 @@ const MentorDashboardPage = () => {
 
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/m/${user?.profile?.id ?? "your-profile"}`;
+  const shareLink = `pathfind.org/mentors/${user?.id ?? "your-profile"}`;
 
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const acceptedRequests = requests.filter((r) => r.status === "accepted");
@@ -146,7 +146,7 @@ const MentorDashboardPage = () => {
               </div>
               <div className="flex shrink-0 gap-2.5">
                 <Link
-                  to="/mentors"
+                  to={`/mentors/${user?.id ?? ""}`}
                   className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
                 >
                   <Eye size={16} />
@@ -588,6 +588,48 @@ const MentorDashboardPage = () => {
                     </li>
                   ))}
                 </ul>
+              )}
+              {/* Declined Requests — always visible if any exist */}
+              {requests.filter((r) => r.status === "declined").length > 0 && (
+                <div className="mt-8 border-t border-surface-line pt-6">
+                  <p className="text-sm font-bold uppercase tracking-wider text-ink/50">
+                    Declined ({requests.filter((r) => r.status === "declined").length})
+                  </p>
+                  <ul className="mt-3 space-y-3">
+                    {requests
+                      .filter((r) => r.status === "declined")
+                      .map((req) => (
+                        <li
+                          key={req.id}
+                          className="rounded-xl border border-red-100 bg-red-50/30 p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold text-ink/60 line-through">
+                                {req.subject}
+                              </p>
+                              <p className="text-xs text-ink/50">
+                                {req.mentee_email} &middot; Declined on{" "}
+                                {new Date(req.created_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </p>
+                              {req.response_message && (
+                                <p className="mt-1 text-xs italic text-ink/60">
+                                  &ldquo;{req.response_message}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                              Declined
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
               )}
             </div>
           )}
