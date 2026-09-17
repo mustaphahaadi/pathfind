@@ -102,13 +102,15 @@ const ProfilePage = () => {
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [prevProfile, setPrevProfile] = useState(user?.profile);
+  if (user?.profile !== prevProfile) {
+    setPrevProfile(user?.profile);
     if (user?.profile) {
-      if (user.profile.full_name) setSettingsName(user.profile.full_name);
-      if (user.profile.location) setSettingsLocation(user.profile.location);
-      if (user.profile.bio) setSettingsBio(user.profile.bio);
+      setSettingsName(user.profile.full_name || "");
+      setSettingsLocation(user.profile.location || "");
+      setSettingsBio(user.profile.bio || "");
     }
-  }, [user]);
+  }
 
   const handleAddGoal = async (e: React.FormEvent) => {
     e.preventDefault();

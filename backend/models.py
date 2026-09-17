@@ -139,7 +139,6 @@ class SessionNote(Base):
     )
 
 
-
 class Goal(Base):
     __tablename__ = "goals"
 
@@ -174,4 +173,3 @@ class UserSettings(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
-

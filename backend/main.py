@@ -850,9 +850,27 @@ def list_goals(
     )
     if not user_goals:
         defaults = [
-            Goal(user_id=current_user.id, title="Master System Design & Microservices Architecture", category="Technical Skill", target_date="Q4 2026", completed=True),
-            Goal(user_id=current_user.id, title="Land Senior Software Engineer / Lead Role", category="Career Growth", target_date="Q1 2027", completed=False),
-            Goal(user_id=current_user.id, title="Publish 2 Open Source Frontend Libraries", category="Open Source", target_date="Q4 2026", completed=False),
+            Goal(
+                user_id=current_user.id,
+                title="Master System Design & Microservices Architecture",
+                category="Technical Skill",
+                target_date="Q4 2026",
+                completed=True,
+            ),
+            Goal(
+                user_id=current_user.id,
+                title="Land Senior Software Engineer / Lead Role",
+                category="Career Growth",
+                target_date="Q1 2027",
+                completed=False,
+            ),
+            Goal(
+                user_id=current_user.id,
+                title="Publish 2 Open Source Frontend Libraries",
+                category="Open Source",
+                target_date="Q4 2026",
+                completed=False,
+            ),
         ]
         db.add_all(defaults)
         db.commit()
@@ -924,7 +942,12 @@ def get_user_settings(
 ):
     settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
     if not settings:
-        settings = UserSettings(user_id=current_user.id, email_notifications=True, session_reminders=True, weekly_digest=False)
+        settings = UserSettings(
+            user_id=current_user.id,
+            email_notifications=True,
+            session_reminders=True,
+            weekly_digest=False,
+        )
         db.add(settings)
         db.commit()
         db.refresh(settings)
@@ -948,4 +971,3 @@ def update_user_settings(
     db.commit()
     db.refresh(settings)
     return settings
-
