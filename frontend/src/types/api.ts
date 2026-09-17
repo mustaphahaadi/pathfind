@@ -89,6 +89,7 @@ export interface UserCreatePayload {
   email: string;
   password: string;
   role?: "mentee";
+  full_name?: string;
 }
 
 export interface UserCreateMentorPayload {
