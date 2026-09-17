@@ -1,16 +1,22 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useOnboardingStore } from "../../store/useOnboardingStore";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 
 /** Helper that returns true if there is an active session (token, mentor store, or mentee store). */
 function useIsAuthenticated() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  const menteeName = useOnboardingStore((s) => s.fullName);
+  const menteeHasCompleted = useOnboardingStore((s) => s.hasCompletedOnboarding);
   const mentorHasCompleted = useMentorOnboardingStore((s) => s.hasCompletedOnboarding);
+  const mentorName = useMentorOnboardingStore((s) => s.fullName);
 
-  // Require a real JWT token OR the mentor onboarding completion flag.
-  // Name-only Zustand entries no longer count as authenticated.
-  return !!token || !!user || mentorHasCompleted;
+  const isAuthSignedIn = !!token || !!user;
+  const isMenteeSignedIn = menteeHasCompleted || menteeName.trim().length > 0;
+  const isMentorSignedIn = mentorHasCompleted || mentorName.trim().length > 0;
+
+  return isAuthSignedIn || isMenteeSignedIn || isMentorSignedIn;
 }
 
 /** Route guard that protects pages requiring user authentication. */

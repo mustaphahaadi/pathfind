@@ -19,7 +19,6 @@ import Footer from "../components/layout/Footer";
 import { api } from "../lib/api";
 import { getInitials } from "../lib/getInitials";
 import type { MentorProfileRead } from "../types/api";
-
 interface ReviewData {
   id: number;
   rating: number;
@@ -138,6 +137,16 @@ const MentorProfilePage = () => {
                   <BadgeCheck size={13} />
                   Verified Mentor
                 </span>
+                {mentor.linkedin_url && (
+                  <a
+                    href={mentor.linkedin_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full bg-accent-blue/10 px-2.5 py-1 text-xs font-semibold text-accent-blue hover:underline"
+                  >
+                    LinkedIn Profile
+                  </a>
+                )}
                 <span className="inline-flex items-center gap-1 rounded-full bg-accent-green/10 px-2.5 py-1 text-xs font-semibold text-accent-green">
                   Volunteer Mentor
                 </span>
@@ -168,7 +177,7 @@ const MentorProfilePage = () => {
 
             <div className="shrink-0 sm:self-center">
               <Link
-                to={`/mentors/${mentor.user_id}/schedule`}
+                to={`/mentors/${mentor.user_id || mentor.id}/schedule`}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 shadow-sm"
               >
                 <Video size={16} />
@@ -214,7 +223,6 @@ const MentorProfilePage = () => {
                   )}
                 </div>
               </div>
-
               {/* Reviews Section */}
               {reviews.length > 0 && (
                 <div className="rounded-2xl border border-surface-line bg-white p-5 sm:p-6">
@@ -274,7 +282,7 @@ const MentorProfilePage = () => {
                 <p className="mt-1 text-xs text-ink/60">{mentor.availability}</p>
                 <div className="mt-4 border-t border-surface-line pt-3">
                   <Link
-                    to={`/mentors/${mentor.user_id}/schedule`}
+                    to={`/mentors/${mentor.user_id || mentor.id}/schedule`}
                     className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-ink py-2.5 text-xs font-semibold text-white"
                   >
                     <Mail size={14} />

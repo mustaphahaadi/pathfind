@@ -589,7 +589,6 @@ const MentorDashboardPage = () => {
                   ))}
                 </ul>
               )}
-
               {/* Declined Requests — always visible if any exist */}
               {requests.filter((r) => r.status === "declined").length > 0 && (
                 <div className="mt-8 border-t border-surface-line pt-6">

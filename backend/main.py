@@ -812,8 +812,6 @@ def delete_session_note(
         db.delete(note)
         db.commit()
     return None
-
-
 @app.patch("/session-notes/{note_id}", response_model=SessionNoteRead)
 def update_session_note(
     note_id: int,
@@ -950,3 +948,4 @@ def update_user_settings(
     db.commit()
     db.refresh(settings)
     return settings
+

@@ -125,6 +125,7 @@ export interface SavedMentorRead {
   user_id: number;
   mentor_id: number;
   created_at: string;
+  mentor?: MentorProfileRead | null;
   mentor_profile?: MentorProfileRead | null;
 }
 
@@ -189,3 +190,4 @@ export interface AdminStatsOut {
   total_session_notes: number;
   total_saved_mentors: number;
 }
+

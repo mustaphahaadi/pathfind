@@ -196,7 +196,6 @@ const ProfilePage = () => {
       .list()
       .then(setSessionNotes)
       .catch(() => {});
-
     api.goals
       .list()
       .then(setGoals)
@@ -269,7 +268,6 @@ const ProfilePage = () => {
       setSavingNote(false);
     }
   };
-
   const handleCancelRequest = async (requestId: string) => {
     setCancellingId(requestId);
     try {
