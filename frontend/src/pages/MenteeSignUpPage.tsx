@@ -32,7 +32,7 @@ const MenteeSignUpPage = () => {
 
     try {
       // Register the mentee account
-      await api.auth.signUp({ email, password, role: "mentee" });
+      await api.auth.signUp({ email, password, role: "mentee", full_name: fullName });
 
       // Auto sign-in to get token
       const token = await api.auth.signIn({ email, password });

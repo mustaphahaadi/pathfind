@@ -249,6 +249,23 @@ def signup(
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Create profile if full_name is provided
+    if user.full_name:
+        profile = MentorProfile(
+            user_id=new_user.id,
+            full_name=user.full_name,
+            job_title="Mentee" if user_role == "mentee" else "Mentor",
+            company="Pathfind Network",
+            years_of_experience=1,
+            bio="",
+            expertise_tags="General",
+            availability="Available",
+        )
+        db.add(profile)
+        db.commit()
+        db.refresh(new_user)
+
     return new_user
 
 

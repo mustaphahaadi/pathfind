@@ -55,6 +55,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
     role: str = "mentee"
+    full_name: str | None = None
 
 
 class UserCreateMentor(BaseModel):
