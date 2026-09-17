@@ -14,7 +14,7 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
-import { mentorDisciplines, mentorshipTopics } from "../../data/mentor-onboarding/options";
+import { mentorDisciplines, mentorshipTopics, getSkillLabel } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 
@@ -63,9 +63,7 @@ const MentorProfileCreatedPage = () => {
   const weeklyWindows = useMentorOnboardingStore((state) => state.weeklyWindows);
 
   const disciplineLabel = mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label;
-  const topicLabels = mentorshipTopics
-    .filter((topic) => topics.includes(topic.id))
-    .map((topic) => topic.label);
+  const topicLabels = topics.map(getSkillLabel);
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
   const shareLink = `pathfind.org/m/${slugify(fullName) || "your-profile"}`;
 
