@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Rocket, Star, LifeBuoy, Link2, PenLine } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
-import { mentorDisciplines, mentorshipTopics, mentorHonorCodeItems, getSkillLabel } from "../../data/mentor-onboarding/options";
+import { mentorDisciplines, mentorHonorCodeItems, getSkillLabel } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 import { api } from "../../lib/api";

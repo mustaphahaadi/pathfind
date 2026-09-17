@@ -14,7 +14,7 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
-import { mentorDisciplines, mentorshipTopics, getSkillLabel } from "../../data/mentor-onboarding/options";
+import { mentorDisciplines, getSkillLabel } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 
