@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Rocket, Star, LifeBuoy, Link2, PenLine } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
-import { mentorDisciplines, mentorshipTopics, mentorHonorCodeItems } from "../../data/mentor-onboarding/options";
+import { mentorDisciplines, mentorshipTopics, mentorHonorCodeItems, getSkillLabel } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 import { api } from "../../lib/api";
@@ -63,10 +63,7 @@ const HonorCodeReviewStep = () => {
     mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label || primaryDiscipline;
   const topicLabels =
     topics.length > 0
-      ? topics.map((idOrName) => {
-          const found = mentorshipTopics.find((t) => t.id === idOrName);
-          return found ? found.label : idOrName;
-        })
+      ? topics.map((idOrName) => getSkillLabel(idOrName))
       : user?.profile?.expertise_tags
       ? user.profile.expertise_tags.split(",").map((s) => s.trim())
       : [];
