@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
-import { technicalTracks } from "../../data/onboarding/technicalTracks";
+import { technicalTracks, menteeTechnicalSkills } from "../../data/onboarding/technicalTracks";
 import { coreObjectives } from "../../data/onboarding/coreObjectives";
 import { mentors } from "../../data/mentors";
 import { onboardingStepPath } from "../../data/onboarding/steps";
@@ -66,6 +66,44 @@ const InterestsGoalsStep = () => {
               onToggle={() => toggleTechnicalTrack(track.id)}
             />
           ))}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-ink">
+              Specific Technical Skills
+            </p>
+            <p className="mt-0.5 text-sm text-ink/60">
+              Select the specific technologies you want to learn or improve.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink">
+            {selectedTracks.filter(t => menteeTechnicalSkills.some(s => s.id === t)).length} SELECTED
+          </span>
+        </div>
+
+        <div className="mt-3 space-y-4">
+          {["Languages", "Frameworks", "Databases", "Cloud & DevOps", "Data & Analytics", "Product & Design"].map((category) => {
+            const categorySkills = menteeTechnicalSkills.filter((skill) => skill.category === category);
+            if (categorySkills.length === 0) return null;
+            return (
+              <div key={category}>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/40">{category}</p>
+                <div className="flex flex-wrap gap-2">
+                  {categorySkills.map((skill) => (
+                    <ToggleChip
+                      key={skill.id}
+                      label={skill.label}
+                      isSelected={selectedTracks.includes(skill.id)}
+                      onToggle={() => toggleTechnicalTrack(skill.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

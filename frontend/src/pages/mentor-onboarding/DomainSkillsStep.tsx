@@ -6,6 +6,7 @@ import {
   mentorDisciplines,
   mentorshipTopics,
   menteeStagePreferences,
+  technicalSkills,
 } from "../../data/mentor-onboarding/options";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 
@@ -128,6 +129,51 @@ const DomainSkillsStep = () => {
                   {isSelected ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
                   {topic.label}
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-surface-line pt-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-ink">
+              Technical Skills &amp; Technologies <span className="text-red-500">*</span>
+            </p>
+            <span className="text-xs font-medium text-surface-muted">{topics.filter(t => technicalSkills.some(s => s.id === t)).length} selected</span>
+          </div>
+          <p className="mt-0.5 text-sm text-ink/60">
+            Select the specific technologies and tools you can mentor on. These will appear on your public profile.
+          </p>
+
+          <div className="mt-3 space-y-4">
+            {["Languages", "Frameworks", "Databases", "Cloud & DevOps", "Data & Analytics", "Product & Design", "Backend"].map((category) => {
+              const categorySkills = technicalSkills.filter((skill) => skill.category === category);
+              if (categorySkills.length === 0) return null;
+              return (
+                <div key={category}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/40">{category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {categorySkills.map((skill) => {
+                      const isSelected = topics.includes(skill.id);
+                      return (
+                        <button
+                          key={skill.id}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() => toggleTopic(skill.id)}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            isSelected
+                              ? "border-ink bg-ink text-white"
+                              : "border-surface-line bg-white text-ink hover:border-ink/30"
+                          }`}
+                        >
+                          {isSelected ? <Check size={12} strokeWidth={2.5} /> : null}
+                          {skill.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
