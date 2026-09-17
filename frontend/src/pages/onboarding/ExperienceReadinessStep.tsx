@@ -25,7 +25,6 @@ const ExperienceReadinessStep = () => {
   const selectedMeetingPrefs = useOnboardingStore((state) => state.meetingPreferences);
   const pledgeAgreed = useOnboardingStore((state) => state.pledgeAgreed);
   const selectedTracks = useOnboardingStore((state) => state.technicalTracks);
-  const selectedObjectives = useOnboardingStore((state) => state.coreObjectives);
 
   const setProficiency = useOnboardingStore((state) => state.setProficiency);
   const toggleMeetingPreference = useOnboardingStore((state) => state.toggleMeetingPreference);
