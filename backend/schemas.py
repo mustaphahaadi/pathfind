@@ -102,11 +102,13 @@ class MentorshipRequestCreate(BaseModel):
     resume_url: str | None = None
     portfolio_url: str | None = None
     github_url: str | None = None
+    meeting_link: str | None = None
 
 
 class MentorshipRequestStatusUpdate(BaseModel):
     status: RequestStatus
     response_message: str | None = None
+    meeting_link: str | None = None
 
 
 class MentorshipRequestRead(BaseModel):
@@ -119,6 +121,7 @@ class MentorshipRequestRead(BaseModel):
     resume_url: str | None = None
     portfolio_url: str | None = None
     github_url: str | None = None
+    meeting_link: str | None = None
     response_message: str | None = None
     status: RequestStatus
     created_at: datetime

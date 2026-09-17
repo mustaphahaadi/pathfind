@@ -80,6 +80,7 @@ class MentorshipRequest(Base):
     resume_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     portfolio_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     github_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    meeting_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
     response_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[RequestStatus] = mapped_column(
         Enum(RequestStatus), default=RequestStatus.PENDING, nullable=False, index=True

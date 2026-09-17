@@ -2,17 +2,21 @@ import os
 import shutil
 from uuid import uuid4
 
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import Base, SessionLocal, engine
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
+from .s3_service import upload_file as upload_to_storage
 from .models import (
     Goal,
     MentorshipRequest,
@@ -55,7 +59,10 @@ from .schemas import (
 
 Base.metadata.create_all(bind=engine)
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
@@ -68,8 +75,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
@@ -165,8 +172,65 @@ def update_profile(
     return current_user
 
 
+@app.get("/settings/me", response_model=UserSettingsRead)
+def get_user_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Get current user's settings."""
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        # Create default settings if none exist
+        settings = UserSettings(
+            user_id=current_user.id,
+            email_notifications=True,
+            session_reminders=True,
+            weekly_digest=False,
+        )
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+@app.patch("/settings/me", response_model=UserSettingsRead)
+def update_user_settings(
+    payload: UserSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update current user's settings."""
+    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings:
+        # Create settings if none exist
+        settings = UserSettings(
+            user_id=current_user.id,
+            email_notifications=payload.email_notifications if payload.email_notifications is not None else True,
+            session_reminders=payload.session_reminders if payload.session_reminders is not None else True,
+            weekly_digest=payload.weekly_digest if payload.weekly_digest is not None else False,
+        )
+        db.add(settings)
+    else:
+        # Update only provided fields
+        if payload.email_notifications is not None:
+            settings.email_notifications = payload.email_notifications
+        if payload.session_reminders is not None:
+            settings.session_reminders = payload.session_reminders
+        if payload.weekly_digest is not None:
+            settings.weekly_digest = payload.weekly_digest
+
+    db.commit()
+    db.refresh(settings)
+    return settings
+
+
 @app.post("/auth/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def signup(user: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def signup(
+    user: UserCreate,
+    db: Session = Depends(get_db),
+    request: Request = None,
+):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
@@ -189,7 +253,12 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/signup/mentor", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
+@limiter.limit("3/minute")
+def signup_mentor(
+    payload: UserCreateMentor,
+    db: Session = Depends(get_db),
+    request: Request = None,
+):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
         existing_user.role = "mentor"
@@ -255,7 +324,12 @@ def signup_mentor(payload: UserCreateMentor, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/signin", response_model=Token)
-def signin(credentials: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def signin(
+    credentials: UserLogin,
+    db: Session = Depends(get_db),
+    request: Request = None,
+):
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
@@ -343,6 +417,7 @@ def create_mentorship_request(
         resume_url=payload.resume_url,
         portfolio_url=payload.portfolio_url,
         github_url=payload.github_url,
+        meeting_link=payload.meeting_link,
         status=RequestStatus.PENDING,
     )
     db.add(request_record)
@@ -441,6 +516,8 @@ def update_mentorship_request_status(
     mentorship_request.status = payload.status
     if payload.response_message:
         mentorship_request.response_message = payload.response_message
+    if payload.meeting_link:
+        mentorship_request.meeting_link = payload.meeting_link
 
     db.commit()
     db.refresh(mentorship_request)
@@ -642,7 +719,7 @@ def upload_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
 ):
-    """Upload resume, portfolio, or avatar attachments."""
+    """Upload resume, portfolio, or avatar attachments to S3 or local storage."""
     ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
@@ -660,15 +737,20 @@ def upload_file(
             detail=f"File size exceeds maximum limit of {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB",
         )
 
-    safe_filename = f"{uuid4().hex}_{os.path.basename(file.filename)}"
-    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+    # Read file content
+    file_content = file.file.read()
+    original_filename = os.path.basename(file.filename)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Upload to S3 or local storage via s3_service
+    url, safe_filename = upload_to_storage(
+        file_content=file_content,
+        filename=original_filename,
+        content_type=file.content_type or "application/octet-stream",
+    )
 
     return FileUploadResponse(
-        filename=os.path.basename(file.filename),
-        url=f"/static/uploads/{safe_filename}",
+        filename=original_filename,
+        url=url,
         content_type=file.content_type or "application/octet-stream",
         size_bytes=size_bytes,
     )
