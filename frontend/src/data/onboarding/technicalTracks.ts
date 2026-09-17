@@ -24,11 +24,13 @@ export const menteeTechnicalSkills: MenteeSkillOption[] = [
   { id: "javascript", label: "JavaScript", category: "Languages" },
   { id: "typescript", label: "TypeScript", category: "Languages" },
   { id: "java", label: "Java", category: "Languages" },
+  { id: "swift", label: "Swift", category: "Languages" },
   { id: "html-css", label: "HTML/CSS", category: "Languages" },
   { id: "sql", label: "SQL", category: "Languages" },
 
   // Frameworks & Libraries
   { id: "react", label: "React", category: "Frameworks" },
+  { id: "nextjs", label: "Next.js", category: "Frameworks" },
   { id: "fastapi", label: "FastAPI", category: "Frameworks" },
   { id: "spring-boot", label: "Spring Boot", category: "Frameworks" },
 
@@ -51,7 +53,13 @@ export const menteeTechnicalSkills: MenteeSkillOption[] = [
 
   // Product & Design
   { id: "figma", label: "Figma", category: "Product & Design" },
+  { id: "design-systems", label: "Design Systems", category: "Product & Design" },
   { id: "product-strategy", label: "Product Strategy", category: "Product & Design" },
   { id: "agile", label: "Agile", category: "Product & Design" },
   { id: "user-research", label: "User Research", category: "Product & Design" },
+
+  // Backend & Architecture
+  { id: "apis", label: "APIs", category: "Backend & Architecture" },
+  { id: "backend-systems", label: "Backend Systems", category: "Backend & Architecture" },
+  { id: "system-architecture", label: "System Architecture", category: "Backend & Architecture" },
 ];
