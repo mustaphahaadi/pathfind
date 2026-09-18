@@ -278,38 +278,7 @@ def signup_mentor(
 ):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
-        existing_user.role = "mentor"
-        if existing_user.verification_status != VerificationStatus.VERIFIED:
-            existing_user.verification_status = VerificationStatus.PENDING_VERIFICATION
-        if existing_user.profile:
-            existing_user.profile.full_name = payload.full_name
-            existing_user.profile.job_title = payload.job_title
-            existing_user.profile.company = payload.company
-            existing_user.profile.years_of_experience = payload.years_of_experience
-            existing_user.profile.bio = payload.bio
-            existing_user.profile.expertise_tags = payload.expertise_tags
-            existing_user.profile.availability = payload.availability
-            existing_user.profile.avatar_url = payload.avatar_url
-            existing_user.profile.location = payload.location
-            existing_user.profile.linkedin_url = payload.linkedin_url
-        else:
-            profile = MentorProfile(
-                user_id=existing_user.id,
-                full_name=payload.full_name,
-                job_title=payload.job_title,
-                company=payload.company,
-                years_of_experience=payload.years_of_experience,
-                bio=payload.bio,
-                expertise_tags=payload.expertise_tags,
-                availability=payload.availability,
-                avatar_url=payload.avatar_url,
-                location=payload.location,
-                linkedin_url=payload.linkedin_url,
-            )
-            db.add(profile)
-        db.commit()
-        db.refresh(existing_user)
-        return existing_user
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
     new_user = User(
         email=payload.email,
@@ -1031,42 +1000,3 @@ def delete_goal(
         db.commit()
     return None
 
-
-# ── User Settings Routes ───────────────────────────────────────────────────
-
-@app.get("/settings/me", response_model=UserSettingsRead)
-def get_user_settings(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
-    if not settings:
-        settings = UserSettings(
-            user_id=current_user.id,
-            email_notifications=True,
-            session_reminders=True,
-            weekly_digest=False,
-        )
-        db.add(settings)
-        db.commit()
-        db.refresh(settings)
-    return settings
-
-
-@app.patch("/settings/me", response_model=UserSettingsRead)
-def update_user_settings(
-    payload: UserSettingsUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
-    if not settings:
-        settings = UserSettings(user_id=current_user.id)
-        db.add(settings)
-
-    for field, value in payload.dict(exclude_unset=True).items():
-        setattr(settings, field, value)
-
-    db.commit()
-    db.refresh(settings)
-    return settings
