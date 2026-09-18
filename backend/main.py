@@ -1,6 +1,4 @@
 import os
-import shutil
-from uuid import uuid4
 
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -880,6 +878,8 @@ def delete_session_note(
         db.delete(note)
         db.commit()
     return None
+
+
 @app.patch("/session-notes/{note_id}", response_model=SessionNoteRead)
 def update_session_note(
     note_id: int,
@@ -999,4 +999,3 @@ def delete_goal(
         db.delete(goal)
         db.commit()
     return None
-

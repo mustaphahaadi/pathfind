@@ -306,6 +306,11 @@ const ScheduleSessionPage = () => {
                   placeholder="I am a self-taught developer with 2 years of experience in React... I would love feedback on..."
                   className="w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
                 />
+                {message.length > 0 && message.trim().length <= 20 && (
+                  <p className="mt-1.5 text-xs font-medium text-amber-600">
+                    Please provide at least 20 characters so your mentor has enough context ({message.trim().length}/20).
+                  </p>
+                )}
               </div>
             </div>
 
