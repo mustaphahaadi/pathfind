@@ -1,4 +1,4 @@
-# 📚 Pathfind Developer & Platform Documentation
+# Pathfind Developer & Platform Documentation
 
 **Platform Name**: Pathfind  
 **Sub-project**: AmaliTech Capstone Internship — Product Family 2  
@@ -6,13 +6,13 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 Pathfind is a full-stack mentorship connection platform designed for career transitioners, bootcamp graduates, and tech students in Ghana. The application enables mentees to explore a directory of verified tech professionals, submit structured 1:1 mentorship requests (CV review, portfolio feedback, interview prep, career path guidance), track personal learning goals, take private session notes, and receive automated email notifications.
 
 ---
 
-## 🛠️ System Architecture & Tech Stack
+## System Architecture & Tech Stack
 
 ```text
                +-------------------------------------------------+
@@ -47,7 +47,7 @@ Pathfind is a full-stack mentorship connection platform designed for career tran
 
 ---
 
-## 🔒 Security Architecture & Rules
+## Security Architecture & Rules
 
 1. **Authentication**: JWT token bearer flow (`/auth/signin`). Tokens are signed using `HS256` algorithm with `SECRET_KEY`.
 2. **Mentor Registration Security**: `/auth/signup/mentor` validates email uniqueness and rejects already registered emails (`HTTP 400 Bad Request`) to prevent unauthenticated profile modifications or account hijacking.
@@ -61,9 +61,9 @@ Pathfind is a full-stack mentorship connection platform designed for career tran
 
 ---
 
-## 🗄️ Database Models
+## Database Models
 
-### `User`
+### User
 - `id` (Integer, Primary Key)
 - `email` (String, Unique, Indexed)
 - `hashed_password` (String)
@@ -71,13 +71,13 @@ Pathfind is a full-stack mentorship connection platform designed for career tran
 - `verification_status` (Enum: `"pending_verification"`, `"verified"`, `"rejected"`)
 - `created_at` (DateTime UTC)
 
-### `MentorProfile`
+### MentorProfile
 - `id` (Integer, Primary Key)
 - `user_id` (Integer, Foreign Key `users.id`, Unique)
 - `full_name`, `job_title`, `company`, `years_of_experience`, `bio`, `expertise_tags`, `availability`
 - `avatar_url`, `location`, `linkedin_url` (Optional)
 
-### `MentorshipRequest`
+### MentorshipRequest
 - `id` (UUID String, Primary Key)
 - `mentee_id` (Integer, Foreign Key `users.id`)
 - `mentor_id` (Integer, Foreign Key `users.id`)
@@ -86,19 +86,19 @@ Pathfind is a full-stack mentorship connection platform designed for career tran
 - `resume_url`, `portfolio_url`, `github_url`, `meeting_link`, `response_message` (Optional)
 - `status` (Enum: `pending`, `accepted`, `declined`, `completed`)
 
-### `Goal`
+### Goal
 - `id` (Integer, Primary Key)
 - `user_id` (Integer, Foreign Key `users.id`)
 - `title`, `category`, `target_date`, `completed` (Boolean)
 
-### `SessionNote`
+### SessionNote
 - `id` (Integer, Primary Key)
 - `user_id` (Integer, Foreign Key `users.id`)
 - `request_id`, `title`, `content`, `resource_url`
 
 ---
 
-## ⚙️ Environment Variable Reference
+## Environment Variable Reference
 
 | Variable | Scope | Default | Description |
 |---|---|---|---|
@@ -111,7 +111,7 @@ Pathfind is a full-stack mentorship connection platform designed for career tran
 
 ---
 
-## 🧪 Verification & Testing Commands
+## Verification & Testing Commands
 
 ```bash
 # 1. Run Backend Pytest Suite
