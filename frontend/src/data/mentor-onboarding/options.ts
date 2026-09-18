@@ -31,6 +31,100 @@ export const mentorshipTopics: SimpleOption[] = [
   { id: "executive-stakeholder-comms", label: "Executive Stakeholder Communication" },
 ];
 
+// Specific technical skills matching mock data expertise_tags
+export interface SkillOption {
+  id: string;
+  label: string;
+  category: string;
+}
+
+export const technicalSkills: SkillOption[] = [
+  // Programming Languages
+  { id: "python", label: "Python", category: "Languages" },
+  { id: "javascript", label: "JavaScript", category: "Languages" },
+  { id: "typescript", label: "TypeScript", category: "Languages" },
+  { id: "java", label: "Java", category: "Languages" },
+  { id: "swift", label: "Swift", category: "Languages" },
+  { id: "html-css", label: "HTML/CSS", category: "Languages" },
+  { id: "sql", label: "SQL", category: "Languages" },
+
+  // Frameworks & Libraries
+  { id: "react", label: "React", category: "Frameworks" },
+  { id: "nextjs", label: "Next.js", category: "Frameworks" },
+  { id: "fastapi", label: "FastAPI", category: "Frameworks" },
+  { id: "spring-boot", label: "Spring Boot", category: "Frameworks" },
+
+  // Databases
+  { id: "postgresql", label: "PostgreSQL", category: "Databases" },
+  { id: "mysql", label: "MySQL", category: "Databases" },
+  { id: "mongodb", label: "MongoDB", category: "Databases" },
+
+  // Cloud & DevOps
+  { id: "aws", label: "AWS", category: "Cloud & DevOps" },
+  { id: "docker", label: "Docker", category: "Cloud & DevOps" },
+  { id: "ci-cd", label: "CI/CD", category: "Cloud & DevOps" },
+  { id: "linux", label: "Linux", category: "Cloud & DevOps" },
+  { id: "cloud-infrastructure", label: "Cloud Infrastructure", category: "Cloud & DevOps" },
+
+  // Data & Analytics
+  { id: "machine-learning", label: "Machine Learning", category: "Data & Analytics" },
+  { id: "data-science", label: "Data Science", category: "Data & Analytics" },
+  { id: "statistics", label: "Statistics", category: "Data & Analytics" },
+  { id: "power-bi", label: "Power BI", category: "Data & Analytics" },
+  { id: "excel", label: "Excel", category: "Data & Analytics" },
+  { id: "data-visualization", label: "Data Visualization", category: "Data & Analytics" },
+
+  // Product & Design
+  { id: "figma", label: "Figma", category: "Product & Design" },
+  { id: "design-systems", label: "Design Systems", category: "Product & Design" },
+  { id: "prototyping", label: "Prototyping", category: "Product & Design" },
+  { id: "component-libraries", label: "Component Libraries", category: "Product & Design" },
+  { id: "wireframing", label: "Wireframing", category: "Product & Design" },
+  { id: "user-research", label: "User Research", category: "Product & Design" },
+  { id: "product-strategy", label: "Product Strategy", category: "Product & Design" },
+  { id: "agile", label: "Agile", category: "Product & Design" },
+
+  // Backend & Architecture
+  { id: "apis", label: "APIs", category: "Backend & Architecture" },
+  { id: "backend-systems", label: "Backend Systems", category: "Backend & Architecture" },
+  { id: "system-architecture", label: "System Architecture", category: "Backend & Architecture" },
+  { id: "mobile-arch", label: "Mobile Architecture", category: "Backend & Architecture" },
+
+  // Career & Guidance
+  { id: "portfolio-storytelling", label: "Portfolio Storytelling", category: "Career & Guidance" },
+  { id: "code-reviews", label: "Code Reviews", category: "Career & Guidance" },
+  { id: "design-to-code", label: "Design-to-Code", category: "Career & Guidance" },
+];
+
+/**
+ * Resolves a topic or skill ID to its human-readable label.
+ */
+export function getSkillLabel(idOrName: string): string {
+  if (!idOrName) return "";
+
+  // Check mentorship topics
+  const topic = mentorshipTopics.find((t) => t.id === idOrName);
+  if (topic) return topic.label;
+
+  // Check technical skills
+  const skill = technicalSkills.find((s) => s.id === idOrName);
+  if (skill) return skill.label;
+
+  // Check disciplines
+  const discipline = mentorDisciplines.find((d) => d.id === idOrName);
+  if (discipline) return discipline.label;
+
+  // Fallback: If it contains hyphens, convert to Title Case
+  if (idOrName.includes("-")) {
+    return idOrName
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  return idOrName;
+}
+
 export interface MenteeStagePreference extends SimpleOption {
   description: string;
 }

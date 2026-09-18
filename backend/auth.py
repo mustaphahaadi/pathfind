@@ -6,7 +6,15 @@ from jose import jwt
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "alternate key if no secret key")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-secret-change-before-deploying")
+if SECRET_KEY == "dev-only-secret-change-before-deploying":
+    import warnings
+    warnings.warn(
+        "Using default SECRET_KEY for development. "
+        "Set a strong SECRET_KEY environment variable before deploying to production.",
+        RuntimeWarning
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 

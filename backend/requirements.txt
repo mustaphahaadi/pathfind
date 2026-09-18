@@ -6,6 +6,8 @@ pytest==8.3.5
 sqlalchemy==2.0.41
 httpx>=0.23.0,<0.24.0
 psycopg2-binary>=2.9.9
+slowapi==0.1.9
+boto3>=1.28.0
 
 # Auth
 passlib[bcrypt]==1.7.4

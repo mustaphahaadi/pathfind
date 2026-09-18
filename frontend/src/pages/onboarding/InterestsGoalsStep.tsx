@@ -1,8 +1,10 @@
+import { useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, X } from "lucide-react";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
-import { technicalTracks } from "../../data/onboarding/technicalTracks";
+import { technicalTracks, menteeTechnicalSkills } from "../../data/onboarding/technicalTracks";
 import { coreObjectives } from "../../data/onboarding/coreObjectives";
+import { getSkillLabel } from "../../data/mentor-onboarding/options";
 import { mentors } from "../../data/mentors";
 import { onboardingStepPath } from "../../data/onboarding/steps";
 import ToggleChip from "../../components/onboarding/ToggleChip";
@@ -10,6 +12,8 @@ import ObjectiveCard from "../../components/onboarding/ObjectiveCard";
 import AvatarStack from "../../components/onboarding/AvatarStack";
 
 const InterestsGoalsStep = () => {
+  const [customSkillInput, setCustomSkillInput] = useState("");
+
   const selectedTracks = useOnboardingStore((state) => state.technicalTracks);
   const selectedObjectives = useOnboardingStore((state) => state.coreObjectives);
   const toggleTechnicalTrack = useOnboardingStore((state) => state.toggleTechnicalTrack);
@@ -17,9 +21,28 @@ const InterestsGoalsStep = () => {
 
   const canContinue = selectedTracks.length > 0 && selectedObjectives.length > 0;
 
-  const selectedTrackLabels = technicalTracks
-    .filter((track) => selectedTracks.includes(track.id))
-    .map((track) => track.label);
+  const selectedTrackLabels = selectedTracks.map(getSkillLabel);
+
+  const handleAddCustomSkill = () => {
+    const trimmed = customSkillInput.trim();
+    if (trimmed && !selectedTracks.includes(trimmed)) {
+      toggleTechnicalTrack(trimmed);
+      setCustomSkillInput("");
+    }
+  };
+
+  const handleCustomSkillKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomSkill();
+    }
+  };
+
+  const predefinedTrackAndSkillIds = new Set([
+    ...technicalTracks.map((t) => t.id),
+    ...menteeTechnicalSkills.map((s) => s.id),
+  ]);
+  const customSkills = selectedTracks.filter((t) => !predefinedTrackAndSkillIds.has(t));
 
   const matchingMentorCount = Math.max(
     6,
@@ -66,6 +89,89 @@ const InterestsGoalsStep = () => {
               onToggle={() => toggleTechnicalTrack(track.id)}
             />
           ))}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-ink">
+              Specific Technical Skills
+            </p>
+            <p className="mt-0.5 text-sm text-ink/60">
+              Select the specific technologies you want to learn or improve, or add your own custom skills below.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink">
+            {selectedTracks.filter(t => menteeTechnicalSkills.some(s => s.id === t) || !predefinedTrackAndSkillIds.has(t)).length} SELECTED
+          </span>
+        </div>
+
+        {/* Custom skill input */}
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            type="text"
+            value={customSkillInput}
+            onChange={(e) => setCustomSkillInput(e.target.value)}
+            onKeyDown={handleCustomSkillKeyDown}
+            placeholder="Add custom skill to learn (e.g. GraphQL, TailwindCSS, Kubernetes)..."
+            className="flex-1 rounded-xl border border-surface-line px-3.5 py-2 text-xs text-ink placeholder:text-ink/35 focus:border-ink outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleAddCustomSkill}
+            disabled={!customSkillInput.trim()}
+            className="inline-flex items-center gap-1 rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            <Plus size={14} />
+            Add
+          </button>
+        </div>
+
+        {/* Custom skills rendered */}
+        {customSkills.length > 0 && (
+          <div className="mt-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent-blue">Custom Skills</p>
+            <div className="flex flex-wrap gap-2">
+              {customSkills.map((skill) => (
+                <span
+                  key={skill}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-ink bg-ink px-3 py-1.5 text-xs font-medium text-white"
+                >
+                  {getSkillLabel(skill)}
+                  <button
+                    type="button"
+                    onClick={() => toggleTechnicalTrack(skill)}
+                    className="text-white/70 hover:text-white"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 space-y-4">
+          {["Languages", "Frameworks", "Databases", "Cloud & DevOps", "Data & Analytics", "Product & Design", "Backend & Architecture"].map((category) => {
+            const categorySkills = menteeTechnicalSkills.filter((skill) => skill.category === category);
+            if (categorySkills.length === 0) return null;
+            return (
+              <div key={category}>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/40">{category}</p>
+                <div className="flex flex-wrap gap-2">
+                  {categorySkills.map((skill) => (
+                    <ToggleChip
+                      key={skill.id}
+                      label={skill.label}
+                      isSelected={selectedTracks.includes(skill.id)}
+                      onToggle={() => toggleTechnicalTrack(skill.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import type { WeeklyAvailabilityWindow } from "../types/mentorOnboarding";
 import type { UserOut } from "../types/api";
 
 interface MentorOnboardingState {
-  // Registration credentials (from MentorSignUpPage)
+  // Registration credentials (from MentorSignUpPage) - NOT persisted for security
   password: string;
 
   // Step 1 — Identity & Verification
@@ -61,6 +61,31 @@ interface MentorOnboardingState {
   hydrateFromUser: (user: UserOut) => void;
   reset: () => void;
 }
+
+// Partial state to persist (exclude password for security)
+const persistConfig = {
+  name: "pathfind-mentor-onboarding",
+  partialize: (state: MentorOnboardingState) => ({
+    avatarUrl: state.avatarUrl,
+    fullName: state.fullName,
+    workEmail: state.workEmail,
+    currentTitle: state.currentTitle,
+    company: state.company,
+    location: state.location,
+    yearsOfExperience: state.yearsOfExperience,
+    linkedinUrl: state.linkedinUrl,
+    primaryDiscipline: state.primaryDiscipline,
+    topics: state.topics,
+    motivation: state.motivation,
+    targetStages: state.targetStages,
+    timezone: state.timezone,
+    weeklyWindows: state.weeklyWindows,
+    agreedHonorCodeIds: state.agreedHonorCodeIds,
+    digitalSignature: state.digitalSignature,
+    hasCompletedOnboarding: state.hasCompletedOnboarding,
+    acceptingRequests: state.acceptingRequests,
+  }),
+};
 
 const initialState = {
   password: "",
@@ -163,8 +188,6 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>()(
         }),
       reset: () => set(initialState),
     }),
-    {
-      name: "pathfind-mentor-onboarding",
-    }
+    persistConfig
   )
 );

@@ -59,6 +59,7 @@ export interface MentorshipRequestRead {
   resume_url: string | null;
   portfolio_url: string | null;
   github_url: string | null;
+  meeting_link: string | null;
   response_message: string | null;
   status: RequestStatus;
   created_at: string;
@@ -88,6 +89,7 @@ export interface UserCreatePayload {
   email: string;
   password: string;
   role?: "mentee";
+  full_name?: string;
 }
 
 export interface UserCreateMentorPayload {
@@ -113,11 +115,13 @@ export interface MentorshipRequestCreatePayload {
   resume_url?: string | null;
   portfolio_url?: string | null;
   github_url?: string | null;
+  meeting_link?: string | null;
 }
 
 export interface MentorshipStatusUpdatePayload {
   status: RequestStatus;
   response_message?: string | null;
+  meeting_link?: string | null;
 }
 
 export interface SavedMentorRead {

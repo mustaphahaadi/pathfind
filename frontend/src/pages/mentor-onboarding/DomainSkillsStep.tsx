@@ -1,11 +1,14 @@
+import { useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Plus, TrendingUp, Lightbulb, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, TrendingUp, Lightbulb, Award, X } from "lucide-react";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 import {
   mentorDisciplines,
   mentorshipTopics,
   menteeStagePreferences,
+  technicalSkills,
+  getSkillLabel,
 } from "../../data/mentor-onboarding/options";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 
@@ -19,6 +22,8 @@ const inDemandTopics = [
 ];
 
 const DomainSkillsStep = () => {
+  const [customSkillInput, setCustomSkillInput] = useState("");
+
   const primaryDiscipline = useMentorOnboardingStore((state) => state.primaryDiscipline);
   const topics = useMentorOnboardingStore((state) => state.topics);
   const motivation = useMentorOnboardingStore((state) => state.motivation);
@@ -37,6 +42,28 @@ const DomainSkillsStep = () => {
       setMotivation(value);
     }
   };
+
+  const handleAddCustomSkill = () => {
+    const trimmed = customSkillInput.trim();
+    if (trimmed && !topics.includes(trimmed)) {
+      toggleTopic(trimmed);
+      setCustomSkillInput("");
+    }
+  };
+
+  const handleCustomSkillKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomSkill();
+    }
+  };
+
+  // Identify custom skills (selected in topics but not in mentorshipTopics or technicalSkills)
+  const predefinedIds = new Set([
+    ...mentorshipTopics.map((t) => t.id),
+    ...technicalSkills.map((s) => s.id),
+  ]);
+  const customSkills = topics.filter((t) => !predefinedIds.has(t));
 
   const canContinue =
     primaryDiscipline !== null &&
@@ -128,6 +155,98 @@ const DomainSkillsStep = () => {
                   {isSelected ? <Check size={14} strokeWidth={2.5} /> : <Plus size={14} strokeWidth={2.5} />}
                   {topic.label}
                 </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-surface-line pt-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-ink">
+              Technical Skills &amp; Technologies <span className="text-red-500">*</span>
+            </p>
+            <span className="text-xs font-medium text-surface-muted">
+              {topics.filter((t) => technicalSkills.some((s) => s.id === t) || !predefinedIds.has(t)).length} selected
+            </span>
+          </div>
+          <p className="mt-0.5 text-sm text-ink/60">
+            Select the specific technologies and tools you can mentor on, or add your own custom skills below.
+          </p>
+
+          {/* Custom skill input */}
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="text"
+              value={customSkillInput}
+              onChange={(e) => setCustomSkillInput(e.target.value)}
+              onKeyDown={handleCustomSkillKeyDown}
+              placeholder="Add custom skill (e.g. GraphQL, TailwindCSS, Kubernetes)..."
+              className="flex-1 rounded-xl border border-surface-line px-3.5 py-2 text-xs text-ink placeholder:text-ink/35 focus:border-ink outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleAddCustomSkill}
+              disabled={!customSkillInput.trim()}
+              className="inline-flex items-center gap-1 rounded-xl bg-ink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              <Plus size={14} />
+              Add
+            </button>
+          </div>
+
+          {/* Render custom skills if present */}
+          {customSkills.length > 0 && (
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent-blue">Custom Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {customSkills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-ink bg-ink px-3 py-1.5 text-xs font-medium text-white"
+                  >
+                    {getSkillLabel(skill)}
+                    <button
+                      type="button"
+                      onClick={() => toggleTopic(skill)}
+                      className="text-white/70 hover:text-white"
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 space-y-4">
+            {["Languages", "Frameworks", "Databases", "Cloud & DevOps", "Data & Analytics", "Product & Design", "Backend & Architecture", "Career & Guidance"].map((category) => {
+              const categorySkills = technicalSkills.filter((skill) => skill.category === category);
+              if (categorySkills.length === 0) return null;
+              return (
+                <div key={category}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/40">{category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {categorySkills.map((skill) => {
+                      const isSelected = topics.includes(skill.id);
+                      return (
+                        <button
+                          key={skill.id}
+                          type="button"
+                          aria-pressed={isSelected}
+                          onClick={() => toggleTopic(skill.id)}
+                          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            isSelected
+                              ? "border-ink bg-ink text-white"
+                              : "border-surface-line bg-white text-ink hover:border-ink/30"
+                          }`}
+                        >
+                          {isSelected ? <Check size={12} strokeWidth={2.5} /> : null}
+                          {skill.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -6,13 +6,13 @@ A web platform connecting people transitioning into tech careers in Ghana (stude
 
 ---
 
-## 💡 The Idea
+## The Idea
 
 Mentees search a directory of verified tech mentors and send structured mentorship requests (resume review, portfolio feedback, career path conversation, interview preparation, role/industry insights). Mentors review and respond to requests that fit their expertise and availability, participants can take private session notes and save favorite mentors, while administrators have full platform control with real-time analytics, user directories, and mentor application verification queues.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -28,7 +28,7 @@ Mentees search a directory of verified tech mentors and send structured mentorsh
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 pathfind/
@@ -71,13 +71,13 @@ pathfind/
 
 ---
 
-## 🚀 Getting Started & Local Setup Guide
+## Getting Started & Local Setup Guide
 
 Follow one of the two methods below to set up and run the application locally.
 
 ---
 
-### 🐳 Method 1: Docker Compose Setup (Recommended)
+### Method 1: Docker Compose Setup (Recommended)
 
 Docker Compose provisions a local PostgreSQL 15 database container alongside the FastAPI backend with live code hot-reloading.
 
@@ -102,12 +102,12 @@ npm run dev
 ```
 
 #### 4. Access Local Services
-- 🌐 **Frontend App**: `http://localhost:5173`
-- ⚙️ **Backend API**: `http://localhost:8000`
-- 📚 **Interactive Swagger API Docs**: `http://localhost:8000/docs`
-- 🗄️ **PostgreSQL Database**: `localhost:5432` (`user: pathfind`, `password: pathfind`, `db: pathfind`)
+- **Frontend App**: `http://localhost:5173`
+- **Backend API**: `http://localhost:8000`
+- **Interactive Swagger API Docs**: `http://localhost:8000/docs`
+- **PostgreSQL Database**: `localhost:5432` (`user: pathfind`, `password: pathfind`, `db: pathfind`)
 
-#### 🛠️ Useful Docker Commands
+#### Useful Docker Commands
 ```bash
 # View backend logs in real time
 docker compose logs -f api
@@ -121,7 +121,7 @@ docker compose down -v
 
 ---
 
-### 💻 Method 2: Normal Local Setup (Manual Environment)
+### Method 2: Normal Local Setup (Manual Environment)
 
 #### Prerequisites
 Ensure you have the following installed on your system:
@@ -131,7 +131,7 @@ Ensure you have the following installed on your system:
 
 ---
 
-#### 🔧 Step-by-Step Backend Setup
+#### Step-by-Step Backend Setup
 
 1. **Navigate to project root and create virtual environment**:
    ```bash
@@ -175,7 +175,7 @@ Ensure you have the following installed on your system:
 
 ---
 
-#### 🎨 Step-by-Step Frontend Setup
+#### Step-by-Step Frontend Setup
 
 1. **Navigate to the frontend directory**:
    ```bash
@@ -208,64 +208,71 @@ Ensure you have the following installed on your system:
    npx eslint .
    ```
 
+---
+
+## Environment Variables
+
+Configure environment variables in a `.env` file in the root, `backend/`, or `frontend/` directory:
+
+| Variable | Default | Scope | Description |
+|---|---|---|---|
+| `VITE_API_BASE_URL` | `http://localhost:8000` | Frontend | Backend API base URL for client HTTP requests |
+| `DATABASE_URL` | `sqlite:///./pathfind.db` | Backend | Database connection string (PostgreSQL in production) |
+| `SECRET_KEY` | `pathfind_super_secret_jwt_key_2026` | Backend | JWT signature secret key |
+| `EMAIL_SERVICE` | `console` | Backend | Email provider: `console` (mock), `smtp`, or `ses` |
+| `SENDER_EMAIL` | `noreply@pathfind.org` | Backend | From email address for notifications |
+| `AWS_REGION` | `us-east-1` | Backend | AWS region for SES email delivery & S3 storage |
+| `SMTP_SERVER` | `localhost` | Backend | SMTP host server (when `EMAIL_SERVICE=smtp`) |
+| `SMTP_PORT` | `587` | Backend | SMTP port (TLS) |
 
 ---
 
-## ⚙️ Environment Variables
-
-Configure environment variables in a `.env` file in the root or `backend/` directory:
-
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./pathfind.db` | Database connection string (PostgreSQL in production) |
-| `SECRET_KEY` | `pathfind_super_secret_jwt_key_2026` | JWT signature secret key |
-| `EMAIL_SERVICE` | `console` | Email provider: `console` (mock), `smtp`, or `ses` |
-| `SENDER_EMAIL` | `noreply@pathfind.org` | From email address for notifications |
-| `AWS_REGION` | `us-east-1` | AWS region for SES email delivery |
-| `SMTP_SERVER` | `localhost` | SMTP host server (when `EMAIL_SERVICE=smtp`) |
-| `SMTP_PORT` | `587` | SMTP port (TLS) |
-
----
-
-## 📡 API Endpoints Matrix
+## API Endpoints Matrix
 
 | Category | Method | Endpoint | Auth Required | Description |
 |---|---|---|---|---|
 | **System** | `GET` | `/` | No | API root welcome message |
 | **System** | `GET` | `/health` | No | Health check status |
 | **Auth** | `POST` | `/auth/signup` | No | Register a new mentee account |
-| **Auth** | `POST` | `/auth/signup/mentor` | No | Register a mentor profile (sets status to `pending_verification`) |
+| **Auth** | `POST` | `/auth/signup/mentor` | No | Register a mentor profile (rejects existing email to prevent profile tampering) |
 | **Auth** | `POST` | `/auth/signin` | No | Authenticate user & return OAuth2 JWT access token |
-| **Auth & Profile** | `GET` | `/auth/me` | 🔒 Yes | Restore current user session & profile details |
-| **Auth & Profile** | `PATCH` | `/profiles/me` | 🔒 Yes | Update current user profile details |
+| **Auth & Profile** | `GET` | `/auth/me` | Yes | Restore current user session & profile details |
+| **Auth & Profile** | `PATCH` | `/profiles/me` | Yes | Update current user profile details |
+| **User Settings** | `GET` | `/settings/me` | Yes | Get current user's email notification and reminder settings |
+| **User Settings** | `PATCH` | `/settings/me` | Yes | Update user's notification and reminder preferences |
 | **Mentors** | `GET` | `/mentors` | No | Discover mentors (supports query, expertise, request type, & status filters) |
 | **Mentors** | `GET` | `/mentors/{mentor_id}` | No | Retrieve detailed profile of a specific mentor |
-| **Mentors** | `POST` | `/mentors/{mentor_id}/reviews` | 🔒 Mentee | Submit a rating review for a mentor |
+| **Mentors** | `POST` | `/mentors/{mentor_id}/reviews` | Mentee | Submit a rating review for a mentor |
 | **Mentors** | `GET` | `/mentors/{mentor_id}/reviews` | No | List reviews submitted for a mentor |
-| **Requests** | `POST` | `/mentorship-requests` | 🔒 Mentee | Create a new mentorship request with optional attachments |
-| **Requests** | `GET` | `/mentorship-requests` | 🔒 Yes | List mentorship requests (role-filtered for mentee or mentor) |
-| **Requests** | `GET` | `/mentorship-requests/{request_id}` | 🔒 Yes | Retrieve detailed view of a specific request |
-| **Requests** | `PATCH` | `/mentorship-requests/{request_id}/status` | 🔒 Mentor | Accept or decline request with an optional response message |
-| **Requests** | `DELETE` | `/mentorship-requests/{request_id}` | 🔒 Mentee | Cancel a pending mentorship request |
+| **Requests** | `POST` | `/mentorship-requests` | Mentee | Create a new mentorship request with optional attachments |
+| **Requests** | `GET` | `/mentorship-requests` | Yes | List mentorship requests (role-filtered for mentee or mentor) |
+| **Requests** | `GET` | `/mentorship-requests/{request_id}` | Yes | Retrieve detailed view of a specific request |
+| **Requests** | `PATCH` | `/mentorship-requests/{request_id}/status` | Mentor | Accept or decline request with an optional response message |
+| **Requests** | `DELETE` | `/mentorship-requests/{request_id}` | Mentee | Cancel a pending mentorship request |
 | **Requests** | `GET` | `/mentorship-request-types` | No | List supported mentorship categories |
-| **Bookmarks** | `POST` | `/saved-mentors` | 🔒 Mentee | Bookmark a mentor profile |
-| **Bookmarks** | `GET` | `/saved-mentors` | 🔒 Mentee | List bookmarked mentors for logged-in user |
-| **Bookmarks** | `DELETE` | `/saved-mentors/{mentor_id}` | 🔒 Mentee | Remove a saved mentor bookmark |
-| **Session Notes** | `POST` | `/session-notes` | 🔒 Yes | Add a private note for a mentorship session |
-| **Session Notes** | `GET` | `/session-notes` | 🔒 Yes | List session notes for logged-in user |
-| **Session Notes** | `DELETE` | `/session-notes/{note_id}` | 🔒 Yes | Delete a session note |
-| **Admin Control** | `GET` | `/admin/stats` | 🔒 Admin | Real-time platform analytics & count metrics |
-| **Admin Control** | `GET` | `/admin/mentors/pending` | 🔒 Admin | List unverified mentor applications queue |
-| **Admin Control** | `GET` | `/admin/mentors` | 🔒 Admin | Directory of all mentors (verified, pending, rejected) |
-| **Admin Control** | `GET` | `/admin/mentees` | 🔒 Admin | Directory of all registered mentees |
-| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/approve` | 🔒 Admin | Approve a pending mentor application |
-| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/reject` | 🔒 Admin | Reject a mentor application |
-| **Admin Control** | `DELETE` | `/admin/users/{user_id}` | 🔒 Admin | Remove a user account from the platform |
-| **Uploads** | `POST` | `/upload` | 🔒 Yes | Upload avatar/resume/portfolio files (Max 5 MB) |
+| **Bookmarks** | `POST` | `/saved-mentors` | Mentee | Bookmark a mentor profile |
+| **Bookmarks** | `GET` | `/saved-mentors` | Mentee | List bookmarked mentors for logged-in user |
+| **Bookmarks** | `DELETE` | `/saved-mentors/{mentor_id}` | Mentee | Remove a saved mentor bookmark |
+| **Session Notes** | `POST` | `/session-notes` | Yes | Add a private note for a mentorship session |
+| **Session Notes** | `GET` | `/session-notes` | Yes | List session notes for logged-in user |
+| **Session Notes** | `PATCH` | `/session-notes/{note_id}` | Yes | Update title, content, or resource URL of an existing note |
+| **Session Notes** | `DELETE` | `/session-notes/{note_id}` | Yes | Delete a session note |
+| **Goals** | `GET` | `/goals` | Yes | List personal mentorship goals & target milestones |
+| **Goals** | `POST` | `/goals` | Yes | Create a new personal goal |
+| **Goals** | `PATCH` | `/goals/{goal_id}` | Yes | Update goal completion status or target date |
+| **Goals** | `DELETE` | `/goals/{goal_id}` | Yes | Delete a goal |
+| **Admin Control** | `GET` | `/admin/stats` | Admin | Real-time platform analytics & count metrics |
+| **Admin Control** | `GET` | `/admin/mentors/pending` | Admin | List unverified mentor applications queue |
+| **Admin Control** | `GET` | `/admin/mentors` | Admin | Directory of all mentors (verified, pending, rejected) |
+| **Admin Control** | `GET` | `/admin/mentees` | Admin | Directory of all registered mentees |
+| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/approve` | Admin | Approve a pending mentor application |
+| **Admin Control** | `POST` | `/admin/mentors/{mentor_id}/reject` | Admin | Reject a mentor application |
+| **Admin Control** | `DELETE` | `/admin/users/{user_id}` | Admin | Remove a user account from the platform |
+| **Uploads** | `POST` | `/upload` | Yes | Upload avatar/resume/portfolio files (Max 5 MB) |
 
 ---
 
-## 👥 Team — Product Family 2
+## Team — Product Family 2
 
 | Name | Role |
 |---|---|
@@ -277,6 +284,6 @@ Configure environment variables in a `.env` file in the root or `backend/` direc
 
 ---
 
-## 📄 Contributing
+## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for our branching strategy and pull request guidelines.

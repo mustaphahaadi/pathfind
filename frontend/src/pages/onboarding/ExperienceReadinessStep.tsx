@@ -5,6 +5,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { api } from "../../lib/api";
 import { proficiencyOptions } from "../../data/onboarding/proficiencyOptions";
 import { meetingPreferences } from "../../data/onboarding/meetingPreferences";
+import { getSkillLabel } from "../../data/mentor-onboarding/options";
 import { mentors } from "../../data/mentors";
 import { onboardingStepPath } from "../../data/onboarding/steps";
 import RadioOptionCard from "../../components/onboarding/RadioOptionCard";
@@ -23,6 +24,7 @@ const ExperienceReadinessStep = () => {
   const proficiency = useOnboardingStore((state) => state.proficiency);
   const selectedMeetingPrefs = useOnboardingStore((state) => state.meetingPreferences);
   const pledgeAgreed = useOnboardingStore((state) => state.pledgeAgreed);
+  const selectedTracks = useOnboardingStore((state) => state.technicalTracks);
 
   const setProficiency = useOnboardingStore((state) => state.setProficiency);
   const toggleMeetingPreference = useOnboardingStore((state) => state.toggleMeetingPreference);
@@ -35,12 +37,16 @@ const ExperienceReadinessStep = () => {
     if (!canComplete) return;
     completeOnboarding();
 
+    const formattedSkills = selectedTracks.map(getSkillLabel).join(", ");
+    const expertiseTags = formattedSkills || user?.profile?.expertise_tags || "Mentee, Career Guidance";
+
     if (user) {
       try {
         const updatedUser = await api.profiles.update({
           full_name: fullName || user.profile?.full_name || "Mentee User",
           avatar_url: avatarUrl || user.profile?.avatar_url || null,
           location: location || user.profile?.location || "Ghana / Remote",
+          expertise_tags: expertiseTags,
         });
         updateUser(updatedUser);
       } catch {
@@ -54,13 +60,14 @@ const ExperienceReadinessStep = () => {
               company: "Pathfind Network",
               years_of_experience: 1,
               bio: "",
-              expertise_tags: "",
+              expertise_tags: expertiseTags,
               availability: "Available",
               linkedin_url: null,
             }),
             full_name: fullName || user.profile?.full_name || "Mentee User",
             avatar_url: avatarUrl || user.profile?.avatar_url || null,
             location: location || user.profile?.location || "Ghana / Remote",
+            expertise_tags: expertiseTags,
           },
         };
         updateUser(updatedUser);
