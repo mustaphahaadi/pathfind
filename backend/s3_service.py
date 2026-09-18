@@ -57,7 +57,7 @@ def upload_file_to_s3(file_content, filename, content_type):
             # Make file publicly readable
             ACL="public-read",
         )
-        
+
         # Construct public URL
         public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
         logger.info(f"Successfully uploaded {filename} to S3: {public_url}")
@@ -71,10 +71,10 @@ def upload_file_locally(file_content, filename):
     """Fallback: Upload file to local filesystem."""
     safe_filename = f"{uuid4().hex}_{filename}"
     file_path = os.path.join(LOCAL_UPLOAD_DIR, safe_filename)
-    
+
     with open(file_path, "wb") as f:
         f.write(file_content)
-    
+
     # Return local URL
     local_url = f"/static/uploads/{safe_filename}"
     logger.info(f"Uploaded {filename} to local storage: {local_url}")
@@ -101,11 +101,11 @@ def delete_file_from_s3(key):
     """Delete file from S3 bucket."""
     if not S3_BUCKET:
         return False
-    
+
     s3_client = get_s3_client()
     if not s3_client:
         return False
-    
+
     try:
         s3_client.delete_object(Bucket=S3_BUCKET, Key=key)
         logger.info(f"Deleted {key} from S3")
