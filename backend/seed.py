@@ -210,6 +210,15 @@ def seed_database():
                 )
                 db.add(profile)
                 db.commit()
+            elif existing.profile:
+                profile = existing.profile
+                if not profile.location and item.get("location"):
+                    profile.location = item.get("location")
+                if not profile.linkedin_url and item.get("linkedin_url"):
+                    profile.linkedin_url = item.get("linkedin_url")
+                if not profile.avatar_url and item.get("avatar_url"):
+                    profile.avatar_url = item.get("avatar_url")
+                db.commit()
 
         print("Database seeded successfully with mock mentor profiles and admin user!")
     finally:

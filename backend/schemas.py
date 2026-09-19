@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .models import RequestStatus, RequestType, VerificationStatus
 
@@ -88,14 +88,7 @@ class MentorProfileRead(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @validator("expertise_tags", pre=True, always=True)
-    @classmethod
-    def parse_expertise_tags(cls, v):
-        return _tags_to_list(v)
-
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(BaseModel):
@@ -141,9 +134,7 @@ class UserOut(BaseModel):
     verification_status: VerificationStatus
     profile: MentorProfileRead | None = None
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -187,9 +178,7 @@ class MentorshipRequestRead(BaseModel):
     mentor_email: str | None = None
     mentor_profile: MentorProfileRead | None = None
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FileUploadResponse(BaseModel):
@@ -210,9 +199,7 @@ class SavedMentorRead(BaseModel):
     created_at: datetime
     mentor_profile: MentorProfileRead | None = None
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MentorReviewCreate(BaseModel):
@@ -233,9 +220,7 @@ class MentorReviewRead(BaseModel):
     quote: str
     created_at: datetime
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SessionNoteCreate(BaseModel):
@@ -260,9 +245,7 @@ class SessionNoteRead(BaseModel):
     resource_url: str | None = None
     created_at: datetime
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GoalCreate(BaseModel):

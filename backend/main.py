@@ -13,7 +13,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
-from .database import Base, SessionLocal, engine
+from .database import SessionLocal, init_db
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .s3_service import upload_file as upload_to_storage
 from .models import (
@@ -57,11 +57,7 @@ from .schemas import (
     _list_to_str,
 )
 
-# Schema is managed by Alembic migrations (backend/migrations/).
-# Run `alembic -c backend/alembic.ini upgrade head` before starting the server.
-# create_all is kept as a safety net for SQLite local dev and test environments only.
-if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
-    Base.metadata.create_all(bind=engine)
+init_db()
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")
@@ -467,12 +463,12 @@ def list_mentorship_requests(
     # Populate email details and profile info for response
     output = []
     for r in results:
-        read_obj = MentorshipRequestRead.from_orm(r)
+        read_obj = MentorshipRequestRead.model_validate(r)
         if current_user.id in (r.mentee_id, r.mentor_id):
             read_obj.mentee_email = r.mentee.email
             read_obj.mentor_email = r.mentor.email
         if r.mentor and r.mentor.profile:
-            read_obj.mentor_profile = MentorProfileRead.from_orm(r.mentor.profile)
+            read_obj.mentor_profile = MentorProfileRead.model_validate(r.mentor.profile)
         output.append(read_obj)
 
     return output
@@ -491,11 +487,11 @@ def get_mentorship_request(
     if current_user.id not in (mentorship_request.mentee_id, mentorship_request.mentor_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    read_obj = MentorshipRequestRead.from_orm(mentorship_request)
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
     read_obj.mentee_email = mentorship_request.mentee.email
     read_obj.mentor_email = mentorship_request.mentor.email
     if mentorship_request.mentor and mentorship_request.mentor.profile:
-        read_obj.mentor_profile = MentorProfileRead.from_orm(mentorship_request.mentor.profile)
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
     return read_obj
 
 
@@ -534,11 +530,11 @@ def update_mentorship_request_status(
         response_message=payload.response_message,
     )
 
-    read_obj = MentorshipRequestRead.from_orm(mentorship_request)
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
     read_obj.mentee_email = mentorship_request.mentee.email
     read_obj.mentor_email = mentorship_request.mentor.email
     if mentorship_request.mentor and mentorship_request.mentor.profile:
-        read_obj.mentor_profile = MentorProfileRead.from_orm(mentorship_request.mentor.profile)
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
     return read_obj
 
 
@@ -791,10 +787,10 @@ def list_saved_mentors(
     items = db.query(SavedMentor).filter(SavedMentor.user_id == current_user.id).all()
     output = []
     for item in items:
-        read_obj = SavedMentorRead.from_orm(item)
+        read_obj = SavedMentorRead.model_validate(item)
         mentor_user = db.get(User, item.mentor_id)
         if mentor_user and mentor_user.profile:
-            read_obj.mentor_profile = MentorProfileRead.from_orm(mentor_user.profile)
+            read_obj.mentor_profile = MentorProfileRead.model_validate(mentor_user.profile)
         output.append(read_obj)
     return output
 
