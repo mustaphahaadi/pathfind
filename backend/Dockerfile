@@ -1,4 +1,5 @@
 # ── Stage 1: build dependencies ────────────────────────────────────────────
+# Trigger deployment to AWS ECS
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
