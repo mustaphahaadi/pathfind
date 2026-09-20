@@ -219,11 +219,13 @@ Configure environment variables in a `.env` file in the root, `backend/`, or `fr
 | `VITE_API_BASE_URL` | `http://localhost:8000` | Frontend | Backend API base URL for client HTTP requests |
 | `DATABASE_URL` | `sqlite:///./pathfind.db` | Backend | Database connection string (PostgreSQL in production) |
 | `SECRET_KEY` | `pathfind_super_secret_jwt_key_2026` | Backend | JWT signature secret key |
-| `EMAIL_SERVICE` | `console` | Backend | Email provider: `console` (mock), `smtp`, or `ses` |
+| `EMAIL_SERVICE` | `smtp` | Backend | Email provider: `smtp` (production), `console` (mock), or `ses` |
 | `SENDER_EMAIL` | `noreply@pathfind.org` | Backend | From email address for notifications |
-| `AWS_REGION` | `us-east-1` | Backend | AWS region for SES email delivery & S3 storage |
-| `SMTP_SERVER` | `localhost` | Backend | SMTP host server (when `EMAIL_SERVICE=smtp`) |
+| `SMTP_SERVER` | `smtp.sendgrid.net` | Backend | SMTP host server (when `EMAIL_SERVICE=smtp`) |
 | `SMTP_PORT` | `587` | Backend | SMTP port (TLS) |
+| `SMTP_USERNAME` | `apikey` | Backend | SMTP authentication username |
+| `SMTP_PASSWORD` | `your-smtp-api-key` | Backend | SMTP authentication password / API key |
+| `AWS_REGION` | `us-east-1` | Backend | AWS region for S3 file storage |
 
 ---
 
