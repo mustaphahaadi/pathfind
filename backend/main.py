@@ -380,7 +380,10 @@ def get_mentor(mentor_id: int, db: Session = Depends(get_db)):
     profile = (
         db.query(MentorProfile)
         .join(User, MentorProfile.user_id == User.id)
-        .filter(MentorProfile.user_id == mentor_id, User.role == "mentor")
+        .filter(
+            or_(MentorProfile.user_id == mentor_id, MentorProfile.id == mentor_id),
+            User.role == "mentor",
+        )
         .first()
     )
     if not profile:

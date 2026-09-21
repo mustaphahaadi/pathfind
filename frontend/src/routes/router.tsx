@@ -162,35 +162,37 @@ export const router = createBrowserRouter([
           },
         ],
       },
+    ],
+  },
+
+  // Mentor Onboarding Routes (Accessible during registration before account creation)
+  {
+    path: "/onboarding/mentor/complete",
+    element: <MentorProfileCreatedPage />,
+  },
+  {
+    path: "/onboarding/mentor",
+    element: <MentorOnboardingLayout />,
+    children: [
       {
-        path: "/onboarding/mentor/complete",
-        element: <MentorProfileCreatedPage />,
+        index: true,
+        element: <Navigate to="identity-verification" replace />,
       },
       {
-        path: "/onboarding/mentor",
-        element: <MentorOnboardingLayout />,
-        children: [
-          {
-            index: true,
-            element: <Navigate to="identity-verification" replace />,
-          },
-          {
-            path: "identity-verification",
-            element: <IdentityVerificationStep />,
-          },
-          {
-            path: "domain-skills",
-            element: <DomainSkillsStep />,
-          },
-          {
-            path: "availability-capacity",
-            element: <AvailabilityCapacityStep />,
-          },
-          {
-            path: "honor-code-review",
-            element: <HonorCodeReviewStep />,
-          },
-        ],
+        path: "identity-verification",
+        element: <IdentityVerificationStep />,
+      },
+      {
+        path: "domain-skills",
+        element: <DomainSkillsStep />,
+      },
+      {
+        path: "availability-capacity",
+        element: <AvailabilityCapacityStep />,
+      },
+      {
+        path: "honor-code-review",
+        element: <HonorCodeReviewStep />,
       },
     ],
   },
