@@ -20,9 +20,6 @@ COPY --from=builder /install /usr/local
 # Copy application source (project root so `backend` package resolves correctly)
 COPY backend/ ./backend/
 
-# Alembic config lives at project root (one level up from backend/)
-COPY backend/alembic.ini ./backend/alembic.ini
-
 # Pre-create static upload directories and set ownership for non-root user
 RUN mkdir -p /app/backend/static/uploads && \
     useradd --create-home appuser && \
