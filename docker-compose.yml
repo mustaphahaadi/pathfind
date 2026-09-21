@@ -4,15 +4,15 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: pathfind
-      POSTGRES_USER: pathfind
-      POSTGRES_PASSWORD: pathfind
+      POSTGRES_DB: ${POSTGRES_DB:-pathfind}
+      POSTGRES_USER: ${POSTGRES_USER:-pathfind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pathfind -d pathfind"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pathfind} -d ${POSTGRES_DB:-pathfind}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,9 +26,22 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://pathfind:pathfind@db:5432/pathfind
-      SECRET_KEY: ${SECRET_KEY:-dev-only-secret-change-before-deploying}
-      ENVIRONMENT: development
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pathfind}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pathfind}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in .env}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      # Optional email config
+      EMAIL_SERVICE: ${EMAIL_SERVICE:-console}
+      SENDER_EMAIL: ${SENDER_EMAIL:-noreply@pathfind.org}
+      SMTP_SERVER: ${SMTP_SERVER:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      # Optional S3 config
+      USE_S3: ${USE_S3:-false}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     # Hot-reload in dev: override CMD and mount source
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:

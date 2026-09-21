@@ -267,8 +267,8 @@ class SessionNoteRead(BaseModel):
 
 class GoalCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
-    category: str = Field("Technical Skill", max_length=100)
-    target_date: str = Field("Q4 2026", max_length=100)
+    category: str = Field("General", max_length=100)
+    target_date: str = Field("TBD", max_length=100)
     completed: bool = False
 
 
