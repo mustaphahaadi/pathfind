@@ -78,8 +78,8 @@ jobs:
           echo "Downloading task definition $TASK_DEF_ARN..."
           aws ecs describe-task-definition --task-definition $TASK_DEF_ARN --query "taskDefinition" > task-def.json
           
-          echo "Updating image tag to $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG..."
-          python3 -c 'import json, sys; data=json.load(open("task-def.json")); [data.pop(k, None) for k in ["taskDefinitionArn", "revision", "status", "requiresAttributes", "compatibilities", "registeredAt", "registeredBy", "deregisteredAt"]]; data["containerDefinitions"][0]["image"] = sys.argv[1]; json.dump(data, open("new-task-def.json", "w"))' "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "Updating image tag to $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG and ensuring portMappings..."
+          python3 -c 'import json, sys; data=json.load(open("task-def.json")); [data.pop(k, None) for k in ["taskDefinitionArn", "revision", "status", "requiresAttributes", "compatibilities", "registeredAt", "registeredBy", "deregisteredAt"]]; data["containerDefinitions"][0]["image"] = sys.argv[1]; data["containerDefinitions"][0]["portMappings"] = [{"containerPort": 8000, "hostPort": 8000, "protocol": "tcp"}]; json.dump(data, open("new-task-def.json", "w"))' "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json --query "taskDefinition.taskDefinitionArn" --output text)
           echo "Registered new task definition: $NEW_TASK_DEF_ARN"
