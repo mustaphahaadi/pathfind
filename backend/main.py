@@ -53,6 +53,7 @@ from .schemas import (
     UserOut,
     UserSettingsRead,
     UserSettingsUpdate,
+    _list_to_str,
 )
 
 # Schema is managed by Alembic migrations (backend/migrations/).
@@ -303,7 +304,7 @@ def signup_mentor(
         company=payload.company,
         years_of_experience=payload.years_of_experience,
         bio=payload.bio,
-        expertise_tags=payload.expertise_tags,
+        expertise_tags=payload.expertise_tags_str,
         availability=payload.availability,
         avatar_url=payload.avatar_url,
         location=payload.location,
@@ -917,7 +918,8 @@ def list_goals(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Retrieve goals for current user. If user has 0 goals, seed default initial goals."""
+    """Retrieve goals for current user. Seeds three generic starter goals for new users."""
+    from datetime import timezone as _tz
     user_goals = (
         db.query(Goal)
         .filter(Goal.user_id == current_user.id)
@@ -925,26 +927,34 @@ def list_goals(
         .all()
     )
     if not user_goals:
+        # Calculate a generic "6 months out" target date so it stays relevant
+        now = datetime.now(_tz.utc)
+        target_month = now.month + 6
+        target_year = now.year + (target_month - 1) // 12
+        target_month = ((target_month - 1) % 12) + 1
+        quarter = (target_month - 1) // 3 + 1
+        default_target = f"Q{quarter} {target_year}"
+
         defaults = [
             Goal(
                 user_id=current_user.id,
-                title="Master System Design & Microservices Architecture",
-                category="Technical Skill",
-                target_date="Q4 2026",
-                completed=True,
-            ),
-            Goal(
-                user_id=current_user.id,
-                title="Land Senior Software Engineer / Lead Role",
-                category="Career Growth",
-                target_date="Q1 2027",
+                title="Connect with a mentor and complete a first session",
+                category="Networking",
+                target_date=default_target,
                 completed=False,
             ),
             Goal(
                 user_id=current_user.id,
-                title="Publish 2 Open Source Frontend Libraries",
-                category="Open Source",
-                target_date="Q4 2026",
+                title="Define your 6-month career or learning goal",
+                category="Career Growth",
+                target_date=default_target,
+                completed=False,
+            ),
+            Goal(
+                user_id=current_user.id,
+                title="Update your portfolio or CV with recent work",
+                category="Personal Branding",
+                target_date=default_target,
                 completed=False,
             ),
         ]

@@ -40,7 +40,7 @@ export interface MentorProfileRead {
   company: string;
   years_of_experience: number;
   bio: string;
-  expertise_tags: string; // comma-separated
+  expertise_tags: string[]; // array of tag strings
   availability: string;
   avatar_url: string | null;
   location: string | null;
@@ -100,7 +100,7 @@ export interface UserCreateMentorPayload {
   company: string;
   years_of_experience: number;
   bio: string;
-  expertise_tags: string; // comma-separated
+  expertise_tags: string[]; // array of tag strings
   availability: string;
   avatar_url?: string | null;
   location?: string | null;
