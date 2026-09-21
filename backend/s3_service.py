@@ -13,7 +13,11 @@ USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
 
 # Fallback to local storage if S3 not configured
 LOCAL_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
-os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+try:
+    os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+except PermissionError:
+    LOCAL_UPLOAD_DIR = "/tmp/pathfind_uploads"
+    os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
 
 
 def get_s3_client():

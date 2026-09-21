@@ -21,7 +21,7 @@ COPY --from=builder /install /usr/local
 COPY backend/ ./backend/
 
 # Non-root user for security
-RUN useradd --create-home appuser && chown -R appuser:appuser /app
+RUN mkdir -p ./backend/static/uploads && useradd --create-home appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
