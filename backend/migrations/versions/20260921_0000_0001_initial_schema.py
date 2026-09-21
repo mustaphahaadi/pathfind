@@ -28,7 +28,10 @@ def upgrade() -> None:
                     CREATE TYPE verificationstatus AS ENUM ('pending_verification', 'verified', 'rejected');
                 END IF;
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requesttype') THEN
-                    CREATE TYPE requesttype AS ENUM ('cv_review', 'portfolio_feedback', 'career_path_conversation', 'interview_preparation', 'role_industry_insight');
+                    CREATE TYPE requesttype AS ENUM (
+                        'cv_review', 'portfolio_feedback', 'career_path_conversation',
+                        'interview_preparation', 'role_industry_insight'
+                    );
                 END IF;
                 IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requeststatus') THEN
                     CREATE TYPE requeststatus AS ENUM ('pending', 'accepted', 'declined', 'completed');
