@@ -1,22 +1,16 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useOnboardingStore } from "../../store/useOnboardingStore";
-import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 
-/** Helper that returns true if there is an active session (token, mentor store, or mentee store). */
+/**
+ * Authentication is determined solely by the presence of a valid JWT token
+ * and a hydrated user object in the auth store. Onboarding store state is
+ * NOT a substitute for authentication — it only controls UI flow within an
+ * already-authenticated session.
+ */
 function useIsAuthenticated() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
-  const menteeName = useOnboardingStore((s) => s.fullName);
-  const menteeHasCompleted = useOnboardingStore((s) => s.hasCompletedOnboarding);
-  const mentorHasCompleted = useMentorOnboardingStore((s) => s.hasCompletedOnboarding);
-  const mentorName = useMentorOnboardingStore((s) => s.fullName);
-
-  const isAuthSignedIn = !!token || !!user;
-  const isMenteeSignedIn = menteeHasCompleted || menteeName.trim().length > 0;
-  const isMentorSignedIn = mentorHasCompleted || mentorName.trim().length > 0;
-
-  return isAuthSignedIn || isMenteeSignedIn || isMentorSignedIn;
+  return !!token && !!user;
 }
 
 /** Route guard that protects pages requiring user authentication. */
@@ -34,13 +28,12 @@ export function ProtectedRoute() {
 export function GuestOnlyRoute() {
   const isAuthenticated = useIsAuthenticated();
   const user = useAuthStore((s) => s.user);
-  const mentorHasCompleted = useMentorOnboardingStore((s) => s.hasCompletedOnboarding);
 
   if (isAuthenticated) {
     if (user?.role === "admin") {
       return <Navigate to="/admin" replace />;
     }
-    if (user?.role === "mentor" || mentorHasCompleted) {
+    if (user?.role === "mentor") {
       return <Navigate to="/mentor-dashboard" replace />;
     }
     return <Navigate to="/profile" replace />;
@@ -54,24 +47,27 @@ export function AdminRoute() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
 
-  if (!token || user?.role !== "admin") {
+  if (!token || !user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (user.role !== "admin") {
+    return <Navigate to="/profile" replace />;
   }
 
   return <Outlet />;
 }
 
-/** Route guard restricting access to Mentors. */
+/** Route guard restricting access to Mentors (and Admins). */
 export function MentorRoute() {
-  const isAuthenticated = useIsAuthenticated();
+  const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
-  const mentorHasCompleted = useMentorOnboardingStore((s) => s.hasCompletedOnboarding);
 
-  if (!isAuthenticated) {
+  if (!token || !user) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (user?.role !== "mentor" && !mentorHasCompleted && user?.role !== "admin") {
+  if (user.role !== "mentor" && user.role !== "admin") {
     return <Navigate to="/profile" replace />;
   }
 

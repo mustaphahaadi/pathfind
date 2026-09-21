@@ -29,5 +29,6 @@ USER appuser
 
 EXPOSE 8000
 
-# Production: no --reload. Override CMD in docker-compose for dev.
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Production: run Alembic migrations then start Uvicorn.
+# Override CMD in docker-compose for dev (adds --reload).
+CMD ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]

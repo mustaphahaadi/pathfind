@@ -19,6 +19,20 @@ import type {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
+/**
+ * Handles a 401 Unauthorized response from the API.
+ * Clears the auth store and redirects to the sign-in page so the user
+ * isn't silently stuck in a broken authenticated state after token expiry.
+ * Uses window.location.replace so the current page is not kept in history.
+ */
+function handleUnauthorized(): void {
+  useAuthStore.getState().clearAuth();
+  // Only redirect if we're not already on an auth page to avoid loops
+  if (!window.location.pathname.startsWith("/auth") && !window.location.pathname.startsWith("/join")) {
+    window.location.replace("/auth");
+  }
+}
+
 // ── Core fetch wrapper ─────────────────────────────────────────────────────────
 
 async function request<T>(
@@ -40,6 +54,12 @@ async function request<T>(
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
   if (!res.ok) {
+    // Token expired or invalid — clear local session and redirect to sign-in
+    if (res.status === 401) {
+      handleUnauthorized();
+      throw new Error("Session expired. Please sign in again.");
+    }
+
     let message = `Request failed: ${res.status}`;
     try {
       const body = await res.json();
@@ -79,6 +99,10 @@ async function upload(file: File): Promise<FileUploadResponse> {
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      handleUnauthorized();
+      throw new Error("Session expired. Please sign in again.");
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.detail ?? `Upload failed: ${res.status}`);
   }

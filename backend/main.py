@@ -53,9 +53,14 @@ from .schemas import (
     UserOut,
     UserSettingsRead,
     UserSettingsUpdate,
+    _list_to_str,
 )
 
-Base.metadata.create_all(bind=engine)
+# Schema is managed by Alembic migrations (backend/migrations/).
+# Run `alembic -c backend/alembic.ini upgrade head` before starting the server.
+# create_all is kept as a safety net for SQLite local dev and test environments only.
+if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
+    Base.metadata.create_all(bind=engine)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")
@@ -72,15 +77,20 @@ except (PermissionError, OSError):
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# Allow local frontend during development
+# CORS — origins are configured via the ALLOWED_ORIGINS environment variable.
+# In development: defaults to localhost Vite dev server.
+# In production: set ALLOWED_ORIGINS to your frontend domain(s), comma-separated.
+#   e.g. ALLOWED_ORIGINS=https://pathfind.amalitech.org,https://www.pathfind.amalitech.org
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+ALLOWED_ORIGINS = [origin.strip() for origin in _raw_origins.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
@@ -157,7 +167,7 @@ def update_profile(
             company=payload.company or "Pathfind Network",
             years_of_experience=payload.years_of_experience or 1,
             bio=payload.bio or "",
-            expertise_tags=payload.expertise_tags or "Software Engineering",
+            expertise_tags=_list_to_str(payload.expertise_tags) if payload.expertise_tags else "Software Engineering",
             availability=payload.availability or "Available",
             avatar_url=payload.avatar_url,
             location=payload.location,
@@ -165,7 +175,7 @@ def update_profile(
         )
         db.add(profile)
     else:
-        for field, value in payload.dict(exclude_unset=True).items():
+        for field, value in payload.dict_for_orm().items():
             if value is not None:
                 setattr(profile, field, value)
 
@@ -299,7 +309,7 @@ def signup_mentor(
         company=payload.company,
         years_of_experience=payload.years_of_experience,
         bio=payload.bio,
-        expertise_tags=payload.expertise_tags,
+        expertise_tags=payload.expertise_tags_str,
         availability=payload.availability,
         avatar_url=payload.avatar_url,
         location=payload.location,
@@ -913,7 +923,8 @@ def list_goals(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Retrieve goals for current user. If user has 0 goals, seed default initial goals."""
+    """Retrieve goals for current user. Seeds three generic starter goals for new users."""
+    from datetime import timezone as _tz
     user_goals = (
         db.query(Goal)
         .filter(Goal.user_id == current_user.id)
@@ -921,26 +932,34 @@ def list_goals(
         .all()
     )
     if not user_goals:
+        # Calculate a generic "6 months out" target date so it stays relevant
+        now = datetime.now(_tz.utc)
+        target_month = now.month + 6
+        target_year = now.year + (target_month - 1) // 12
+        target_month = ((target_month - 1) % 12) + 1
+        quarter = (target_month - 1) // 3 + 1
+        default_target = f"Q{quarter} {target_year}"
+
         defaults = [
             Goal(
                 user_id=current_user.id,
-                title="Master System Design & Microservices Architecture",
-                category="Technical Skill",
-                target_date="Q4 2026",
-                completed=True,
-            ),
-            Goal(
-                user_id=current_user.id,
-                title="Land Senior Software Engineer / Lead Role",
-                category="Career Growth",
-                target_date="Q1 2027",
+                title="Connect with a mentor and complete a first session",
+                category="Networking",
+                target_date=default_target,
                 completed=False,
             ),
             Goal(
                 user_id=current_user.id,
-                title="Publish 2 Open Source Frontend Libraries",
-                category="Open Source",
-                target_date="Q4 2026",
+                title="Define your 6-month career or learning goal",
+                category="Career Growth",
+                target_date=default_target,
+                completed=False,
+            ),
+            Goal(
+                user_id=current_user.id,
+                title="Update your portfolio or CV with recent work",
+                category="Personal Branding",
+                target_date=default_target,
                 completed=False,
             ),
         ]
