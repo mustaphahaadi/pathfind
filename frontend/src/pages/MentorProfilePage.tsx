@@ -37,18 +37,22 @@ const MentorProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<ReviewData[]>([]);
 
+  const isInvalidId = !mentorId || Number.isNaN(Number(mentorId));
+  const activeError = isInvalidId ? "Invalid mentor ID specified." : error;
+  const isLoading = !isInvalidId && loading;
+
   useEffect(() => {
-    if (!mentorId) return;
+    const idNum = Number(mentorId);
+    if (!mentorId || Number.isNaN(idNum)) return;
 
     api.mentors
-      .get(Number(mentorId))
+      .get(idNum)
       .then((data) => {
         setMentor(data);
-        // Fetch reviews for this mentor (mentor_id = user_id = mentorId param)
-        return api.reviews.list(Number(mentorId));
+        return api.reviews.list(idNum);
       })
       .then((reviewData) => {
-        setReviews(reviewData as ReviewData[]);
+        if (reviewData) setReviews(reviewData as ReviewData[]);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Failed to load mentor profile.");
@@ -58,7 +62,7 @@ const MentorProfilePage = () => {
       });
   }, [mentorId]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col bg-surface">
         <Header variant="solid" />
@@ -71,14 +75,14 @@ const MentorProfilePage = () => {
     );
   }
 
-  if (error || !mentor) {
+  if (activeError || !mentor) {
     return (
       <div className="flex min-h-screen flex-col bg-surface">
         <Header variant="solid" />
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-20 text-center">
           <h1 className="text-2xl font-extrabold text-ink">Mentor not found</h1>
           <p className="mt-2 text-sm text-ink/60">
-            {error || "This mentor profile doesn't exist or may have been removed."}
+            {activeError || "This mentor profile doesn't exist or may have been removed."}
           </p>
           <Link
             to="/mentors"
