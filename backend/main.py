@@ -161,7 +161,7 @@ def update_profile(
             company=payload.company or "Pathfind Network",
             years_of_experience=payload.years_of_experience or 1,
             bio=payload.bio or "",
-            expertise_tags=payload.expertise_tags or "Software Engineering",
+            expertise_tags=_list_to_str(payload.expertise_tags) if payload.expertise_tags else "Software Engineering",
             availability=payload.availability or "Available",
             avatar_url=payload.avatar_url,
             location=payload.location,
@@ -169,7 +169,7 @@ def update_profile(
         )
         db.add(profile)
     else:
-        for field, value in payload.dict(exclude_unset=True).items():
+        for field, value in payload.dict_for_orm().items():
             if value is not None:
                 setattr(profile, field, value)
 

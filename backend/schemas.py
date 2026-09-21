@@ -1,9 +1,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from .models import RequestStatus, RequestType, VerificationStatus
+
+
+def _tags_to_list(v: str | list) -> list[str]:
+    """Convert a comma-separated string OR a list to a clean list of tag strings."""
+    if isinstance(v, list):
+        return [tag.strip() for tag in v if str(tag).strip()]
+    return [tag.strip() for tag in str(v).split(",") if tag.strip()]
+
+
+def _list_to_str(tags: list[str]) -> str:
+    """Serialize a list of tags back to the CSV string stored in the DB column."""
+    return ", ".join(tags)
 
 
 class MentorProfileCreate(BaseModel):
@@ -12,11 +24,22 @@ class MentorProfileCreate(BaseModel):
     company: str = Field(..., min_length=1, max_length=255)
     years_of_experience: int = Field(..., ge=0)
     bio: str = Field(..., min_length=1)
-    expertise_tags: str = Field(..., min_length=1, max_length=500)
+    # Accepts either a list of strings or a legacy CSV string
+    expertise_tags: list[str] = Field(..., min_length=1)
     availability: str = Field(..., min_length=1, max_length=255)
     avatar_url: str | None = None
     location: str | None = None
     linkedin_url: str | None = None
+
+    @field_validator("expertise_tags", mode="before")
+    @classmethod
+    def parse_expertise_tags(cls, v):
+        return _tags_to_list(v)
+
+    @property
+    def expertise_tags_str(self) -> str:
+        """CSV string for writing to the ORM model's expertise_tags column."""
+        return _list_to_str(self.expertise_tags)
 
 
 class ProfileUpdate(BaseModel):
@@ -25,11 +48,29 @@ class ProfileUpdate(BaseModel):
     company: str | None = None
     years_of_experience: int | None = None
     bio: str | None = None
-    expertise_tags: str | None = None
+    # Accepts list or legacy CSV string; None means "don't update"
+    expertise_tags: list[str] | None = None
     availability: str | None = None
     avatar_url: str | None = None
     location: str | None = None
     linkedin_url: str | None = None
+
+    @field_validator("expertise_tags", mode="before")
+    @classmethod
+    def parse_expertise_tags(cls, v):
+        if v is None:
+            return None
+        return _tags_to_list(v)
+
+    def dict_for_orm(self) -> dict:
+        """
+        Return a dict suitable for writing to the ORM, converting
+        expertise_tags list → CSV string so it matches the DB column type.
+        """
+        data = self.dict(exclude_unset=True)
+        if "expertise_tags" in data and data["expertise_tags"] is not None:
+            data["expertise_tags"] = _list_to_str(data["expertise_tags"])
+        return data
 
 
 class MentorProfileRead(BaseModel):
@@ -40,11 +81,17 @@ class MentorProfileRead(BaseModel):
     company: str
     years_of_experience: int
     bio: str
-    expertise_tags: str
+    # Always returned as a list regardless of how it was stored
+    expertise_tags: list[str]
     availability: str
     avatar_url: str | None = None
     location: str | None = None
     linkedin_url: str | None = None
+
+    @field_validator("expertise_tags", mode="before")
+    @classmethod
+    def parse_expertise_tags(cls, v):
+        return _tags_to_list(v)
 
     class Config:
         orm_mode = True
@@ -66,11 +113,20 @@ class UserCreateMentor(BaseModel):
     company: str = Field(..., min_length=1, max_length=255)
     years_of_experience: int = Field(..., ge=0)
     bio: str = Field(..., min_length=1)
-    expertise_tags: str = Field(..., min_length=1, max_length=500)
+    expertise_tags: list[str] = Field(..., min_length=1)
     availability: str = Field(..., min_length=1, max_length=255)
     avatar_url: str | None = None
     location: str | None = None
     linkedin_url: str | None = None
+
+    @field_validator("expertise_tags", mode="before")
+    @classmethod
+    def parse_expertise_tags(cls, v):
+        return _tags_to_list(v)
+
+    @property
+    def expertise_tags_str(self) -> str:
+        return _list_to_str(self.expertise_tags)
 
 
 class UserLogin(BaseModel):
