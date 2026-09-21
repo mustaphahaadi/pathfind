@@ -29,6 +29,6 @@ USER appuser
 EXPOSE 8000
 ENV PYTHONPATH=/app
 
-# Production: run Alembic migrations then start Uvicorn.
+# Production: run Alembic migrations, seed mock data if needed, then start Uvicorn.
 # Override CMD in docker-compose for dev (adds --reload).
-CMD ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && python backend/seed.py && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]
