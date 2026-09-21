@@ -4,6 +4,7 @@ uvicorn[standard]==0.21.1
 flake8==6.1.0
 pytest==8.3.5
 sqlalchemy==2.0.41
+alembic==1.13.3
 httpx>=0.23.0,<0.24.0
 psycopg2-binary>=2.9.9
 slowapi==0.1.9
