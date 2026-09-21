@@ -55,13 +55,13 @@ const ScheduleSessionPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
+  const isInvalidId = !mentorId || Number.isNaN(Number(mentorId));
+  const activeMentorError = isInvalidId ? "Invalid mentor ID specified." : mentorError;
+  const isLoadingMentor = !isInvalidId && loadingMentor;
+
   useEffect(() => {
     const idNum = Number(mentorId);
-    if (!mentorId || Number.isNaN(idNum)) {
-      setMentorError("Invalid mentor ID specified.");
-      setLoadingMentor(false);
-      return;
-    }
+    if (!mentorId || Number.isNaN(idNum)) return;
     const load = async () => {
       try {
         const data = await api.mentors.get(idNum);
@@ -104,7 +104,7 @@ const ScheduleSessionPage = () => {
     }
   };
 
-  if (loadingMentor) {
+  if (isLoadingMentor) {
     return (
       <div className="flex min-h-screen flex-col bg-surface">
         <Header variant="solid" />
@@ -116,7 +116,7 @@ const ScheduleSessionPage = () => {
     );
   }
 
-  if (mentorError || !mentor) {
+  if (activeMentorError || !mentor) {
     return (
       <div className="flex min-h-screen flex-col bg-surface">
         <Header variant="solid" />
