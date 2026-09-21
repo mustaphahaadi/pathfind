@@ -29,6 +29,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-pathfind}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pathfind}
       SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in .env}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
       # Optional email config
       EMAIL_SERVICE: ${EMAIL_SERVICE:-console}
       SENDER_EMAIL: ${SENDER_EMAIL:-noreply@pathfind.org}

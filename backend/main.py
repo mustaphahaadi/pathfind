@@ -77,15 +77,20 @@ except (PermissionError, OSError):
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# Allow local frontend during development
+# CORS — origins are configured via the ALLOWED_ORIGINS environment variable.
+# In development: defaults to localhost Vite dev server.
+# In production: set ALLOWED_ORIGINS to your frontend domain(s), comma-separated.
+#   e.g. ALLOWED_ORIGINS=https://pathfind.amalitech.org,https://www.pathfind.amalitech.org
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+ALLOWED_ORIGINS = [origin.strip() for origin in _raw_origins.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
