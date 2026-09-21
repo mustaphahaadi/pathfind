@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, validator
 
 from .models import RequestStatus, RequestType, VerificationStatus
 
 
-def _tags_to_list(v: str | list) -> list[str]:
+def _tags_to_list(v) -> list[str]:
     """Convert a comma-separated string OR a list to a clean list of tag strings."""
     if isinstance(v, list):
-        return [tag.strip() for tag in v if str(tag).strip()]
+        return [str(tag).strip() for tag in v if str(tag).strip()]
     return [tag.strip() for tag in str(v).split(",") if tag.strip()]
 
 
@@ -31,7 +31,7 @@ class MentorProfileCreate(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @field_validator("expertise_tags", mode="before")
+    @validator("expertise_tags", pre=True, always=True)
     @classmethod
     def parse_expertise_tags(cls, v):
         return _tags_to_list(v)
@@ -55,7 +55,7 @@ class ProfileUpdate(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @field_validator("expertise_tags", mode="before")
+    @validator("expertise_tags", pre=True, always=True)
     @classmethod
     def parse_expertise_tags(cls, v):
         if v is None:
@@ -88,7 +88,7 @@ class MentorProfileRead(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @field_validator("expertise_tags", mode="before")
+    @validator("expertise_tags", pre=True, always=True)
     @classmethod
     def parse_expertise_tags(cls, v):
         return _tags_to_list(v)
@@ -119,7 +119,7 @@ class UserCreateMentor(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @field_validator("expertise_tags", mode="before")
+    @validator("expertise_tags", pre=True, always=True)
     @classmethod
     def parse_expertise_tags(cls, v):
         return _tags_to_list(v)
