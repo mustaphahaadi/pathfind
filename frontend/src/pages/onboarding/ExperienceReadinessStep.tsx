@@ -37,8 +37,10 @@ const ExperienceReadinessStep = () => {
     if (!canComplete) return;
     completeOnboarding();
 
-    const formattedSkills = selectedTracks.map(getSkillLabel).join(", ");
-    const expertiseTags = formattedSkills || user?.profile?.expertise_tags || "Mentee, Career Guidance";
+    const formattedSkills = selectedTracks.map(getSkillLabel);
+    const expertiseTags: string[] = formattedSkills.length > 0
+      ? formattedSkills
+      : (user?.profile?.expertise_tags ?? ["Mentee", "Career Guidance"]);
 
     if (user) {
       try {

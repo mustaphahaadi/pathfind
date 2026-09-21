@@ -22,11 +22,7 @@ const MentorListCard = ({ mentor }: MentorListCardProps) => {
   const stopPropagation = (event: MouseEvent<HTMLElement>) =>
     event.stopPropagation();
 
-  const tags = mentor.expertise_tags
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 5);
+  const tags = mentor.expertise_tags.filter(Boolean).slice(0, 5);
 
   return (
     <article

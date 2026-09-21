@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
                     const exp = profile?.years_of_experience || 3;
                     const bio = profile?.bio || "No bio provided.";
                     const tags = profile?.expertise_tags
-                      ? profile.expertise_tags.split(",").map((s) => s.trim())
+                      ? profile.expertise_tags.filter(Boolean)
                       : ["Software Engineering"];
 
                     return (

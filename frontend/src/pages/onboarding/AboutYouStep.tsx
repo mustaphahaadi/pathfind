@@ -57,7 +57,7 @@ const AboutYouStep = () => {
               company: "Pathfind Network",
               years_of_experience: 1,
               bio: "",
-              expertise_tags: "",
+              expertise_tags: [],
               availability: "Available",
               linkedin_url: null,
             }),

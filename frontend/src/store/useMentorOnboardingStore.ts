@@ -166,7 +166,7 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>()(
           if (!profile) return state;
 
           const tags = profile.expertise_tags
-            ? profile.expertise_tags.split(",").map((s) => s.trim()).filter(Boolean)
+            ? profile.expertise_tags.filter(Boolean)
             : [];
           const hydratedDiscipline = state.primaryDiscipline || (tags.length > 0 ? tags[0] : null);
           const hydratedTopics = state.topics.length > 0 ? state.topics : (tags.length > 1 ? tags.slice(1) : tags);

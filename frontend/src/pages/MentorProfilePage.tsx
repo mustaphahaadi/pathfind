@@ -92,10 +92,7 @@ const MentorProfilePage = () => {
     );
   }
 
-  const tags = mentor.expertise_tags
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
+  const tags = mentor.expertise_tags.filter(Boolean);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
