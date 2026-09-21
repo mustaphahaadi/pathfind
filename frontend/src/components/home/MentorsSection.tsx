@@ -61,7 +61,7 @@ const MentorsSection = () => {
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {mentors.slice(0, 4).map((mentor) => {
-              const tags = mentor.expertise_tags.split(",").map((t) => t.trim()).filter(Boolean);
+              const tags = mentor.expertise_tags.filter(Boolean);
               return (
                 <article
                   key={mentor.id}

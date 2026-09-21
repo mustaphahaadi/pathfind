@@ -317,7 +317,7 @@ const ProfilePage = () => {
     imageUrl: p.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
     category: "Software Engineering",
     trackId: "software-engineering",
-    tags: p.expertise_tags ? p.expertise_tags.split(",").map((s) => s.trim()) : ["Software Engineering", "Career Guidance"],
+    tags: p.expertise_tags ? p.expertise_tags.filter(Boolean) : ["Software Engineering", "Career Guidance"],
     available: true,
     verified: true,
     rating: 5,
@@ -337,7 +337,7 @@ const ProfilePage = () => {
     skillGroups: [
       {
         groupLabel: "Core Engineering",
-        skills: p.expertise_tags ? p.expertise_tags.split(",").map((s) => s.trim()) : ["Software Architecture"],
+        skills: p.expertise_tags ? p.expertise_tags.filter(Boolean) : ["Software Architecture"],
       },
     ],
     experience: [
@@ -743,7 +743,7 @@ const ProfilePage = () => {
                       imageUrl: p.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
                       category: "Software Engineering",
                       trackId: "software-engineering",
-                      tags: p.expertise_tags ? p.expertise_tags.split(",").map((s: string) => s.trim()) : ["Software Engineering"],
+                      tags: p.expertise_tags ? p.expertise_tags.filter(Boolean) : ["Software Engineering"],
                       available: true,
                       verified: true,
                       rating: 5,

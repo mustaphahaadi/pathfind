@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -924,7 +925,6 @@ def list_goals(
     current_user: User = Depends(get_current_user),
 ):
     """Retrieve goals for current user. Seeds three generic starter goals for new users."""
-    from datetime import timezone as _tz
     user_goals = (
         db.query(Goal)
         .filter(Goal.user_id == current_user.id)
@@ -933,7 +933,7 @@ def list_goals(
     )
     if not user_goals:
         # Calculate a generic "6 months out" target date so it stays relevant
-        now = datetime.now(_tz.utc)
+        now = datetime.now(timezone.utc)
         target_month = now.month + 6
         target_year = now.year + (target_month - 1) // 12
         target_month = ((target_month - 1) % 12) + 1
