@@ -65,7 +65,7 @@ const HonorCodeReviewStep = () => {
     topics.length > 0
       ? topics.map((idOrName) => getSkillLabel(idOrName))
       : user?.profile?.expertise_tags
-      ? user.profile.expertise_tags.split(",").map((s) => s.trim())
+      ? user.profile.expertise_tags.filter(Boolean)
       : [];
   const monthlyCeiling = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
 
@@ -85,12 +85,14 @@ const HonorCodeReviewStep = () => {
     setPublishError(null);
     setPublishing(true);
 
-    // Build expertise_tags: "Discipline, Topic1, Topic2, ..."
+    // Build expertise_tags as a list: [Discipline, Topic1, Topic2, ...]
     const tagParts = [
       ...(disciplineLabel ? [disciplineLabel] : []),
       ...topicLabels,
     ];
-    const expertiseTags = tagParts.join(", ") || user?.profile?.expertise_tags || "General";
+    const expertiseTags: string[] = tagParts.length > 0
+      ? tagParts
+      : (user?.profile?.expertise_tags ?? ["General"]);
 
     // Build availability string from weekly windows
     const availabilityStr =
