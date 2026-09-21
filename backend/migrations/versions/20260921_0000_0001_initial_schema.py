@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "0001"
@@ -49,7 +50,7 @@ def upgrade() -> None:
         sa.Column("role", sa.String(length=50), nullable=False),
         sa.Column(
             "verification_status",
-            sa.Enum(
+            postgresql.ENUM(
                 "pending_verification",
                 "verified",
                 "rejected",
@@ -93,7 +94,7 @@ def upgrade() -> None:
         sa.Column("mentor_id", sa.Integer(), nullable=False),
         sa.Column(
             "request_type",
-            sa.Enum(
+            postgresql.ENUM(
                 "cv_review",
                 "portfolio_feedback",
                 "career_path_conversation",
@@ -113,7 +114,14 @@ def upgrade() -> None:
         sa.Column("response_message", sa.Text(), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("pending", "accepted", "declined", "completed", name="requeststatus", create_type=False),
+            postgresql.ENUM(
+                "pending",
+                "accepted",
+                "declined",
+                "completed",
+                name="requeststatus",
+                create_type=False,
+            ),
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
