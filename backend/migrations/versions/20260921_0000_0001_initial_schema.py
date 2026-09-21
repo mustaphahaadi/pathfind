@@ -18,6 +18,28 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # ── Safely create PostgreSQL Enum types if they do not already exist ─────────
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        bind.execute(
+            sa.text("""
+            DO $$ BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'verificationstatus') THEN
+                    CREATE TYPE verificationstatus AS ENUM ('pending_verification', 'verified', 'rejected');
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requesttype') THEN
+                    CREATE TYPE requesttype AS ENUM (
+                        'cv_review', 'portfolio_feedback', 'career_path_conversation',
+                        'interview_preparation', 'role_industry_insight'
+                    );
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'requeststatus') THEN
+                    CREATE TYPE requeststatus AS ENUM ('pending', 'accepted', 'declined', 'completed');
+                END IF;
+            END $$;
+            """)
+        )
+
     # ── users ──────────────────────────────────────────────────────────────────
     op.create_table(
         "users",
@@ -32,6 +54,7 @@ def upgrade() -> None:
                 "verified",
                 "rejected",
                 name="verificationstatus",
+                create_type=False,
             ),
             nullable=False,
         ),
@@ -77,6 +100,7 @@ def upgrade() -> None:
                 "interview_preparation",
                 "role_industry_insight",
                 name="requesttype",
+                create_type=False,
             ),
             nullable=False,
         ),
@@ -89,7 +113,7 @@ def upgrade() -> None:
         sa.Column("response_message", sa.Text(), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("pending", "accepted", "declined", "completed", name="requeststatus"),
+            sa.Enum("pending", "accepted", "declined", "completed", name="requeststatus", create_type=False),
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
