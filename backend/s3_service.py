@@ -13,7 +13,21 @@ USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
 
 # Fallback to local storage if S3 not configured
 LOCAL_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
-os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+try:
+    os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+except (PermissionError, OSError) as e:
+    logger.warning(f"Could not create static upload directory '{LOCAL_UPLOAD_DIR}' at startup: {e}")
+
+
+def get_local_upload_dir():
+    """Ensure and return a writable local upload directory."""
+    try:
+        os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
+        return LOCAL_UPLOAD_DIR
+    except (PermissionError, OSError):
+        tmp_dir = os.path.join("/tmp", "uploads")
+        os.makedirs(tmp_dir, exist_ok=True)
+        return tmp_dir
 
 
 def get_s3_client():
@@ -57,20 +71,31 @@ def upload_file_to_s3(file_content, filename, content_type):
             # Make file publicly readable
             ACL="public-read",
         )
-
-        # Construct public URL
-        public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
-        logger.info(f"Successfully uploaded {filename} to S3: {public_url}")
-        return public_url, safe_filename
     except ClientError as e:
-        logger.error(f"Failed to upload {filename} to S3: {e}")
-        raise
+        error_code = e.response.get("Error", {}).get("Code", "")
+        if error_code in ("AccessControlListNotSupported", "AccessDenied", "InvalidArgument"):
+            logger.warning(f"S3 ACL failed ({error_code}), retrying put_object without ACL...")
+            s3_client.put_object(
+                Bucket=S3_BUCKET,
+                Key=key,
+                Body=file_content,
+                ContentType=content_type,
+            )
+        else:
+            logger.error(f"Failed to upload {filename} to S3: {e}")
+            raise
+
+    # Construct public URL
+    public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
+    logger.info(f"Successfully uploaded {filename} to S3: {public_url}")
+    return public_url, safe_filename
 
 
 def upload_file_locally(file_content, filename):
     """Fallback: Upload file to local filesystem."""
     safe_filename = f"{uuid4().hex}_{filename}"
-    file_path = os.path.join(LOCAL_UPLOAD_DIR, safe_filename)
+    upload_dir = get_local_upload_dir()
+    file_path = os.path.join(upload_dir, safe_filename)
 
     with open(file_path, "wb") as f:
         f.write(file_content)

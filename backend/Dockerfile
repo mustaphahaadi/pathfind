@@ -21,8 +21,10 @@ COPY --from=builder /install /usr/local
 # Copy application source (project root so `backend` package resolves correctly)
 COPY backend/ ./backend/
 
-# Non-root user for security
-RUN useradd --create-home appuser && chown -R appuser:appuser /app
+# Pre-create static upload directories and set ownership for non-root user
+RUN mkdir -p /app/backend/static/uploads && \
+    useradd --create-home appuser && \
+    chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
