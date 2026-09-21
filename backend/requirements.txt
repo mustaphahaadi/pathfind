@@ -1,19 +1,30 @@
-# FASTAPI Requirements
+# FastAPI & server
 fastapi==0.95.2
 uvicorn[standard]==0.21.1
-flake8==6.1.0
-pytest==8.3.5
+python-multipart==0.0.6
+slowapi==0.1.9
+
+# Database
 sqlalchemy==2.0.41
 alembic==1.13.3
-httpx>=0.23.0,<0.24.0
-psycopg2-binary>=2.9.9
-slowapi==0.1.9
-boto3>=1.28.0
+psycopg2-binary==2.9.13
 
 # Auth
+bcrypt==5.0.0
 passlib[bcrypt]==1.7.4
-bcrypt>=4.0.0
 python-jose[cryptography]==3.3.0
-python-dotenv==1.0.1
+
+# Validation & config
+pydantic[email]==1.10.21
 email-validator==2.2.0
-python-multipart==0.0.6
+python-dotenv==1.0.1
+
+# AWS (S3 + SES)
+boto3==1.43.97
+
+# HTTP client (used by tests)
+httpx==0.23.3
+
+# Dev / CI
+flake8==6.1.0
+pytest==8.3.5
