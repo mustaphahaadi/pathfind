@@ -2,7 +2,7 @@ name: Deploy Backend to AWS ECS
 
 on:
   push:
-    branches: [main, feat/mustapha]
+    branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy.yml'
@@ -32,7 +32,7 @@ jobs:
         run: flake8 . --max-line-length=120 --exclude=venv,.venv,tests --extend-ignore=E302,W292
 
       - name: Run tests
-        run: pytest tests/
+        run: pytest tests/ -v
 
   deploy-to-ecs:
     name: Build, Push to ECR & Deploy to ECS
