@@ -38,14 +38,19 @@ const MentorProfilePage = () => {
   const [reviews, setReviews] = useState<ReviewData[]>([]);
 
   useEffect(() => {
-    if (!mentorId) return;
+    const idNum = Number(mentorId);
+    if (!mentorId || Number.isNaN(idNum)) {
+      setError("Invalid mentor ID specified.");
+      setLoading(false);
+      return;
+    }
 
     api.mentors
-      .get(Number(mentorId))
+      .get(idNum)
       .then((data) => {
         setMentor(data);
-        // Fetch reviews for this mentor (mentor_id = user_id = mentorId param)
-        return api.reviews.list(Number(mentorId));
+        // Fetch reviews for this mentor
+        return api.reviews.list(idNum);
       })
       .then((reviewData) => {
         setReviews(reviewData as ReviewData[]);

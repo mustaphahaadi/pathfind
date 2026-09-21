@@ -56,10 +56,15 @@ const ScheduleSessionPage = () => {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (!mentorId) return;
+    const idNum = Number(mentorId);
+    if (!mentorId || Number.isNaN(idNum)) {
+      setMentorError("Invalid mentor ID specified.");
+      setLoadingMentor(false);
+      return;
+    }
     const load = async () => {
       try {
-        const data = await api.mentors.get(Number(mentorId));
+        const data = await api.mentors.get(idNum);
         setMentor(data);
       } catch (err) {
         setMentorError(err instanceof Error ? err.message : "Could not load mentor.");
