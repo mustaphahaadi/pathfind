@@ -72,14 +72,14 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "Fetching active task definition for service $ECS_SERVICE..."
-          TASK_DEF_ARN=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "services[0].taskDefinition" --output text)
+          echo "Fetching task definition family for service $ECS_SERVICE..."
+          TASK_FAMILY=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "services[0].taskDefinition" --output text | python3 -c 'import sys; print(sys.stdin.read().split("/")[-1].split(":")[0])')
           
-          echo "Downloading task definition $TASK_DEF_ARN..."
-          aws ecs describe-task-definition --task-definition $TASK_DEF_ARN --query "taskDefinition" > task-def.json
+          echo "Downloading latest active revision of task family $TASK_FAMILY..."
+          aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" > task-def.json
           
           echo "Updating image tag to $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG..."
-          python3 -c 'import json, sys; data=json.load(open("task-def.json")); [data.pop(k, None) for k in ["taskDefinitionArn", "revision", "status", "requiresAttributes", "compatibilities", "registeredAt", "registeredBy"]]; data["containerDefinitions"][0]["image"] = sys.argv[1]; json.dump(data, open("new-task-def.json", "w"))' "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          python3 -c 'import json, sys; data=json.load(open("task-def.json")); [data.pop(k, None) for k in ["taskDefinitionArn", "revision", "status", "requiresAttributes", "compatibilities", "registeredAt", "registeredBy", "deregisteredAt"]]; data["containerDefinitions"][0]["image"] = sys.argv[1]; json.dump(data, open("new-task-def.json", "w"))' "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json --query "taskDefinition.taskDefinitionArn" --output text)
           echo "Registered new task definition: $NEW_TASK_DEF_ARN"
