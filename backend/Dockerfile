@@ -28,6 +28,7 @@ RUN mkdir -p /app/backend/static/uploads && \
 USER appuser
 
 EXPOSE 8000
+ENV PYTHONPATH=/app
 
 # Production: run Alembic migrations then start Uvicorn.
 # Override CMD in docker-compose for dev (adds --reload).
