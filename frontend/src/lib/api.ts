@@ -146,7 +146,7 @@ export const api = {
       company: string;
       years_of_experience: number;
       bio: string;
-      expertise_tags: string;
+      expertise_tags: string[];
       availability: string;
       avatar_url: string | null;
       location: string | null;
