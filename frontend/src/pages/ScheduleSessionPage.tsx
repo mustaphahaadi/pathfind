@@ -55,20 +55,12 @@ const ScheduleSessionPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const [availableTypes, setAvailableTypes] = useState<string[]>([]);
-
   useEffect(() => {
     if (!mentorId) return;
     const load = async () => {
       try {
-        const [data, typesData] = await Promise.all([
-          api.mentors.get(Number(mentorId)),
-          api.requests.listTypes().catch(() => []),
-        ]);
+        const data = await api.mentors.get(Number(mentorId));
         setMentor(data);
-        if (typesData.length > 0) {
-          setAvailableTypes(typesData);
-        }
       } catch (err) {
         setMentorError(err instanceof Error ? err.message : "Could not load mentor.");
       } finally {
@@ -228,11 +220,6 @@ const ScheduleSessionPage = () => {
                   What type of session do you need?{" "}
                   <span className="text-red-500">*</span>
                 </h2>
-                {availableTypes.length > 0 && (
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
-                    Synced with API ({availableTypes.length} types)
-                  </span>
-                )}
               </div>
               <div className="mt-4 flex flex-col gap-3">
                 {REQUEST_TYPES.map((type) => {

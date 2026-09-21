@@ -26,7 +26,9 @@ const SignInPage = () => {
       const user = await api.auth.me(token.access_token);
       setAuth(token.access_token, user);
 
-      if (user.role === "mentor") {
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "mentor") {
         navigate("/mentor-dashboard");
       } else {
         useOnboardingStore.getState().initFromUser(user);

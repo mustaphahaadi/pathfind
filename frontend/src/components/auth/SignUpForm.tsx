@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import type { RoleOption } from "../../types/auth";
 import { useOnboardingStore } from "../../store/useOnboardingStore";
+import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import GoogleIcon from "../icons/GoogleIcon";
 import GitHubIcon from "../icons/GitHubIcon";
 
@@ -27,13 +28,19 @@ const SignUpForm = ({ role }: SignUpFormProps) => {
     const formData = new FormData(event.currentTarget);
     const fullName = String(formData.get("fullName") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
-    if (fullName) setFullName(fullName);
-    if (email) setEmail(email);
+    const password = String(formData.get("password") ?? "");
 
     if (role.id === "mentee") {
+      if (fullName) setFullName(fullName);
+      if (email) setEmail(email);
       navigate("/onboarding/mentee/about-you");
     } else {
-      navigate("/mentors");
+      const mentorStore = useMentorOnboardingStore.getState();
+      mentorStore.reset();
+      if (fullName) mentorStore.setFullName(fullName);
+      if (email) mentorStore.setWorkEmail(email);
+      if (password) mentorStore.setPassword(password);
+      navigate("/onboarding/mentor/identity-verification");
     }
   };
 
