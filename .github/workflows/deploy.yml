@@ -2,7 +2,7 @@ name: Deploy Backend to AWS ECS
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/mustapha]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy.yml'
