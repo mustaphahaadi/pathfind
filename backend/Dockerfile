@@ -20,6 +20,9 @@ COPY --from=builder /install /usr/local
 # Copy application source (project root so `backend` package resolves correctly)
 COPY backend/ ./backend/
 
+# Alembic config lives at project root (one level up from backend/)
+COPY backend/alembic.ini ./backend/alembic.ini
+
 # Pre-create static upload directories and set ownership for non-root user
 RUN mkdir -p /app/backend/static/uploads && \
     useradd --create-home appuser && \
@@ -28,5 +31,6 @@ USER appuser
 
 EXPOSE 8000
 
-# Production: no --reload. Override CMD in docker-compose for dev.
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Production: run Alembic migrations then start Uvicorn.
+# Override CMD in docker-compose for dev (adds --reload).
+CMD ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port 8000"]

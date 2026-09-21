@@ -55,7 +55,11 @@ from .schemas import (
     UserSettingsUpdate,
 )
 
-Base.metadata.create_all(bind=engine)
+# Schema is managed by Alembic migrations (backend/migrations/).
+# Run `alembic -c backend/alembic.ini upgrade head` before starting the server.
+# create_all is kept as a safety net for SQLite local dev and test environments only.
+if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
+    Base.metadata.create_all(bind=engine)
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")

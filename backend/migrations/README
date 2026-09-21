@@ -1,0 +1,30 @@
+Pathfind database migrations — managed by Alembic.
+
+## Common commands (run from the project root)
+
+  # Generate a new auto-migration after changing models.py
+  alembic -c backend/alembic.ini revision --autogenerate -m "describe your change"
+
+  # Apply all pending migrations
+  alembic -c backend/alembic.ini upgrade head
+
+  # Roll back the most recent migration
+  alembic -c backend/alembic.ini downgrade -1
+
+  # Show current migration state
+  alembic -c backend/alembic.ini current
+
+  # Show full migration history
+  alembic -c backend/alembic.ini history
+
+## Environment variables
+
+  DATABASE_URL   — overrides the sqlalchemy.url in alembic.ini
+                   e.g. postgresql://pathfind:secret@localhost:5432/pathfind
+
+## Docker / ECS
+
+  The Dockerfile entrypoint runs Uvicorn directly. For production deployments,
+  run migrations as a one-off task BEFORE updating the ECS service:
+
+    alembic -c backend/alembic.ini upgrade head
