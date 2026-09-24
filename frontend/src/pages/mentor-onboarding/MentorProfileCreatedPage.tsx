@@ -14,6 +14,7 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
+import { useAuthStore } from "../../store/useAuthStore";
 import { mentorDisciplines, getSkillLabel } from "../../data/mentor-onboarding/options";
 import { getInitials } from "../../lib/getInitials";
 import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
@@ -42,16 +43,10 @@ const nextSteps = [
   },
 ];
 
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
 const MentorProfileCreatedPage = () => {
   const [copied, setCopied] = useState(false);
 
+  const authUser = useAuthStore((state) => state.user);
   const avatarUrl = useMentorOnboardingStore((state) => state.avatarUrl);
   const fullName = useMentorOnboardingStore((state) => state.fullName);
   const currentTitle = useMentorOnboardingStore((state) => state.currentTitle);
@@ -65,7 +60,8 @@ const MentorProfileCreatedPage = () => {
   const disciplineLabel = mentorDisciplines.find((d) => d.id === primaryDiscipline)?.label;
   const topicLabels = topics.map(getSkillLabel);
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/m/${slugify(fullName) || "your-profile"}`;
+  const profileId = authUser?.id ?? "you";
+  const shareLink = `pathfind.org/mentors/${profileId}`;
 
   const handleCopy = async () => {
     try {
@@ -99,7 +95,7 @@ const MentorProfileCreatedPage = () => {
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
-              to="/mentors/you"
+              to={`/mentors/${profileId}`}
               className="inline-flex items-center gap-1.5 rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               View My Profile
