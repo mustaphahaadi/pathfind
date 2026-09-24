@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Circle,
   HandCoins,
+  Pencil,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -145,6 +146,14 @@ const MentorDashboardPage = () => {
                 </p>
               </div>
               <div className="flex shrink-0 gap-2.5">
+                <Link
+                  to="/onboarding/mentor/identity-verification"
+                  id="edit-profile-btn"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                >
+                  <Pencil size={16} />
+                  Edit Profile
+                </Link>
                 <Link
                   to={`/mentors/${user?.id ?? ""}`}
                   className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
