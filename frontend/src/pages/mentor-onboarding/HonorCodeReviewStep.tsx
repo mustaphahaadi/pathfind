@@ -8,6 +8,7 @@ import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/useAuthStore";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 
 const whatHappensNext = [
   {
@@ -103,29 +104,50 @@ const HonorCodeReviewStep = () => {
         : user?.profile?.availability || "Flexible";
 
     try {
-      await api.auth.signUpMentor({
-        email: effectiveWorkEmail,
-        password: password || "password123",
-        full_name: effectiveFullName || "Mentor",
-        job_title: currentTitle || user?.profile?.job_title || "Mentor",
-        company: company || user?.profile?.company || "Independent",
-        years_of_experience: yearsOfExperience || user?.profile?.years_of_experience || 1,
-        bio: motivation || user?.profile?.bio || "Passionate about helping the next generation.",
-        expertise_tags: expertiseTags,
-        availability: availabilityStr,
-        avatar_url: avatarUrl || user?.profile?.avatar_url || null,
-        location: location || user?.profile?.location || null,
-        linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
-      });
-
       const existingToken = useAuthStore.getState().token;
+
       if (existingToken) {
-        const updatedUser = await api.auth.me(existingToken);
+        const updatedUser = await api.profiles.update({
+          full_name: effectiveFullName || "Mentor",
+          job_title: currentTitle || user?.profile?.job_title || "Mentor",
+          company: company || user?.profile?.company || "Independent",
+          years_of_experience: yearsOfExperience || user?.profile?.years_of_experience || 1,
+          bio: motivation || user?.profile?.bio || "Passionate about helping the next generation.",
+          expertise_tags: expertiseTags,
+          availability: availabilityStr,
+          avatar_url: avatarUrl || user?.profile?.avatar_url || null,
+          location: location || user?.profile?.location || null,
+          linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
+          role: "mentor",
+        });
         setAuth(existingToken, updatedUser);
       } else {
-        const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
-        const updatedUser = await api.auth.me(token.access_token);
-        setAuth(token.access_token, updatedUser);
+        try {
+          await api.auth.signUpMentor({
+            email: effectiveWorkEmail,
+            password: password || "password123",
+            full_name: effectiveFullName || "Mentor",
+            job_title: currentTitle || user?.profile?.job_title || "Mentor",
+            company: company || user?.profile?.company || "Independent",
+            years_of_experience: yearsOfExperience || user?.profile?.years_of_experience || 1,
+            bio: motivation || user?.profile?.bio || "Passionate about helping the next generation.",
+            expertise_tags: expertiseTags,
+            availability: availabilityStr,
+            avatar_url: avatarUrl || user?.profile?.avatar_url || null,
+            location: location || user?.profile?.location || null,
+            linkedin_url: linkedinUrl || user?.profile?.linkedin_url || null,
+          });
+
+          const token = await api.auth.signIn({ email: effectiveWorkEmail, password: password || "password123" });
+          const updatedUser = await api.auth.me(token.access_token);
+          setAuth(token.access_token, updatedUser);
+        } catch (err: unknown) {
+          if (err instanceof Error && err.message.includes("Email already registered")) {
+            setPublishError("This email is already registered. Please sign in to your account to publish profile updates.");
+            return;
+          }
+          throw err;
+        }
       }
 
       completeOnboarding();
@@ -155,7 +177,7 @@ const HonorCodeReviewStep = () => {
           <div className="mt-5 flex items-start justify-between gap-3 border-t border-surface-line pt-5">
             <div className="flex items-center gap-3">
               {avatarUrl ? (
-                <img src={avatarUrl} alt={fullName} className="h-14 w-14 rounded-full object-cover" />
+                <img src={resolveMediaUrl(avatarUrl)!} alt={fullName} className="h-14 w-14 rounded-full object-cover" />
               ) : (
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-base font-bold text-white">
                   {getInitials(fullName)}

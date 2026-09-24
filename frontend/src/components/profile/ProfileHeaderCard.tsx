@@ -6,6 +6,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { technicalTracks } from "../../data/onboarding/technicalTracks";
 import { getInitials } from "../../lib/getInitials";
 import { getProfileReadiness } from "../../lib/getProfileReadiness";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 
 const ProfileHeaderCard = () => {
   const user = useAuthStore((s) => s.user);
@@ -43,7 +44,7 @@ const ProfileHeaderCard = () => {
           <div className="relative z-10 flex items-end gap-4">
             {avatarUrl ? (
               <img
-                src={avatarUrl}
+                src={resolveMediaUrl(avatarUrl)!}
                 alt={name}
                 className="h-20 w-20 rounded-2xl border-4 border-white bg-white object-cover shadow-md ring-2 ring-slate-900/10"
               />

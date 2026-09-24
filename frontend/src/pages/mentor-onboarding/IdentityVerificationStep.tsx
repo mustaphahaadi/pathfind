@@ -6,6 +6,7 @@ import { mentorOnboardingStepPath } from "../../data/mentor-onboarding/steps";
 import { getInitials } from "../../lib/getInitials";
 import SidebarInfoCard from "../../components/mentor-onboarding/SidebarInfoCard";
 import { api } from "../../lib/api";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 
 const IdentityVerificationStep = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +47,8 @@ const IdentityVerificationStep = () => {
     setUploading(true);
     try {
       const result = await api.upload(file);
-      setAvatarUrl(`http://localhost:8000${result.url}`);
+      const fullUrl = resolveMediaUrl(result.url);
+      setAvatarUrl(fullUrl);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -73,7 +75,7 @@ const IdentityVerificationStep = () => {
         {/* Avatar upload */}
         <div className="mt-5 flex flex-col gap-4 rounded-2xl bg-surface p-4 sm:flex-row sm:items-center">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Headshot preview" className="h-16 w-16 rounded-full object-cover" />
+            <img src={resolveMediaUrl(avatarUrl)!} alt="Headshot preview" className="h-16 w-16 rounded-full object-cover" />
           ) : (
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink text-lg font-bold text-white">
               {getInitials(fullName)}
