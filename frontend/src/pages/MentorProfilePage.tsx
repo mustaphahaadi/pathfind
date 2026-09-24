@@ -50,7 +50,6 @@ const MentorProfilePage = () => {
   useEffect(() => {
     if (!resolvedMentorId || Number.isNaN(resolvedMentorId)) return;
 
-    setLoading(true);
     api.mentors
       .get(resolvedMentorId)
       .then((data) => {
