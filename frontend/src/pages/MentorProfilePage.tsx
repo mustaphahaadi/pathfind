@@ -18,6 +18,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { api } from "../lib/api";
 import { getInitials } from "../lib/getInitials";
+import { resolveMediaUrl } from "../lib/resolveMediaUrl";
 import type { MentorProfileRead } from "../types/api";
 interface ReviewData {
   id: number;
@@ -119,7 +120,7 @@ const MentorProfilePage = () => {
           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
             {mentor.avatar_url ? (
               <img
-                src={mentor.avatar_url}
+                src={resolveMediaUrl(mentor.avatar_url)!}
                 alt={mentor.full_name}
                 className="h-24 w-24 shrink-0 rounded-2xl object-cover"
               />

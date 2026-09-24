@@ -94,3 +94,23 @@ def test_signin_nonexistent_user(client):
         "password": "whatever"
     })
     assert response.status_code == 401
+
+
+def test_update_profile_to_mentor(client):
+    signup(client, "user_to_mentor@example.com", role="mentee")
+    token = token_for(client, "user_to_mentor@example.com")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.patch("/profiles/me", json={
+        "full_name": "New Mentor Name",
+        "job_title": "Senior DevOps Engineer",
+        "company": "Tech Corp",
+        "role": "mentor"
+    }, headers=headers)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["role"] == "mentor"
+    assert data["verification_status"] == "pending_verification"
+    assert data["profile"]["full_name"] == "New Mentor Name"
+    assert data["profile"]["job_title"] == "Senior DevOps Engineer"

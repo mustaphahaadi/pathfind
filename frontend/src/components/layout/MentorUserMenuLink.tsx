@@ -11,6 +11,7 @@ import {
 import { useMentorOnboardingStore } from "../../store/useMentorOnboardingStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { getInitials } from "../../lib/getInitials";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 
 interface MentorUserMenuLinkProps {
@@ -42,7 +43,7 @@ const MentorUserMenuLink = ({ className = "", isOverlay = false }: MentorUserMen
 
   const avatar = avatarUrl ? (
     <img
-      src={avatarUrl}
+      src={resolveMediaUrl(avatarUrl)!}
       alt={fullName}
       className={`h-9 w-9 shrink-0 rounded-full object-cover ring-2 ${
         isOverlay ? "ring-white/80" : "ring-black/10"

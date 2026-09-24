@@ -13,6 +13,7 @@ import { useSessionsStore } from "../../store/useSessionsStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { statusOptions } from "../../data/onboarding/statusOptions";
 import { getInitials } from "../../lib/getInitials";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 import AccountMenu, { type AccountMenuItem } from "./AccountMenu";
 
 interface UserMenuLinkProps {
@@ -46,7 +47,7 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
 
   const avatar = avatarUrl ? (
     <img
-      src={avatarUrl}
+      src={resolveMediaUrl(avatarUrl)!}
       alt={fullName}
       className={`h-9 w-9 shrink-0 rounded-full object-cover ring-2 ${
         isOverlay ? "ring-white/80" : "ring-black/10"

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { getInitials } from "../../lib/getInitials";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 import type { MentorProfileRead } from "../../types/api";
 
 const MentorsSection = () => {
@@ -71,7 +72,7 @@ const MentorsSection = () => {
                     <div className="flex items-start gap-3">
                       {mentor.avatar_url ? (
                         <img
-                          src={mentor.avatar_url}
+                          src={resolveMediaUrl(mentor.avatar_url)!}
                           alt={mentor.full_name}
                           className="h-14 w-14 rounded-full object-cover shrink-0"
                         />
