@@ -41,6 +41,7 @@ from .schemas import (
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
+    MentorshipRequestCancel,
     MentorProfileRead,
     MentorReviewCreate,
     MentorReviewRead,
@@ -544,9 +545,10 @@ def update_mentorship_request_status(
     return read_obj
 
 
-@app.delete("/mentorship-requests/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/mentorship-requests/{request_id}/cancel", response_model=MentorshipRequestRead)
 def cancel_mentorship_request(
     request_id: str,
+    payload: MentorshipRequestCancel,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -563,9 +565,17 @@ def cancel_mentorship_request(
     if mentorship_request.status != RequestStatus.PENDING:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending requests can be cancelled")
 
-    db.delete(mentorship_request)
+    mentorship_request.status = RequestStatus.CANCELLED
+    mentorship_request.cancellation_reason = payload.reason
     db.commit()
-    return None
+    db.refresh(mentorship_request)
+
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
+    read_obj.mentee_email = mentorship_request.mentee.email
+    read_obj.mentor_email = mentorship_request.mentor.email
+    if mentorship_request.mentor and mentorship_request.mentor.profile:
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
+    return read_obj
 
 
 @app.get("/mentorship-request-types")

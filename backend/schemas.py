@@ -164,6 +164,10 @@ class MentorshipRequestStatusUpdate(BaseModel):
     meeting_link: str | None = None
 
 
+class MentorshipRequestCancel(BaseModel):
+    reason: str
+
+
 class MentorshipRequestRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -178,7 +182,9 @@ class MentorshipRequestRead(BaseModel):
     github_url: str | None = None
     meeting_link: str | None = None
     response_message: str | None = None
+    cancellation_reason: str | None = None
     status: RequestStatus
+
     created_at: datetime
     updated_at: datetime
     mentee_email: str | None = None

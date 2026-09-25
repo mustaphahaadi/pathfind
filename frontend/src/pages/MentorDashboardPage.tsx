@@ -631,6 +631,50 @@ const MentorDashboardPage = () => {
                   </ul>
                 </div>
               )}
+
+              {/* Cancelled Requests */}
+              {requests.filter((r) => r.status === "cancelled").length > 0 && (
+                <div className="mt-8 border-t border-surface-line pt-6">
+                  <p className="text-sm font-bold uppercase tracking-wider text-ink/50">
+                    Cancelled by Mentee ({requests.filter((r) => r.status === "cancelled").length})
+                  </p>
+                  <ul className="mt-3 space-y-3">
+                    {requests
+                      .filter((r) => r.status === "cancelled")
+                      .map((req) => (
+                        <li
+                          key={req.id}
+                          className="rounded-xl border border-red-100 bg-red-50/30 p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="text-sm font-semibold text-ink/60 line-through">
+                                {req.subject}
+                              </p>
+                              <p className="text-xs text-ink/50">
+                                {req.mentee_email} &middot; Cancelled on{" "}
+                                {new Date(req.updated_at).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </p>
+                              {req.cancellation_reason && (
+                                <div className="mt-2 text-xs text-red-800">
+                                  <span className="font-bold">Cancellation Reason: </span>
+                                  &ldquo;{req.cancellation_reason}&rdquo;
+                                </div>
+                              )}
+                            </div>
+                            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">
+                              Cancelled
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 

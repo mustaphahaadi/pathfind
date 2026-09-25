@@ -2,12 +2,12 @@ import type { Mentor } from "../types/mentor";
 
 export const mentors: Mentor[] = [
   {
-    id: "akosua-boateng",
-    name: "Akosua Boateng",
+    id: "nia-williams",
+    name: "Nia Williams",
     role: "Principal Product Designer",
     company: "Hubtel",
     imageUrl:
-      "https://images.unsplash.com/photo-1589156215223-fe5e57df7572?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_f1.png",
     category: "UX & Product Design",
     trackId: "ui-ux-design",
     tags: ["Career Transition", "Design Systems", "Figma Mentorship", "Portfolio Critique"],
@@ -28,7 +28,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "Great design careers aren't built on talent alone — they're built on narrative. I help people find the through-line in their story and defend it with confidence.",
     aboutParagraphs: [
-      "Hi, I'm Akosua. I lead product design at Hubtel, Ghana's leading mobile commerce platform, working across design systems, payments UX, and the craft that ties them together.",
+      "Hi, I'm Nia. I lead product design at Hubtel, Ghana's leading mobile commerce platform, working across design systems, payments UX, and the craft that ties them together.",
       "Before Hubtel I was a design lead at mPharma, and before that I was a working graphic artist with zero formal UX training. I volunteer on Pathfind because someone once gave me 45 minutes that changed my trajectory — I'm just passing it forward.",
     ],
     skillGroups: [
@@ -61,10 +61,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Abena N.",
+        reviewerName: "Aaliyah N.",
         reviewerRole: "Junior Designer, career switcher",
         quote:
-          "Akosua tore my portfolio apart in the best way. I rebuilt two case studies around her feedback and got three callbacks the same month.",
+          "Nia tore my portfolio apart in the best way. I rebuilt two case studies around her feedback and got three callbacks the same month.",
         sessionTopic: "Portfolio Critique",
         date: "September 2, 2024",
       },
@@ -79,12 +79,12 @@ export const mentors: Mentor[] = [
     ],
   },
   {
-    id: "kwame-mensah",
-    name: "Kwame Mensah",
+    id: "jamal-washington",
+    name: "Jamal Washington",
     role: "Staff Backend Architect",
     company: "AmaliTech",
     imageUrl:
-      "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_1.png",
     category: "Software Engineering",
     trackId: "software-engineering",
     tags: ["Python & FastAPI", "Self-Taught Path", "Code Reviews", "Backend Systems"],
@@ -105,7 +105,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "You don't need a CS degree to think like an architect — you need mental models. I teach the models, not just the syntax.",
     aboutParagraphs: [
-      "Hi, I'm Kwame. I lead backend architecture at AmaliTech, working on the systems that power digital services for clients across Africa and Europe.",
+      "Hi, I'm Jamal. I lead backend architecture at AmaliTech, working on the systems that power digital services for clients across Africa and Europe.",
       "I taught myself to code from YouTube tutorials and Stack Overflow after a business administration degree. I mentor self-taught and bootcamp engineers because I know exactly how disorienting that path can feel from the inside.",
     ],
     skillGroups: [
@@ -136,10 +136,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Kofi K.",
+        reviewerName: "Malik K.",
         reviewerRole: "Self-taught developer",
         quote:
-          "Kwame explained Python async programming in a way that finally clicked after months of confusion. Worth ten YouTube tutorials.",
+          "Jamal explained Python async programming in a way that finally clicked after months of confusion. Worth ten YouTube tutorials.",
         sessionTopic: "Code Reviews",
         date: "October 1, 2024",
       },
@@ -154,12 +154,12 @@ export const mentors: Mentor[] = [
     ],
   },
   {
-    id: "kofi-asante",
-    name: "Kofi Asante",
+    id: "malik-johnson",
+    name: "Malik Johnson",
     role: "Engineering Lead",
     company: "Zeepay",
     imageUrl:
-      "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_2.png",
     category: "Software Engineering",
     trackId: "software-engineering",
     tags: ["Fullstack Web", "React & TypeScript", "Junior Mentorship", "Career Roadmapping"],
@@ -180,7 +180,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "The gap between 'I can code' and 'I got hired' is almost always project quality and communication, not raw skill. I coach both.",
     aboutParagraphs: [
-      "Hi, I'm Kofi. I lead the core product engineering team at Zeepay, working across the fullstack from design systems to infrastructure powering cross-border remittances.",
+      "Hi, I'm Malik. I lead the core product engineering team at Zeepay, working across the fullstack from design systems to infrastructure powering cross-border remittances.",
       "I bootcamp-switched into tech from an accounting career six years ago. I mentor junior and self-taught engineers on making their portfolio projects look and feel production-ready, not like tutorials.",
     ],
     skillGroups: [
@@ -211,10 +211,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Yaw L.",
+        reviewerName: "Jasmine L.",
         reviewerRole: "Bootcamp graduate",
         quote:
-          "Kofi rebuilt my mental model of what a 'portfolio-ready' project actually looks like. I shipped a real deploy the same week.",
+          "Malik rebuilt my mental model of what a 'portfolio-ready' project actually looks like. I shipped a real deploy the same week.",
         sessionTopic: "React & TypeScript",
         date: "September 27, 2024",
       },
@@ -229,12 +229,12 @@ export const mentors: Mentor[] = [
     ],
   },
   {
-    id: "abena-owusu",
-    name: "Abena Owusu",
+    id: "aaliyah-brown",
+    name: "Aaliyah Brown",
     role: "Fullstack Tech Lead",
     company: "MTN Ghana",
     imageUrl:
-      "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_f2.png",
     category: "Software Engineering",
     trackId: "software-engineering",
     tags: ["Career Switching", "Interview Preparation", "System Architecture", "Resume Review"],
@@ -255,7 +255,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "Interviews are a communication skill, not just a technical one. I coach people to narrate their thinking, not just arrive at the right answer.",
     aboutParagraphs: [
-      "Hi, I'm Abena. I lead a fullstack team at MTN Ghana working on internal tooling for the MoMo (Mobile Money) platform.",
+      "Hi, I'm Aaliyah. I lead a fullstack team at MTN Ghana working on internal tooling for the MoMo (Mobile Money) platform.",
       "I've sat on both sides of hundreds of interview loops. I volunteer on Pathfind to demystify the process for people who don't have an insider coaching them through it.",
     ],
     skillGroups: [
@@ -286,10 +286,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Nana R.",
+        reviewerName: "Marcus R.",
         reviewerRole: "Career switcher",
         quote:
-          "Abena's mock interview was harder than my actual onsite. I walked in prepared and got the offer.",
+          "Aaliyah's mock interview was harder than my actual onsite. I walked in prepared and got the offer.",
         sessionTopic: "Interview Preparation",
         date: "July 22, 2024",
       },
@@ -304,12 +304,12 @@ export const mentors: Mentor[] = [
     ],
   },
   {
-    id: "nana-yeboah",
-    name: "Nana Yeboah",
+    id: "marcus-davis",
+    name: "Marcus Davis",
     role: "Senior Product Manager",
     company: "Fido",
     imageUrl:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_3.png",
     category: "Product Management",
     trackId: "product-management",
     tags: ["Product Strategy", "Engineering to PM", "Stakeholder Comms", "Mock Interviews"],
@@ -330,7 +330,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "Tech gatekeeping has historically excluded brilliant outsiders. I volunteer 100% of my advisory time to give first-generation graduates, career switchers, and ambitious Ghanaian operators the exact strategic frameworks, promotion navigation, and interview prep I had to piece together alone.",
     aboutParagraphs: [
-      "Hi, I'm Nana. I currently lead product for Fido, Ghana's leading digital credit platform, helping thousands of Ghanaians access instant loans through mobile money.",
+      "Hi, I'm Marcus. I currently lead product for Fido, Ghana's leading digital credit platform, helping thousands of Ghanaians access instant loans through mobile money.",
       "Before Fido, I spent nearly 4 years at Jumia scaling seller onboarding, marketplace discovery, and logistics operations across West Africa. I began my tech career by launching a bootstrapped agri-marketplace startup that failed quietly, but taught me every foundational lesson about customer discovery, 0-to-1 PM execution, and high-velocity shipping.",
       "Whether you need candid feedback on your product teardown, advice on managing high-stakes stakeholder conflicts, or a rigorous mock PM interview, my goal is to give you clarity and unfair leverage for your next step.",
     ],
@@ -387,10 +387,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Adwoa K.",
+        reviewerName: "Ebony K.",
         reviewerRole: "Associate Product Manager at Zeepay",
         quote:
-          "Nana was extraordinarily tactical. We did a 45-minute product sense mock and his debrief was ten times more insightful than paid prep services. Received my official offer two weeks later!",
+          "Marcus was extraordinarily tactical. We did a 45-minute product sense mock and his debrief was ten times more insightful than paid prep services. Received my official offer two weeks later!",
         sessionTopic: "Mock PM Interview",
         date: "October 12, 2024",
       },
@@ -398,7 +398,7 @@ export const mentors: Mentor[] = [
         reviewerName: "Emmanuel R.",
         reviewerRole: "Senior PM at FinTech Startup",
         quote:
-          "What makes Nana special is his total lack of ego. He walked through our onboarding conversion drop-off curves and helped me restructure how I communicate metrics to our founders.",
+          "What makes Marcus special is his total lack of ego. He walked through our onboarding conversion drop-off curves and helped me restructure how I communicate metrics to our founders.",
         sessionTopic: "Growth Modeling & Metrics",
         date: "September 28, 2024",
       },
@@ -406,19 +406,19 @@ export const mentors: Mentor[] = [
         reviewerName: "Cynthia D.",
         reviewerRole: "Product Lead at SaaS Scale-up",
         quote:
-          "Helped me assemble a rock-solid calibration artifact for my Staff PM promo packet. Nana pointed out two areas where I was underselling my team's impact. Promoted last month!",
+          "Helped me assemble a rock-solid calibration artifact for my Staff PM promo packet. Marcus pointed out two areas where I was underselling my team's impact. Promoted last month!",
         sessionTopic: "Staff / Senior PM Promotion",
         date: "August 19, 2024",
       },
     ],
   },
   {
-    id: "yaw-ofori",
-    name: "Yaw Ofori",
+    id: "jasmine-jones",
+    name: "Jasmine Jones",
     role: "VP of Engineering",
     company: "Turaco",
     imageUrl:
-      "https://images.unsplash.com/photo-1471879832106-c7ab9e0cee23?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_f3.png",
     category: "Software Engineering",
     trackId: "devops-cloud",
     tags: ["Eng Leadership", "Team Scaling", "Cloud & DevOps", "Career Growth"],
@@ -439,7 +439,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "Management is a craft you can learn deliberately, the same way you learned to code. I teach the deliberate practice, not just the platitudes.",
     aboutParagraphs: [
-      "Hi, I'm Yaw. I lead engineering at Turaco, scaling teams across the platform and embedded insurance operations across Africa.",
+      "Hi, I'm Jasmine. I lead engineering at Turaco, scaling teams across the platform and embedded insurance operations across Africa.",
       "I made the jump from senior IC to manager twice — once badly, once well. I mentor engineers weighing that same transition, or already in it and looking for a sounding board.",
     ],
     skillGroups: [
@@ -470,10 +470,10 @@ export const mentors: Mentor[] = [
     ],
     reviews: [
       {
-        reviewerName: "Kojo B.",
+        reviewerName: "Terrence B.",
         reviewerRole: "Senior engineer weighing management",
         quote:
-          "Yaw gave me the most honest breakdown of what the IC-to-manager switch actually costs and gains. No spin, just clarity.",
+          "Jasmine gave me the most honest breakdown of what the IC-to-manager switch actually costs and gains. No spin, just clarity.",
         sessionTopic: "Career Growth",
         date: "June 4, 2024",
       },
@@ -488,12 +488,12 @@ export const mentors: Mentor[] = [
     ],
   },
   {
-    id: "adwoa-addo",
-    name: "Adwoa Addo",
+    id: "ebony-taylor",
+    name: "Ebony Taylor",
     role: "Technical Writer",
     company: "Paystack",
     imageUrl:
-      "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=400&h=500&fit=crop&crop=faces&q=80",
+      "/mentors/mentor_f4.png",
     category: "Technical Writing",
     trackId: "other",
     tags: ["API Docs", "Style Guides", "Editing"],
@@ -514,7 +514,7 @@ export const mentors: Mentor[] = [
     philosophy:
       "Good documentation is a product surface, not an afterthought. I help engineers write docs their users actually finish reading.",
     aboutParagraphs: [
-      "Hi, I'm Adwoa. I write and edit developer-facing documentation at Paystack, working across several public API surfaces used by thousands of Ghanaian and Nigerian businesses.",
+      "Hi, I'm Ebony. I write and edit developer-facing documentation at Paystack, working across several public API surfaces used by thousands of Ghanaian and Nigerian businesses.",
       "I mentor engineers who want their writing — docs, RFCs, or promo packets — to land as clearly as their code does.",
     ],
     skillGroups: [
@@ -544,7 +544,7 @@ export const mentors: Mentor[] = [
         reviewerName: "Kwesi S.",
         reviewerRole: "Backend engineer",
         quote:
-          "Adwoa edited my API reference docs and the improvement in clarity was night and day. She explains the 'why' behind every edit.",
+          "Ebony edited my API reference docs and the improvement in clarity was night and day. She explains the 'why' behind every edit.",
         sessionTopic: "API Docs",
         date: "May 9, 2024",
       },

@@ -271,10 +271,13 @@ const ProfilePage = () => {
     }
   };
   const handleCancelRequest = async (requestId: string) => {
+    const reason = window.prompt("Please provide a reason for cancelling this request:");
+    if (!reason) return;
+
     setCancellingId(requestId);
     try {
-      await api.requests.cancel(requestId);
-      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+      const updatedReq = await api.requests.cancel(requestId, reason);
+      setRequests((prev) => prev.map((r) => (r.id === requestId ? updatedReq : r)));
     } catch {
       // ignore
     } finally {
@@ -655,14 +658,14 @@ const ProfilePage = () => {
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                               req.status === "accepted"
                                 ? "bg-accent-green/10 text-accent-green"
-                                : req.status === "declined"
+                                : req.status === "declined" || req.status === "cancelled"
                                 ? "bg-red-50 text-red-600"
                                 : "bg-accent-gold/10 text-accent-gold"
                             }`}
                           >
                             {req.status === "accepted" ? (
                               <CheckCircle2 size={12} />
-                            ) : req.status === "declined" ? (
+                            ) : req.status === "declined" || req.status === "cancelled" ? (
                               <XCircle size={12} />
                             ) : (
                               <Clock size={12} />
@@ -689,6 +692,13 @@ const ProfilePage = () => {
                           >
                             <span className="font-bold">Mentor Note: </span>
                             &ldquo;{req.response_message}&rdquo;
+                          </div>
+                        )}
+
+                        {req.cancellation_reason && (
+                          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                            <span className="font-bold">Cancellation Reason: </span>
+                            &ldquo;{req.cancellation_reason}&rdquo;
                           </div>
                         )}
                       </div>
