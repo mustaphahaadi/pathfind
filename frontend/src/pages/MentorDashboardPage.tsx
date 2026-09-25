@@ -53,17 +53,20 @@ const MentorDashboardPage = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [activeModalRequest, setActiveModalRequest] = useState<{ id: string; status: "accepted" | "declined" } | null>(null);
   const [responseNote, setResponseNote] = useState("");
+  const [meetingLink, setMeetingLink] = useState("");
 
-  const handleStatusChange = async (requestId: string, status: "accepted" | "declined" | "completed", message?: string) => {
+  const handleStatusChange = async (requestId: string, status: "accepted" | "declined" | "completed", message?: string, link?: string) => {
     setActionLoading(requestId);
     try {
       const updated = await api.requests.updateStatus(requestId, {
         status,
         response_message: message || undefined,
+        meeting_link: link || undefined,
       });
       setRequests((prev) => prev.map((r) => (r.id === requestId ? updated : r)));
       setActiveModalRequest(null);
       setResponseNote("");
+      setMeetingLink("");
     } catch {
       // keep existing state
     } finally {
@@ -727,6 +730,19 @@ const MentorDashboardPage = () => {
                               <span className="font-bold">Your Note to Mentee: </span>&ldquo;{req.response_message}&rdquo;
                             </p>
                           )}
+                          {req.meeting_link && (
+                            <p className="mt-2 text-xs text-ink/80">
+                              <span className="font-bold">Meeting Link: </span>
+                              <a
+                                href={req.meeting_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-medium text-accent-blue underline hover:opacity-80 break-all"
+                              >
+                                {req.meeting_link}
+                              </a>
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -856,10 +872,27 @@ const MentorDashboardPage = () => {
               className="mt-3 w-full rounded-xl border border-surface-line p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink"
             />
 
+            {activeModalRequest.status === "accepted" && (
+              <div className="mt-3">
+                <label className="block text-xs font-semibold text-ink">Meeting / Video Link (optional)</label>
+                <input
+                  type="url"
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                  placeholder="https://meet.google.com/abc-defg-hij"
+                  className="mt-1 w-full rounded-xl border border-surface-line p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ink"
+                />
+              </div>
+            )}
+
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setActiveModalRequest(null)}
+                onClick={() => {
+                  setActiveModalRequest(null);
+                  setResponseNote("");
+                  setMeetingLink("");
+                }}
                 className="rounded-xl border border-surface-line bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-surface"
               >
                 Cancel
@@ -867,7 +900,7 @@ const MentorDashboardPage = () => {
               <button
                 type="button"
                 disabled={actionLoading === activeModalRequest.id}
-                onClick={() => handleStatusChange(activeModalRequest.id, activeModalRequest.status, responseNote)}
+                onClick={() => handleStatusChange(activeModalRequest.id, activeModalRequest.status, responseNote, meetingLink)}
                 className={`rounded-xl px-4 py-2 text-xs font-bold text-white ${
                   activeModalRequest.status === "accepted" ? "bg-accent-green" : "bg-red-600"
                 }`}
