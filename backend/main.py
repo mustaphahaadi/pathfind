@@ -6,14 +6,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
+from typing import cast, Callable, Awaitable
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import Response as StarletteResponse
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
-from .database import Base, SessionLocal, engine
+from .database import SessionLocal, init_db
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
 from .s3_service import upload_file as upload_to_storage
 from .models import (
@@ -38,6 +41,7 @@ from .schemas import (
     MentorshipRequestCreate,
     MentorshipRequestRead,
     MentorshipRequestStatusUpdate,
+    MentorshipRequestCancel,
     MentorProfileRead,
     MentorReviewCreate,
     MentorReviewRead,
@@ -57,16 +61,15 @@ from .schemas import (
     _list_to_str,
 )
 
-# Schema is managed by Alembic migrations (backend/migrations/).
-# Run `alembic -c backend/alembic.ini upgrade head` before starting the server.
-# create_all is kept as a safety net for SQLite local dev and test environments only.
-if os.getenv("DATABASE_URL", "").startswith("sqlite") or not os.getenv("DATABASE_URL"):
-    Base.metadata.create_all(bind=engine)
+init_db()
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(
+    RateLimitExceeded,
+    cast(Callable[[StarletteRequest, Exception], StarletteResponse], _rate_limit_exceeded_handler),
+)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
@@ -248,8 +251,8 @@ def update_user_settings(
 @limiter.limit("3/minute")
 def signup(
     user: UserCreate,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
@@ -293,8 +296,8 @@ def signup(
 @limiter.limit("3/minute")
 def signup_mentor(
     payload: UserCreateMentor,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
@@ -333,8 +336,8 @@ def signup_mentor(
 @limiter.limit("5/minute")
 def signin(
     credentials: UserLogin,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user or not verify_password(credentials.password, user.hashed_password):
@@ -413,8 +416,10 @@ def create_mentorship_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    mentor_user = db.get(User, payload.mentor_id)
-    if mentor_user is None or mentor_user.role != "mentor":
+    # verify mentor exists and is a mentor
+    # pyrefly: ignore [unnecessary-type-conversion]
+    mentor = db.get(User, int(payload.mentor_id))
+    if mentor is None or mentor.role != "mentor":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mentor not found")
 
     request_record = MentorshipRequest(
@@ -435,7 +440,7 @@ def create_mentorship_request(
 
     background_tasks.add_task(
         notify_mentor_new_request,
-        mentor_email=mentor_user.email,
+        mentor_email=mentor.email,
         mentee_name=_get_user_display_name(current_user),
         mentee_email=current_user.email,
         subject_title=payload.subject,
@@ -472,12 +477,12 @@ def list_mentorship_requests(
     # Populate email details and profile info for response
     output = []
     for r in results:
-        read_obj = MentorshipRequestRead.from_orm(r)
+        read_obj = MentorshipRequestRead.model_validate(r)
         if current_user.id in (r.mentee_id, r.mentor_id):
             read_obj.mentee_email = r.mentee.email
             read_obj.mentor_email = r.mentor.email
         if r.mentor and r.mentor.profile:
-            read_obj.mentor_profile = MentorProfileRead.from_orm(r.mentor.profile)
+            read_obj.mentor_profile = MentorProfileRead.model_validate(r.mentor.profile)
         output.append(read_obj)
 
     return output
@@ -496,11 +501,11 @@ def get_mentorship_request(
     if current_user.id not in (mentorship_request.mentee_id, mentorship_request.mentor_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    read_obj = MentorshipRequestRead.from_orm(mentorship_request)
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
     read_obj.mentee_email = mentorship_request.mentee.email
     read_obj.mentor_email = mentorship_request.mentor.email
     if mentorship_request.mentor and mentorship_request.mentor.profile:
-        read_obj.mentor_profile = MentorProfileRead.from_orm(mentorship_request.mentor.profile)
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
     return read_obj
 
 
@@ -539,17 +544,18 @@ def update_mentorship_request_status(
         response_message=payload.response_message,
     )
 
-    read_obj = MentorshipRequestRead.from_orm(mentorship_request)
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
     read_obj.mentee_email = mentorship_request.mentee.email
     read_obj.mentor_email = mentorship_request.mentor.email
     if mentorship_request.mentor and mentorship_request.mentor.profile:
-        read_obj.mentor_profile = MentorProfileRead.from_orm(mentorship_request.mentor.profile)
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
     return read_obj
 
 
-@app.delete("/mentorship-requests/{request_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/mentorship-requests/{request_id}/cancel", response_model=MentorshipRequestRead)
 def cancel_mentorship_request(
     request_id: str,
+    payload: MentorshipRequestCancel,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -566,9 +572,17 @@ def cancel_mentorship_request(
     if mentorship_request.status != RequestStatus.PENDING:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending requests can be cancelled")
 
-    db.delete(mentorship_request)
+    mentorship_request.status = RequestStatus.CANCELLED
+    mentorship_request.cancellation_reason = payload.reason
     db.commit()
-    return None
+    db.refresh(mentorship_request)
+
+    read_obj = MentorshipRequestRead.model_validate(mentorship_request)
+    read_obj.mentee_email = mentorship_request.mentee.email
+    read_obj.mentor_email = mentorship_request.mentor.email
+    if mentorship_request.mentor and mentorship_request.mentor.profile:
+        read_obj.mentor_profile = MentorProfileRead.model_validate(mentorship_request.mentor.profile)
+    return read_obj
 
 
 @app.get("/mentorship-request-types")
@@ -748,7 +762,7 @@ def upload_file(
 
     # Read file content
     file_content = file.file.read()
-    original_filename = os.path.basename(file.filename)
+    original_filename = os.path.basename(file.filename or "upload")
 
     # Upload to S3 or local storage via s3_service
     url, safe_filename = upload_to_storage(
@@ -796,10 +810,10 @@ def list_saved_mentors(
     items = db.query(SavedMentor).filter(SavedMentor.user_id == current_user.id).all()
     output = []
     for item in items:
-        read_obj = SavedMentorRead.from_orm(item)
+        read_obj = SavedMentorRead.model_validate(item)
         mentor_user = db.get(User, item.mentor_id)
         if mentor_user and mentor_user.profile:
-            read_obj.mentor_profile = MentorProfileRead.from_orm(mentor_user.profile)
+            read_obj.mentor_profile = MentorProfileRead.model_validate(mentor_user.profile)
         output.append(read_obj)
     return output
 
@@ -919,7 +933,8 @@ def update_session_note(
     if note.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    for field, value in payload.dict(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
         setattr(note, field, value)
 
     db.commit()
@@ -1013,7 +1028,8 @@ def update_goal(
     if goal.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    for field, value in payload.dict(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
         setattr(goal, field, value)
 
     db.commit()

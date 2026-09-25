@@ -203,8 +203,11 @@ export const api = {
         body: JSON.stringify(payload),
       }),
 
-    cancel: (id: string) =>
-      request<void>(`/mentorship-requests/${id}`, { method: "DELETE" }),
+    cancel: (id: string, reason: string) =>
+      request<MentorshipRequestRead>(`/mentorship-requests/${id}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      }),
 
     listTypes: () => request<string[]>("/mentorship-request-types"),
   },

@@ -13,7 +13,7 @@ export type RequestType =
   | "interview_preparation"
   | "role_industry_insight";
 
-export type RequestStatus = "pending" | "accepted" | "declined" | "completed";
+export type RequestStatus = "pending" | "accepted" | "declined" | "completed" | "cancelled";
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
@@ -61,6 +61,7 @@ export interface MentorshipRequestRead {
   github_url: string | null;
   meeting_link: string | null;
   response_message: string | null;
+  cancellation_reason: string | null;
   status: RequestStatus;
   created_at: string;
   updated_at: string;

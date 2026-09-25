@@ -8,33 +8,33 @@ import { testimonials } from "../data/testimonials";
 const extendedStories = [
   ...testimonials,
   {
-    id: "kwame-mensah",
+    id: "kofi-asante",
     quote:
-      "Transitioning into cloud architecture felt impossible until my Pathfind mentor walked me through real Terraform modules and AWS IAM policies. Within 2 months, I landed my AWS Associate position!",
-    name: "Kwame Mensah",
-    outcome: "Now Cloud Engineer @ AWS",
+      "Transitioning into cloud architecture felt impossible until my Pathfind mentor walked me through real Terraform modules and AWS IAM policies right here in Accra. Within 2 months, I landed my cloud engineer role!",
+    name: "Kofi Asante",
+    outcome: "Now Cloud Engineer @ Turaco",
     avatarUrl:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces&q=80",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=faces&q=80",
     rating: 5,
     category: "Cloud & DevOps",
   },
   {
-    id: "amara-okafor",
+    id: "ama-osei",
     quote:
-      "As a self-taught frontend developer, I struggled with mock interview anxiety. My mentor conducted 3 live whiteboarding sessions and gave detailed code review feedback. I owe my offer to Pathfind!",
-    name: "Amara Okafor",
+      "As a self-taught frontend developer in Kumasi, I struggled with mock interview anxiety. My mentor conducted 3 live whiteboarding sessions and gave detailed code review feedback. I owe my offer to Pathfind!",
+    name: "Ama Osei",
     outcome: "Now Frontend Developer @ Paystack",
     avatarUrl:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces&q=80",
+      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=faces&q=80",
     rating: 5,
     category: "Frontend Engineering",
   },
   {
-    id: "david-kim",
+    id: "kwabena-boateng",
     quote:
-      "Pathfind eliminated the barrier to senior engineering guidance. Having a Staff Engineer review my portfolio projects gave me the exact confidence I needed to ace technical rounds.",
-    name: "David Kim",
-    outcome: "Now Fullstack Engineer @ Stripe",
+      "Pathfind eliminated the barrier to senior engineering guidance. Having a Staff Engineer review my portfolio projects gave me the exact confidence I needed to ace technical rounds at Ghana's top fintechs.",
+    name: "Kwabena Boateng",
+    outcome: "Now Fullstack Engineer @ Fido",
     avatarUrl:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces&q=80",
     rating: 5,
