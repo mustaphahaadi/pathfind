@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from .models import RequestStatus, RequestType, VerificationStatus
 
@@ -31,7 +31,7 @@ class MentorProfileCreate(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @validator("expertise_tags", pre=True, always=True)
+    @field_validator("expertise_tags", mode="before")
     @classmethod
     def parse_expertise_tags(cls, v):
         return _tags_to_list(v)
@@ -55,7 +55,7 @@ class ProfileUpdate(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @validator("expertise_tags", pre=True, always=True)
+    @field_validator("expertise_tags", mode="before")
     @classmethod
     def parse_expertise_tags(cls, v):
         if v is None:
@@ -67,13 +67,15 @@ class ProfileUpdate(BaseModel):
         Return a dict suitable for writing to the ORM, converting
         expertise_tags list → CSV string so it matches the DB column type.
         """
-        data = self.dict(exclude_unset=True)
+        data = self.model_dump(exclude_unset=True)
         if "expertise_tags" in data and data["expertise_tags"] is not None:
             data["expertise_tags"] = _list_to_str(data["expertise_tags"])
         return data
 
 
 class MentorProfileRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     full_name: str
@@ -88,7 +90,10 @@ class MentorProfileRead(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    @field_validator("expertise_tags", mode="before")
+    @classmethod
+    def parse_expertise_tags(cls, v):
+        return _tags_to_list(v)
 
 
 class UserCreate(BaseModel):
@@ -112,7 +117,7 @@ class UserCreateMentor(BaseModel):
     location: str | None = None
     linkedin_url: str | None = None
 
-    @validator("expertise_tags", pre=True, always=True)
+    @field_validator("expertise_tags", mode="before")
     @classmethod
     def parse_expertise_tags(cls, v):
         return _tags_to_list(v)
@@ -128,13 +133,13 @@ class UserLogin(BaseModel):
 
 
 class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: EmailStr
     role: str
     verification_status: VerificationStatus
     profile: MentorProfileRead | None = None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -160,6 +165,8 @@ class MentorshipRequestStatusUpdate(BaseModel):
 
 
 class MentorshipRequestRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     mentee_id: int
     mentor_id: int
@@ -178,8 +185,6 @@ class MentorshipRequestRead(BaseModel):
     mentor_email: str | None = None
     mentor_profile: MentorProfileRead | None = None
 
-    model_config = ConfigDict(from_attributes=True)
-
 
 class FileUploadResponse(BaseModel):
     filename: str
@@ -193,13 +198,13 @@ class SavedMentorCreate(BaseModel):
 
 
 class SavedMentorRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     mentor_id: int
     created_at: datetime
     mentor_profile: MentorProfileRead | None = None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class MentorReviewCreate(BaseModel):
@@ -210,6 +215,8 @@ class MentorReviewCreate(BaseModel):
 
 
 class MentorReviewRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     mentor_id: int
     mentee_id: int
@@ -219,8 +226,6 @@ class MentorReviewRead(BaseModel):
     session_topic: str
     quote: str
     created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class SessionNoteCreate(BaseModel):
@@ -237,6 +242,8 @@ class SessionNoteUpdate(BaseModel):
 
 
 class SessionNoteRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     request_id: str | None = None
@@ -244,8 +251,6 @@ class SessionNoteRead(BaseModel):
     content: str
     resource_url: str | None = None
     created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class GoalCreate(BaseModel):
@@ -263,6 +268,8 @@ class GoalUpdate(BaseModel):
 
 
 class GoalRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     title: str
@@ -272,20 +279,14 @@ class GoalRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        orm_mode = True
-        from_attributes = True
-
 
 class UserSettingsRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     user_id: int
     email_notifications: bool
     session_reminders: bool
     weekly_digest: bool
-
-    class Config:
-        orm_mode = True
-        from_attributes = True
 
 
 class UserSettingsUpdate(BaseModel):

@@ -6,9 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
+from typing import cast, Callable, Awaitable
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import Response as StarletteResponse
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -62,7 +65,10 @@ init_db()
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Pathfind API", version="0.2.0")
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(
+    RateLimitExceeded,
+    cast(Callable[[StarletteRequest, Exception], StarletteResponse], _rate_limit_exceeded_handler),
+)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
@@ -237,8 +243,8 @@ def update_user_settings(
 @limiter.limit("3/minute")
 def signup(
     user: UserCreate,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
@@ -282,8 +288,8 @@ def signup(
 @limiter.limit("3/minute")
 def signup_mentor(
     payload: UserCreateMentor,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
@@ -322,8 +328,8 @@ def signup_mentor(
 @limiter.limit("5/minute")
 def signin(
     credentials: UserLogin,
+    request: Request,
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
     user = db.query(User).filter(User.email == credentials.email).first()
     if not user or not verify_password(credentials.password, user.hashed_password):
@@ -739,7 +745,7 @@ def upload_file(
 
     # Read file content
     file_content = file.file.read()
-    original_filename = os.path.basename(file.filename)
+    original_filename = os.path.basename(file.filename or "upload")
 
     # Upload to S3 or local storage via s3_service
     url, safe_filename = upload_to_storage(
@@ -910,7 +916,8 @@ def update_session_note(
     if note.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    for field, value in payload.dict(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
         setattr(note, field, value)
 
     db.commit()
@@ -1004,7 +1011,8 @@ def update_goal(
     if goal.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    for field, value in payload.dict(exclude_unset=True).items():
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
         setattr(goal, field, value)
 
     db.commit()

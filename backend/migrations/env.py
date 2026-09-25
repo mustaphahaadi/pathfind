@@ -5,14 +5,18 @@ It connects to the database and imports the project's metadata so
 Alembic can auto-generate and apply schema migrations.
 """
 import os
+import sys
 from logging.config import fileConfig
+
+# Ensure project root is on sys.path so `backend` package can be imported
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
 # ── Load application models so their metadata is available ────────────────────
 # This import must come before target_metadata is set.
-from backend.database import Base  # noqa: F401 — registers all models
+from backend.database import Base, sanitize_db_url  # noqa: F401 — registers all models
 import backend.models  # noqa: F401 — ensures all ORM classes are loaded
 
 # ── Alembic Config object (gives access to values in alembic.ini) ─────────────
@@ -29,7 +33,7 @@ target_metadata = Base.metadata
 # This lets the same alembic.ini work for SQLite (local) and PostgreSQL (prod).
 database_url = os.getenv("DATABASE_URL")
 if database_url:
-    config.set_main_option("sqlalchemy.url", database_url)
+    config.set_main_option("sqlalchemy.url", sanitize_db_url(database_url).replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:

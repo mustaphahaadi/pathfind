@@ -1,12 +1,24 @@
 import os
+import re
+from typing import Any
+from urllib.parse import quote_plus
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./pathfind.db")
+
+def sanitize_db_url(url: str) -> str:
+    m = re.match(r"^(postgresql(?:\+[a-z0-9]+)?://)([^:]+):(.*)@([^@/:]+(?::\d+)?(?:/.*)?)$", url)
+    if m:
+        scheme, user, password, rest = m.groups()
+        return f"{scheme}{user}:{quote_plus(password)}@{rest}"
+    return url
+
+
+DATABASE_URL = sanitize_db_url(os.getenv("DATABASE_URL", "sqlite:///./pathfind.db"))
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine_kwargs = {"connect_args": connect_args}
+engine_kwargs: dict[str, Any] = {"connect_args": connect_args}
 
 if DATABASE_URL.startswith("sqlite:///:memory:"):
     engine_kwargs["poolclass"] = StaticPool

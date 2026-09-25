@@ -28,7 +28,7 @@ SEED_MENTORS = [
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/kwame-mensah",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb"
+            "https://images.unsplash.com/photo-1596495578065-6e0763fa1178"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -47,7 +47,7 @@ SEED_MENTORS = [
         "location": "Kumasi, Ghana",
         "linkedin_url": "https://linkedin.com/in/abena-owusu",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2"
+            "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -66,7 +66,7 @@ SEED_MENTORS = [
         "location": "Takoradi, Ghana",
         "linkedin_url": "https://linkedin.com/in/kofi-asante",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
+            "https://images.unsplash.com/photo-1531384441138-2736e62e0919"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -85,7 +85,7 @@ SEED_MENTORS = [
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/nana-yeboah",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -104,7 +104,7 @@ SEED_MENTORS = [
         "location": "Tema, Ghana",
         "linkedin_url": "https://linkedin.com/in/akosua-boateng",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1580489944761-15a19d654956"
+            "https://images.unsplash.com/photo-1589156215223-fe5e57df7572"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -120,7 +120,7 @@ SEED_MENTORS = [
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/yaw-ofori",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7"
+            "https://images.unsplash.com/photo-1471879832106-c7ab9e0cee23"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -139,7 +139,7 @@ SEED_MENTORS = [
         "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/adwoa-addo",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604"
+            "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -158,7 +158,7 @@ SEED_MENTORS = [
         "location": "Kumasi, Ghana",
         "linkedin_url": "https://linkedin.com/in/kojo-antwi",
         "avatar_url": (
-            "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61"
+            "https://images.unsplash.com/photo-1531384441138-2736e62e0919"
             "?w=300&h=300&fit=crop&crop=faces&q=80"
         ),
     },
@@ -212,12 +212,15 @@ def seed_database():
                 db.commit()
             elif existing.profile:
                 profile = existing.profile
-                if not profile.location and item.get("location"):
-                    profile.location = item.get("location")
-                if not profile.linkedin_url and item.get("linkedin_url"):
-                    profile.linkedin_url = item.get("linkedin_url")
-                if not profile.avatar_url and item.get("avatar_url"):
-                    profile.avatar_url = item.get("avatar_url")
+                loc = item.get("location")
+                if not profile.location and isinstance(loc, str):
+                    profile.location = loc
+                linkedin = item.get("linkedin_url")
+                if not profile.linkedin_url and isinstance(linkedin, str):
+                    profile.linkedin_url = linkedin
+                avatar = item.get("avatar_url")
+                if not profile.avatar_url and isinstance(avatar, str):
+                    profile.avatar_url = avatar
                 db.commit()
 
         print("Database seeded successfully with mock mentor profiles and admin user!")

@@ -60,7 +60,7 @@ const MentorSignUpPage = () => {
                   name="fullName"
                   type="text"
                   required
-                  placeholder="Alex Rivera"
+                  placeholder="Kofi Asante"
                   className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
                 />
               </div>
@@ -74,7 +74,7 @@ const MentorSignUpPage = () => {
                   name="email"
                   type="email"
                   required
-                  placeholder="alex@example.com"
+                  placeholder="kofi@example.com"
                   className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
                 />
               </div>
@@ -133,11 +133,11 @@ const MentorSignUpPage = () => {
           </div>
 
           <AuthTestimonialPanel
-            quote="An hour of my time each month has changed someone's whole career trajectory."
-            name="David Park"
+            quote="An hour of my time each month has changed someone's whole career trajectory here in Ghana."
+            name="Kofi Asante"
             role="Engineering Lead"
-            company="Linear"
-            avatarUrl="https://images.unsplash.com/photo-1556157382-97eda2d62296?w=200&h=200&fit=crop&crop=faces&q=80"
+            company="Zeepay"
+            avatarUrl="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces&q=80"
           />
         </div>
       </main>
