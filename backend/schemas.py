@@ -76,7 +76,7 @@ class ProfileUpdate(BaseModel):
 
 
 class MentorProfileRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     user_id: int
@@ -135,7 +135,7 @@ class UserLogin(BaseModel):
 
 
 class UserOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     email: EmailStr
@@ -171,7 +171,7 @@ class MentorshipRequestCancel(BaseModel):
 
 
 class MentorshipRequestRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: str
     mentee_id: int
@@ -206,7 +206,7 @@ class SavedMentorCreate(BaseModel):
 
 
 class SavedMentorRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     user_id: int
@@ -223,7 +223,7 @@ class MentorReviewCreate(BaseModel):
 
 
 class MentorReviewRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     mentor_id: int
@@ -250,7 +250,7 @@ class SessionNoteUpdate(BaseModel):
 
 
 class SessionNoteRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     user_id: int
@@ -276,7 +276,7 @@ class GoalUpdate(BaseModel):
 
 
 class GoalRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     id: int
     user_id: int
@@ -289,7 +289,7 @@ class GoalRead(BaseModel):
 
 
 class UserSettingsRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict({"from_attributes": True})
 
     user_id: int
     email_notifications: bool
