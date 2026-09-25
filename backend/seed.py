@@ -99,7 +99,10 @@ SEED_MENTORS = [
         "job_title": "Cloud/DevOps Engineer",
         "company": "AmaliTech",
         "years_of_experience": 6,
-        "bio": "Jasmine is a cloud and DevOps engineer with experience automating deployments and managing infrastructure.",
+        "bio": (
+            "Jasmine is a cloud and DevOps engineer with experience automating deployments "
+            "and managing infrastructure."
+        ),
         "expertise_tags": "AWS, Docker, CI/CD, Linux, Cloud Infrastructure",
         "availability": "Saturday mornings",
         "location": "Accra, Ghana",

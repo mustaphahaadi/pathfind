@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, CheckCircle2, Upload, FileText, X } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { getInitials } from "../lib/getInitials";
@@ -51,6 +51,26 @@ const ScheduleSessionPage = () => {
   const [resumeUrl, setResumeUrl] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
+
+  const [cvMode, setCvMode] = useState<"file" | "url">("file");
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [uploadedCvName, setUploadedCvName] = useState<string | null>(null);
+  const [uploadCvError, setUploadCvError] = useState<string | null>(null);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingCv(true);
+    setUploadCvError(null);
+    try {
+      const res = await api.upload(file);
+      setResumeUrl(res.url);
+      setUploadedCvName(file.name);
+    } catch (err) {
+      setUploadCvError(err instanceof Error ? err.message : "Failed to upload file.");
+    } finally {
+      setUploadingCv(false);
+    }
+  };
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -307,27 +327,106 @@ const ScheduleSessionPage = () => {
               </div>
             </div>
 
-            {/* Optional links */}
+            {/* Supporting documents & links */}
             <div className="rounded-3xl border border-surface-line bg-white p-6">
-              <h2 className="text-base font-bold text-ink">Supporting links (optional)</h2>
+              <h2 className="text-base font-bold text-ink">Resume / CV &amp; Supporting Links (optional)</h2>
               <p className="mt-1 text-sm text-ink/60">
-                Helps your mentor review your work before the session.
+                Upload your resume or share links to help your mentor prepare for the session.
               </p>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="resumeUrl" className="text-sm font-medium text-ink">
-                    Resume / CV URL
+              {/* CV Section */}
+              <div className="mt-5 rounded-2xl border border-surface-line bg-surface/30 p-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-ink flex items-center gap-1.5">
+                    <FileText size={16} className="text-ink/60" />
+                    Resume / CV Attachment
                   </label>
-                  <input
-                    id="resumeUrl"
-                    type="url"
-                    value={resumeUrl}
-                    onChange={(e) => setResumeUrl(e.target.value)}
-                    placeholder="https://drive.google.com/..."
-                    className="mt-1.5 w-full rounded-xl border border-surface-line px-4 py-3 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
-                  />
+                  <div className="flex rounded-lg border border-surface-line bg-white p-0.5 text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCvMode("file");
+                        setUploadCvError(null);
+                      }}
+                      className={`rounded-md px-3 py-1 transition-colors ${
+                        cvMode === "file" ? "bg-ink text-white" : "text-ink/60 hover:text-ink"
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCvMode("url");
+                        setUploadCvError(null);
+                      }}
+                      className={`rounded-md px-3 py-1 transition-colors ${
+                        cvMode === "url" ? "bg-ink text-white" : "text-ink/60 hover:text-ink"
+                      }`}
+                    >
+                      Link URL
+                    </button>
+                  </div>
                 </div>
+
+                {cvMode === "file" ? (
+                  <div className="mt-3">
+                    {uploadedCvName ? (
+                      <div className="flex items-center justify-between rounded-xl border border-accent-green/30 bg-accent-green/10 p-3 text-xs">
+                        <div className="flex items-center gap-2 font-medium text-ink">
+                          <CheckCircle2 size={16} className="text-accent-green" />
+                          <span className="truncate max-w-[220px] sm:max-w-xs">{uploadedCvName}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResumeUrl("");
+                            setUploadedCvName(null);
+                          }}
+                          className="rounded-lg p-1 text-ink/50 hover:bg-white hover:text-ink"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-surface-line bg-white p-4 text-center hover:border-ink/40 transition-colors">
+                        <Upload size={22} className="text-ink/40" />
+                        <span className="mt-1 text-xs font-semibold text-ink">
+                          {uploadingCv ? "Uploading file…" : "Click to upload your CV (PDF, DOCX)"}
+                        </span>
+                        <span className="mt-0.5 text-[11px] text-ink/50">Max file size 10MB</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          disabled={uploadingCv}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file);
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                    {uploadCvError && (
+                      <p className="mt-1.5 text-xs text-red-600 font-medium">{uploadCvError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-3">
+                    <input
+                      id="resumeUrl"
+                      type="url"
+                      value={resumeUrl}
+                      onChange={(e) => setResumeUrl(e.target.value)}
+                      placeholder="https://drive.google.com/your-cv-file.pdf"
+                      className="w-full rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm text-ink placeholder:text-ink/35 focus:border-ink"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Other Links */}
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="portfolioUrl" className="text-sm font-medium text-ink">
                     Portfolio / Website URL

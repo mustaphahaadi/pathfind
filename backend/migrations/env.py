@@ -11,13 +11,13 @@ from logging.config import fileConfig
 # Ensure project root is on sys.path so `backend` package can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from sqlalchemy import engine_from_config, pool
-from alembic import context
+from sqlalchemy import engine_from_config, pool  # noqa: E402
+from alembic import context  # noqa: E402
 
 # ── Load application models so their metadata is available ────────────────────
 # This import must come before target_metadata is set.
-from backend.database import Base, sanitize_db_url  # noqa: F401 — registers all models
-import backend.models  # noqa: F401 — ensures all ORM classes are loaded
+from backend.database import Base, sanitize_db_url  # noqa: F401, E402 — registers all models
+import backend.models  # noqa: F401, E402 — ensures all ORM classes are loaded
 
 # ── Alembic Config object (gives access to values in alembic.ini) ─────────────
 config = context.config

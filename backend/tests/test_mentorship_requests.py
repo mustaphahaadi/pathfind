@@ -94,11 +94,15 @@ def test_mentee_can_cancel_pending_request(client):
         },
     ).json()
 
-    del_res = client.delete(
-        f"/mentorship-requests/{request['id']}",
+    cancel_res = client.post(
+        f"/mentorship-requests/{request['id']}/cancel",
         headers=auth(token_for(client, "mentee@example.com")),
+        json={"reason": "Schedule conflict"},
     )
-    assert del_res.status_code == 204
+    assert cancel_res.status_code == 200
+    data = cancel_res.json()
+    assert data["status"] == "cancelled"
+    assert data["cancellation_reason"] == "Schedule conflict"
 
 
 def test_unauthenticated_and_invalid_mentor_requests_are_rejected(client):
