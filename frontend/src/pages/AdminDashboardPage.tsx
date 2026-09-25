@@ -17,6 +17,7 @@ import {
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { api } from "../lib/api";
+import { resolveMediaUrl } from "../lib/resolveMediaUrl";
 import type { UserOut, AdminStatsOut } from "../types/api";
 
 type AdminTab = "pending" | "mentors" | "mentees";
@@ -293,7 +294,7 @@ export default function AdminDashboardPage() {
                         <div className="flex gap-4">
                           {profile?.avatar_url ? (
                             <img
-                              src={profile.avatar_url}
+                              src={resolveMediaUrl(profile.avatar_url)!}
                               alt={name}
                               className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-900/10"
                             />
@@ -392,7 +393,7 @@ export default function AdminDashboardPage() {
                       <div key={m.id} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt={name} className="h-12 w-12 rounded-xl object-cover" />
+                            <img src={resolveMediaUrl(profile.avatar_url)!} alt={name} className="h-12 w-12 rounded-xl object-cover" />
                           ) : (
                             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 font-bold text-white">
                               {name.charAt(0).toUpperCase()}

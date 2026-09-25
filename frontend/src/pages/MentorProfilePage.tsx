@@ -18,6 +18,8 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { api } from "../lib/api";
 import { getInitials } from "../lib/getInitials";
+import { resolveMediaUrl } from "../lib/resolveMediaUrl";
+import { useAuthStore } from "../store/useAuthStore";
 import type { MentorProfileRead } from "../types/api";
 interface ReviewData {
   id: number;
@@ -31,25 +33,28 @@ interface ReviewData {
 
 const MentorProfilePage = () => {
   const { mentorId } = useParams<{ mentorId: string }>();
+  const currentUser = useAuthStore((s) => s.user);
 
   const [mentor, setMentor] = useState<MentorProfileRead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<ReviewData[]>([]);
 
-  const isInvalidId = !mentorId || Number.isNaN(Number(mentorId));
+  const isAlias = mentorId === "you" || mentorId === "me" || mentorId === "your-profile";
+  const resolvedMentorId = isAlias ? currentUser?.id : (mentorId ? Number(mentorId) : NaN);
+
+  const isInvalidId = !resolvedMentorId || Number.isNaN(resolvedMentorId);
   const activeError = isInvalidId ? "Invalid mentor ID specified." : error;
   const isLoading = !isInvalidId && loading;
 
   useEffect(() => {
-    const idNum = Number(mentorId);
-    if (!mentorId || Number.isNaN(idNum)) return;
+    if (!resolvedMentorId || Number.isNaN(resolvedMentorId)) return;
 
     api.mentors
-      .get(idNum)
+      .get(resolvedMentorId)
       .then((data) => {
         setMentor(data);
-        return api.reviews.list(idNum);
+        return api.reviews.list(resolvedMentorId);
       })
       .then((reviewData) => {
         if (reviewData) setReviews(reviewData as ReviewData[]);
@@ -60,7 +65,7 @@ const MentorProfilePage = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [mentorId]);
+  }, [resolvedMentorId]);
 
   if (isLoading) {
     return (
@@ -119,7 +124,7 @@ const MentorProfilePage = () => {
           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
             {mentor.avatar_url ? (
               <img
-                src={mentor.avatar_url}
+                src={resolveMediaUrl(mentor.avatar_url)!}
                 alt={mentor.full_name}
                 className="h-24 w-24 shrink-0 rounded-2xl object-cover"
               />

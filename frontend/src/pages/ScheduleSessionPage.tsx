@@ -5,6 +5,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { getInitials } from "../lib/getInitials";
 import { api } from "../lib/api";
+import { resolveMediaUrl } from "../lib/resolveMediaUrl";
 import { useAuthStore } from "../store/useAuthStore";
 import type { MentorProfileRead, RequestType } from "../types/api";
 
@@ -190,7 +191,7 @@ const ScheduleSessionPage = () => {
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-surface-line bg-white p-4">
             {mentor.avatar_url ? (
               <img
-                src={mentor.avatar_url}
+                src={resolveMediaUrl(mentor.avatar_url)!}
                 alt={mentor.full_name}
                 className="h-12 w-12 rounded-full object-cover"
               />

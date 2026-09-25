@@ -10,13 +10,13 @@ import { useMentorOnboardingStore } from "../store/useMentorOnboardingStore";
 const MentorOnboardingLayout = () => {
   const location = useLocation();
   const authUser = useAuthStore((s) => s.user);
-  const hydrateFromUser = useMentorOnboardingStore((s) => s.hydrateFromUser);
+  const forceHydrateFromUser = useMentorOnboardingStore((s) => s.forceHydrateFromUser);
 
   useEffect(() => {
     if (authUser) {
-      hydrateFromUser(authUser);
+      forceHydrateFromUser(authUser);
     }
-  }, [authUser, hydrateFromUser]);
+  }, [authUser, forceHydrateFromUser]);
 
   const currentStepIndex = Math.max(
     0,

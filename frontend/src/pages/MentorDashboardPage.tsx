@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Circle,
   HandCoins,
+  Pencil,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -72,7 +73,7 @@ const MentorDashboardPage = () => {
 
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/mentors/${user?.id ?? "your-profile"}`;
+  const shareLink = `pathfind.org/mentors/${user?.id ?? "me"}`;
 
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const acceptedRequests = requests.filter((r) => r.status === "accepted");
@@ -146,7 +147,15 @@ const MentorDashboardPage = () => {
               </div>
               <div className="flex shrink-0 gap-2.5">
                 <Link
-                  to={`/mentors/${user?.id ?? ""}`}
+                  to="/onboarding/mentor/identity-verification"
+                  id="edit-profile-btn"
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                >
+                  <Pencil size={16} />
+                  Edit Profile
+                </Link>
+                <Link
+                  to={`/mentors/${user?.id ?? "me"}`}
                   className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
                 >
                   <Eye size={16} />

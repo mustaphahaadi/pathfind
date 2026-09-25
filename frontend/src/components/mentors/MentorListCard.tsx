@@ -2,6 +2,7 @@ import type { KeyboardEvent, MouseEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BadgeCheck, MapPin } from "lucide-react";
 import { getInitials } from "../../lib/getInitials";
+import { resolveMediaUrl } from "../../lib/resolveMediaUrl";
 import type { MentorProfileRead } from "../../types/api";
 
 interface MentorListCardProps {
@@ -36,7 +37,7 @@ const MentorListCard = ({ mentor }: MentorListCardProps) => {
       <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-36">
         {mentor.avatar_url ? (
           <img
-            src={mentor.avatar_url}
+            src={resolveMediaUrl(mentor.avatar_url)!}
             alt={mentor.full_name}
             className="h-full w-full object-cover"
           />

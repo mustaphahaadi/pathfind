@@ -54,6 +54,7 @@ class ProfileUpdate(BaseModel):
     avatar_url: str | None = None
     location: str | None = None
     linkedin_url: str | None = None
+    role: str | None = None
 
     @field_validator("expertise_tags", mode="before")
     @classmethod
@@ -68,6 +69,7 @@ class ProfileUpdate(BaseModel):
         expertise_tags list → CSV string so it matches the DB column type.
         """
         data = self.model_dump(exclude_unset=True)
+        data.pop("role", None)
         if "expertise_tags" in data and data["expertise_tags"] is not None:
             data["expertise_tags"] = _list_to_str(data["expertise_tags"])
         return data

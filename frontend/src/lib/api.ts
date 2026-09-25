@@ -17,7 +17,7 @@ import type {
   UserSettingsUpdatePayload,
 } from "../types/api";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 /**
  * Handles a 401 Unauthorized response from the API.
@@ -151,6 +151,7 @@ export const api = {
       avatar_url: string | null;
       location: string | null;
       linkedin_url: string | null;
+      role: string;
     }>) =>
       request<UserOut>("/profiles/me", {
         method: "PATCH",

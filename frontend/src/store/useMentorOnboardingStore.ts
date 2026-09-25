@@ -59,6 +59,7 @@ interface MentorOnboardingState {
   completeOnboarding: () => void;
   toggleAcceptingRequests: () => void;
   hydrateFromUser: (user: UserOut) => void;
+  forceHydrateFromUser: (user: UserOut) => void;
   reset: () => void;
 }
 
@@ -184,6 +185,30 @@ export const useMentorOnboardingStore = create<MentorOnboardingState>()(
             primaryDiscipline: hydratedDiscipline,
             topics: hydratedTopics,
             targetStages: state.targetStages.length > 0 ? state.targetStages : ["early_career", "career_switcher"],
+          };
+        }),
+      forceHydrateFromUser: (user) =>
+        set(() => {
+          const profile = user.profile;
+          if (!profile) return {};
+
+          const tags = profile.expertise_tags
+            ? profile.expertise_tags.filter(Boolean)
+            : [];
+
+          return {
+            fullName: profile.full_name || "",
+            workEmail: user.email || "",
+            currentTitle: profile.job_title || "",
+            company: profile.company || "",
+            yearsOfExperience: profile.years_of_experience || 0,
+            location: profile.location || "",
+            linkedinUrl: profile.linkedin_url || "",
+            avatarUrl: profile.avatar_url || null,
+            motivation: profile.bio || "",
+            primaryDiscipline: tags.length > 0 ? tags[0] : null,
+            topics: tags.length > 1 ? tags.slice(1) : tags,
+            targetStages: ["early_career", "career_switcher"],
           };
         }),
       reset: () => set(initialState),

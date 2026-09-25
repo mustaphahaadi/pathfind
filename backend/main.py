@@ -183,6 +183,13 @@ def update_profile(
             if value is not None:
                 setattr(profile, field, value)
 
+    if payload.role in ("mentor", "mentee"):
+        if payload.role == "mentor" and current_user.role != "mentor":
+            current_user.role = "mentor"
+            current_user.verification_status = VerificationStatus.PENDING_VERIFICATION
+        else:
+            current_user.role = payload.role
+
     db.commit()
     db.refresh(current_user)
     return current_user
