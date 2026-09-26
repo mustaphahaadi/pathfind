@@ -35,12 +35,13 @@ const UserMenuLink = ({ className = "", isOverlay = false }: UserMenuLinkProps) 
   const resetOnboarding = useOnboardingStore((state) => state.reset);
   const upcomingSessionCount = useSessionsStore((state) => state.sessions.length);
 
-  const fullName = user?.profile?.full_name || onboardingFullName || "Mentee User";
+  const isAdmin = user?.role === "admin";
+  const defaultName = isAdmin ? "Admin User" : "Mentee User";
+  const fullName = user?.profile?.full_name || onboardingFullName || defaultName;
   const email = user?.email || onboardingEmail;
   const avatarUrl = user?.profile?.avatar_url || onboardingAvatarUrl;
 
   const statusLabel = statusOptions.find((option) => option.id === status)?.title;
-  const isAdmin = user?.role === "admin";
   const subtitle = isAdmin
     ? "Platform Administrator"
     : `Mentee${statusLabel ? ` · ${statusLabel}` : ""}`;
