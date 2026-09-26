@@ -295,7 +295,7 @@ const ProfilePage = () => {
     dateLabel: new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     timeLabel: new Date(r.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
     durationMinutes: 45,
-    videoLink: "#",
+    videoLink: r.meeting_link || "#",
     focusTopicLabels: [r.request_type],
     note: r.message,
     status: r.status,
@@ -456,15 +456,23 @@ const ProfilePage = () => {
                       >
                         Reschedule
                       </Link>
-                      <a
-                        href={latestSession.videoLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                      >
-                        <Video size={15} />
-                        Join Meeting Room
-                      </a>
+                      {latestSession.videoLink && latestSession.videoLink !== "#" ? (
+                        <a
+                          href={latestSession.videoLink.startsWith("http") ? latestSession.videoLink : `https://${latestSession.videoLink}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-emerald-700 shadow-sm"
+                        >
+                          <Video size={15} />
+                          Join Meeting Room
+                          <ExternalLink size={13} className="opacity-80" />
+                        </a>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 px-3.5 py-2 text-xs font-medium text-amber-700 border border-amber-200">
+                          <Clock size={14} />
+                          Meeting link pending
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -713,6 +721,19 @@ const ProfilePage = () => {
                           </Link>
                         ) : (
                           <span className="text-xs text-ink/40">Mentor #{req.mentor_id}</span>
+                        )}
+
+                        {req.status === "accepted" && req.meeting_link && (
+                          <a
+                            href={req.meeting_link.startsWith("http") ? req.meeting_link : `https://${req.meeting_link}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-700 shadow-sm"
+                          >
+                            <Video size={13} />
+                            Join Meeting
+                            <ExternalLink size={11} className="opacity-70" />
+                          </a>
                         )}
 
                         {req.status === "pending" && (
