@@ -12,6 +12,8 @@ import {
   Circle,
   HandCoins,
   Pencil,
+  Video,
+  ExternalLink,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -730,21 +732,20 @@ const MentorDashboardPage = () => {
                               <span className="font-bold">Your Note to Mentee: </span>&ldquo;{req.response_message}&rdquo;
                             </p>
                           )}
-                          {req.meeting_link && (
-                            <p className="mt-2 text-xs text-ink/80">
-                              <span className="font-bold">Meeting Link: </span>
-                              <a
-                                href={req.meeting_link}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-medium text-accent-blue underline hover:opacity-80 break-all"
-                              >
-                                {req.meeting_link}
-                              </a>
-                            </p>
-                          )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {req.meeting_link && (
+                            <a
+                              href={req.meeting_link.startsWith("http") ? req.meeting_link : `https://${req.meeting_link}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 shadow-sm"
+                            >
+                              <Video size={14} />
+                              Join Meeting
+                              <ExternalLink size={12} className="opacity-70" />
+                            </a>
+                          )}
                           <button
                             type="button"
                             disabled={actionLoading === req.id}
