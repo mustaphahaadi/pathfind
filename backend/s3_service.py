@@ -7,9 +7,14 @@ from botocore.exceptions import ClientError, NoCredentialsError
 logger = logging.getLogger("pathfind.s3")
 
 # S3 Configuration
-S3_BUCKET = os.getenv("S3_BUCKET_NAME")
+S3_BUCKET = os.getenv("S3_BUCKET_NAME") or os.getenv("S3_BUCKET")
 S3_REGION = os.getenv("AWS_REGION", "us-east-1")
-USE_S3 = os.getenv("USE_S3", "false").lower() == "true"
+
+_use_s3_env = os.getenv("USE_S3")
+if _use_s3_env is not None:
+    USE_S3 = _use_s3_env.lower() == "true"
+else:
+    USE_S3 = bool(S3_BUCKET)
 
 # Fallback to local storage if S3 not configured
 LOCAL_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
