@@ -49,8 +49,26 @@ def get_s3_client():
         return None
 
 
+def generate_presigned_url(filename_or_key: str, expiration: int = 604800) -> str | None:
+    """Generate a presigned S3 URL valid for GET operations (default 7 days)."""
+    s3_client = get_s3_client()
+    if not s3_client or not S3_BUCKET:
+        return None
+    key = filename_or_key if filename_or_key.startswith("uploads/") else f"uploads/{filename_or_key}"
+    try:
+        url = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": S3_BUCKET, "Key": key},
+            ExpiresIn=expiration,
+        )
+        return url
+    except Exception as e:
+        logger.error(f"Failed to generate presigned URL for '{key}': {e}")
+        return None
+
+
 def upload_file_to_s3(file_content, filename, content_type):
-    """Upload file to S3 bucket and return public URL."""
+    """Upload file to S3 bucket and return readable URL."""
     if not S3_BUCKET:
         raise ValueError("S3_BUCKET_NAME environment variable is required for S3 uploads")
 
@@ -62,6 +80,7 @@ def upload_file_to_s3(file_content, filename, content_type):
     safe_filename = f"{uuid4().hex}_{filename}"
     key = f"uploads/{safe_filename}"
 
+    acl_failed = False
     try:
         s3_client.put_object(
             Bucket=S3_BUCKET,
@@ -74,6 +93,7 @@ def upload_file_to_s3(file_content, filename, content_type):
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "")
         if error_code in ("AccessControlListNotSupported", "AccessDenied", "InvalidArgument"):
+            acl_failed = True
             logger.warning(f"S3 ACL failed ({error_code}), retrying put_object without ACL...")
             s3_client.put_object(
                 Bucket=S3_BUCKET,
@@ -85,8 +105,13 @@ def upload_file_to_s3(file_content, filename, content_type):
             logger.error(f"Failed to upload {filename} to S3: {e}")
             raise
 
-    # Construct public URL
-    public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
+    if acl_failed:
+        # Generate presigned URL if bucket blocks public ACLs
+        presigned = generate_presigned_url(key)
+        public_url = presigned or f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
+    else:
+        public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
+
     logger.info(f"Successfully uploaded {filename} to S3: {public_url}")
     return public_url, safe_filename
 

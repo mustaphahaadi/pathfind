@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError, jwt
@@ -18,7 +19,7 @@ from sqlalchemy.orm import Session
 from .auth import ALGORITHM, SECRET_KEY, create_access_token, hash_password, verify_password
 from .database import SessionLocal, init_db
 from .email_service import notify_mentee_status_update, notify_mentor_new_request, notify_mentor_verification_status
-from .s3_service import upload_file as upload_to_storage
+from .s3_service import upload_file as upload_to_storage, generate_presigned_url, USE_S3, S3_BUCKET
 from .models import (
     Goal,
     MentorshipRequest,
@@ -80,6 +81,7 @@ except (PermissionError, OSError):
 
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.mount("/api/static", StaticFiles(directory=STATIC_DIR), name="api_static")
 
 # CORS — origins are configured via the ALLOWED_ORIGINS environment variable.
 # In development: defaults to localhost Vite dev server.
@@ -735,6 +737,21 @@ def delete_user(
 
 ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".svg"}
 MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB limit
+
+
+@app.get("/uploads/{safe_filename}")
+@app.get("/api/uploads/{safe_filename}")
+def get_uploaded_file(safe_filename: str):
+    """Retrieve uploaded file from S3 (via presigned URL) or local storage."""
+    if USE_S3 and S3_BUCKET:
+        presigned = generate_presigned_url(safe_filename)
+        if presigned:
+            return RedirectResponse(url=presigned)
+
+    local_path = os.path.join(UPLOAD_DIR, safe_filename)
+    if os.path.exists(local_path):
+        return FileResponse(local_path)
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
 
 
 @app.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
