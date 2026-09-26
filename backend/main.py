@@ -82,6 +82,10 @@ except (PermissionError, OSError):
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.mount("/api/static", StaticFiles(directory=STATIC_DIR), name="api_static")
+    mentors_dir = os.path.join(STATIC_DIR, "mentors")
+    if os.path.exists(mentors_dir):
+        app.mount("/mentors", StaticFiles(directory=mentors_dir), name="mentors")
+        app.mount("/api/mentors", StaticFiles(directory=mentors_dir), name="api_mentors")
 
 # CORS — origins are configured via the ALLOWED_ORIGINS environment variable.
 # In development: defaults to localhost Vite dev server.
