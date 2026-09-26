@@ -736,7 +736,7 @@ def delete_user(
 # ── File Upload Endpoint ───────────────────────────────────────────────────────
 
 ALLOWED_EXTENSIONS = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".webp", ".svg"}
-MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024  # 15 MB limit
+MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB limit
 
 
 @app.get("/uploads/{safe_filename}")
