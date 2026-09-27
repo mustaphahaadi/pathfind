@@ -14,10 +14,11 @@ export function resolveMediaUrl(url: string | null | undefined): string | null {
     return url.replace("http://localhost:8000", cleanBase);
   }
 
-  // Prepend base URL for relative paths like /static/uploads/...
-  if (url.startsWith("/")) {
+  // Prepend backend API base URL only for backend uploads (/static/uploads/, /uploads/, /api/uploads/)
+  if (url.startsWith("/static/") || url.startsWith("/uploads/") || url.startsWith("/api/uploads/")) {
     return `${cleanBase}${url}`;
   }
 
+  // Frontend relative assets like /mentors/mentor_1.png should be loaded directly from the frontend host
   return url;
 }
