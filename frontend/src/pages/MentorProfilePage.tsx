@@ -31,6 +31,8 @@ interface ReviewData {
   created_at: string;
 }
 
+import { mentors } from "../data/mentors";
+
 const MentorProfilePage = () => {
   const { mentorId } = useParams<{ mentorId: string }>();
   const currentUser = useAuthStore((s) => s.user);
@@ -43,29 +45,50 @@ const MentorProfilePage = () => {
   const isAlias = mentorId === "you" || mentorId === "me" || mentorId === "your-profile";
   const resolvedMentorId = isAlias ? currentUser?.id : (mentorId ? Number(mentorId) : NaN);
 
-  const isInvalidId = !resolvedMentorId || Number.isNaN(resolvedMentorId);
+  const isInvalidId = !mentorId;
   const activeError = isInvalidId ? "Invalid mentor ID specified." : error;
   const isLoading = !isInvalidId && loading;
 
   useEffect(() => {
-    if (!resolvedMentorId || Number.isNaN(resolvedMentorId)) return;
+    if (!mentorId) return;
 
-    api.mentors
-      .get(resolvedMentorId)
-      .then((data) => {
-        setMentor(data);
-        return api.reviews.list(resolvedMentorId);
-      })
-      .then((reviewData) => {
-        if (reviewData) setReviews(reviewData as ReviewData[]);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load mentor profile.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [resolvedMentorId]);
+    const loadMentor = async () => {
+      if (resolvedMentorId && !Number.isNaN(resolvedMentorId)) {
+        try {
+          const data = await api.mentors.get(resolvedMentorId);
+          setMentor(data);
+          const reviewData = await api.reviews.list(resolvedMentorId);
+          if (reviewData) setReviews(reviewData as ReviewData[]);
+          return;
+        } catch (err) {
+          console.warn("API mentor fetch failed, attempting static fallback:", err);
+        }
+      }
+
+      // Static fallback search
+      const staticMatch = mentors.find((m) => m.id === mentorId);
+      if (staticMatch) {
+        setMentor({
+          id: 999,
+          user_id: 999,
+          full_name: staticMatch.name,
+          job_title: staticMatch.role,
+          company: staticMatch.company,
+          years_of_experience: 5,
+          bio: staticMatch.bio,
+          expertise_tags: staticMatch.tags,
+          availability: staticMatch.nextOpening,
+          location: staticMatch.location,
+          linkedin_url: null,
+          avatar_url: staticMatch.imageUrl,
+        });
+      } else {
+        setError("Mentor profile not found.");
+      }
+    };
+
+    loadMentor().finally(() => setLoading(false));
+  }, [mentorId, resolvedMentorId]);
 
   if (isLoading) {
     return (
