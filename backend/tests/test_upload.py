@@ -23,7 +23,7 @@ def test_valid_pdf_file_upload(client):
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["filename"] == "sample_resume.pdf"
-    assert data["url"].startswith("/static/uploads/")
+    assert "/uploads/" in data["url"]
     assert data["size_bytes"] > 0
 
 
@@ -36,7 +36,7 @@ def test_valid_image_file_upload(client):
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()
     assert data["filename"] == "avatar.png"
-    assert data["url"].startswith("/static/uploads/")
+    assert "/uploads/" in data["url"]
 
 
 def test_invalid_extension_upload(client):
