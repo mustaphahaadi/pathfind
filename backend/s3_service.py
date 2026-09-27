@@ -2,7 +2,7 @@ import os
 import logging
 from uuid import uuid4
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger("pathfind.s3")
 
