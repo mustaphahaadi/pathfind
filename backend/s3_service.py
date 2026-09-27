@@ -2,7 +2,7 @@ import os
 import logging
 from uuid import uuid4
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger("pathfind.s3")
 
@@ -38,19 +38,26 @@ def get_local_upload_dir():
 def get_s3_client():
     """Get S3 client with credentials from environment or IAM role."""
     try:
-        if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
-            # Use explicit credentials
-            return boto3.client(
-                "s3",
-                region_name=S3_REGION,
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            )
+        aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_session_token = os.getenv("AWS_SESSION_TOKEN")
+        region = os.getenv("AWS_REGION", "us-east-1")
+
+        if aws_access_key and aws_secret_key:
+            kwargs = {
+                "service_name": "s3",
+                "region_name": region,
+                "aws_access_key_id": aws_access_key,
+                "aws_secret_access_key": aws_secret_key,
+            }
+            if aws_session_token:
+                kwargs["aws_session_token"] = aws_session_token
+            return boto3.client(**kwargs)
         else:
             # Use IAM role or default credential chain
-            return boto3.client("s3", region_name=S3_REGION)
-    except NoCredentialsError:
-        logger.warning("AWS credentials not found, falling back to local storage")
+            return boto3.client("s3", region_name=region)
+    except Exception as e:
+        logger.warning(f"AWS credentials error: {e}, falling back to local storage")
         return None
 
 
@@ -92,28 +99,27 @@ def upload_file_to_s3(file_content, filename, content_type):
             Key=key,
             Body=file_content,
             ContentType=content_type,
-            # Make file publicly readable
+            # Make file publicly readable if bucket allows ACLs
             ACL="public-read",
         )
-    except ClientError as e:
-        error_code = e.response.get("Error", {}).get("Code", "")
-        if error_code in ("AccessControlListNotSupported", "AccessDenied", "InvalidArgument"):
-            acl_failed = True
-            logger.warning(f"S3 ACL failed ({error_code}), retrying put_object without ACL...")
+    except Exception as e:
+        acl_failed = True
+        logger.warning(f"S3 ACL public-read put_object failed ({e}), retrying without ACL...")
+        try:
             s3_client.put_object(
                 Bucket=S3_BUCKET,
                 Key=key,
                 Body=file_content,
                 ContentType=content_type,
             )
-        else:
-            logger.error(f"Failed to upload {filename} to S3: {e}")
-            raise
+        except Exception as retry_err:
+            logger.error(f"Failed to upload {filename} to S3 bucket {S3_BUCKET}: {retry_err}")
+            raise retry_err
 
     if acl_failed:
-        # Generate presigned URL if bucket blocks public ACLs
+        # Generate presigned URL or API proxy URL if bucket blocks public ACLs
         presigned = generate_presigned_url(key)
-        public_url = presigned or f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
+        public_url = presigned or f"/api/uploads/{safe_filename}"
     else:
         public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
 
