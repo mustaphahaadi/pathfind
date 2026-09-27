@@ -3,6 +3,9 @@ import logging
 from uuid import uuid4
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger("pathfind.s3")
 
@@ -117,9 +120,8 @@ def upload_file_to_s3(file_content, filename, content_type):
             raise retry_err
 
     if acl_failed:
-        # Generate presigned URL or API proxy URL if bucket blocks public ACLs
-        presigned = generate_presigned_url(key)
-        public_url = presigned or f"/api/uploads/{safe_filename}"
+        # Use permanent API proxy URL so avatar/document URLs stored in database do not expire
+        public_url = f"/api/uploads/{safe_filename}"
     else:
         public_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{key}"
 
