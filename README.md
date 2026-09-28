@@ -6,27 +6,37 @@ A web platform connecting people transitioning into tech careers in Ghana — st
 
 ---
 
-## The Idea
+## System Architecture Diagram
 
-Mentees search a directory of verified tech mentors and send structured mentorship requests (resume review, portfolio feedback, career path conversation, interview preparation, role/industry insights). Mentors review and respond to requests that fit their expertise and availability. Participants can take private session notes, track personal goals, and save favourite mentors. Administrators have full platform control with real-time analytics, user directories, and a mentor application verification queue.
+![Pathfind System Architecture Diagram](./doc/pathfind-diagram.drawio.png)
+
+*The raw editable architecture file is available at [doc/pathfind_aws_architecture.drawio](./doc/pathfind_aws_architecture.drawio).*
+
+---
+
+## Project Overview
+
+Mentees search a directory of verified tech mentors and send structured mentorship requests (resume review, portfolio feedback, career path conversation, interview preparation, role/industry insights). Mentors review and respond to requests that fit their expertise and availability, attaching direct video meeting links upon acceptance. Participants can take private session notes, track personal starter goals, and save favourite mentors. Administrators maintain platform governance with real-time telemetry analytics, user management directories, and a mentor verification queue.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19 + TypeScript, Vite, Tailwind CSS v4 |
-| **State & Router** | React Router v7, Zustand (persisted auth store) |
-| **Backend** | Python 3.11, FastAPI 0.95, SQLAlchemy 2.0 ORM |
-| **Database** | PostgreSQL 15 (Docker / AWS RDS in prod), SQLite for dev & testing |
-| **Migrations** | Alembic — versioned schema migrations |
-| **Email Service** | AWS SES / SMTP / Console mock via FastAPI `BackgroundTasks` |
-| **File Storage** | AWS S3 (production) with local disk fallback (dev) |
-| **Containerisation** | Docker, Docker Compose |
-| **Authentication** | JWT (python-jose), bcrypt password hashing, OAuth2 bearer flow |
-| **Rate Limiting** | slowapi (3/min signup, 5/min signin) |
-| **CI/CD** | GitHub Actions — lint + test on PR, auto-deploy to AWS ECS on merge to `main` |
+| Component | Technology | Description |
+|---|---|---|
+| **DNS & Ingress** | Cloudflare DNS | DNS routing, proxying, and WAF security |
+| **Frontend** | React 19 + TypeScript, Vite, Tailwind CSS v4 | Responsive single-page application |
+| **State & Navigation** | React Router v7, Zustand | Client-side routing with persisted state stores |
+| **Backend API** | Python 3.11, FastAPI 0.95, SQLAlchemy 2.0 ORM | Asynchronous REST API with Pydantic schemas |
+| **Compute / Hosting** | AWS ECS (EC2 Launch Type) | Single EC2 container host instance running Docker tasks |
+| **Database** | Amazon RDS PostgreSQL 15 | Single relational database instance (SQLite for dev) |
+| **Database Migrations** | Alembic | Version-controlled schema migration pipeline |
+| **Email Service** | Gmail SMTP Server (`smtp.gmail.com`) | Transactional email notifications via FastAPI BackgroundTasks |
+| **File Storage** | AWS S3 (`pathfind-uploads`) | S3 presigned URLs with local disk fallback in development |
+| **Authentication** | JWT (python-jose), bcrypt | OAuth2 bearer token flow with secure password hashing |
+| **Rate Limiting** | slowapi | Endpoint protection (3 requests/min signup, 5 requests/min signin) |
+| **Containerization** | Docker, Docker Compose | Multi-stage Docker build for local dev & production |
+| **CI/CD Pipeline** | GitHub Actions | Automated lint, pytest gate, ECR build, and ECS deploy |
 
 ---
 
@@ -37,49 +47,49 @@ pathfind/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # PR gate: frontend lint/build + backend flake8/pytest
-│       └── deploy.yml          # Push to main: test → build Docker image → push ECR → deploy ECS
+│       └── deploy.yml          # Push to main: test -> build Docker image -> push ECR -> deploy ECS
 ├── backend/
 │   ├── migrations/             # Alembic migration scripts
-│   │   ├── versions/           # One file per schema change
-│   │   ├── env.py              # Alembic runtime config (reads DATABASE_URL from env)
-│   │   └── script.py.mako      # Template for new migration files
+│   │   ├── versions/           # Versioned database migration files
+│   │   ├── env.py              # Alembic runtime configuration
+│   │   └── script.py.mako      # Migration file template
 │   ├── tests/
-│   │   ├── conftest.py         # In-memory SQLite fixture, rate-limiter disabled
-│   │   ├── test_auth.py        # Signup, signin, duplicate email, wrong password
-│   │   ├── test_mentorship_requests.py  # Full request lifecycle + admin approval
-│   │   ├── test_email.py       # Email notification mocking
-│   │   └── test_upload.py      # File upload validation
-│   ├── static/uploads/         # Local file storage (dev fallback when S3 not configured)
-│   ├── alembic.ini             # Alembic configuration (reads DATABASE_URL from env)
-│   ├── auth.py                 # bcrypt hashing + JWT token creation/verification
-│   ├── database.py             # SQLAlchemy engine & session factory
-│   ├── email_service.py        # SES / SMTP / console email backend
-│   ├── main.py                 # FastAPI app: all routes, middleware, CORS, rate limiting
-│   ├── models.py               # ORM models: User, MentorProfile, MentorshipRequest, etc.
-│   ├── s3_service.py           # S3 upload with local disk fallback
-│   ├── schemas.py              # Pydantic schemas — expertise_tags serialised as list[str]
-│   ├── seed.py                 # Populates mock mentor profiles and admin account
-│   ├── Dockerfile              # Multi-stage build; runs `alembic upgrade head` on start
-│   ├── requirements.txt        # Fully pinned Python dependencies
-│   ├── .env.example            # Template for backend environment variables
-│   └── .gitignore
-├── doc/                        # Implementation reports and scope documents
+│   │   ├── conftest.py         # SQLite test fixtures & rate-limiter overrides
+│   │   ├── test_auth.py        # Authentication & user registration tests
+│   │   ├── test_mentorship_requests.py  # Mentorship lifecycle & admin flow tests
+│   │   ├── test_email.py       # Email notification test suite
+│   │   └── test_upload.py      # File upload validation tests
+│   ├── static/uploads/         # Local file storage (dev fallback when S3 is disabled)
+│   ├── alembic.ini             # Alembic configuration
+│   ├── auth.py                 # Password hashing & JWT token creation/verification
+│   ├── database.py             # SQLAlchemy database engine & session factory
+│   ├── email_service.py        # Gmail SMTP / Console email notification dispatch
+│   ├── main.py                 # FastAPI application routes, CORS, rate limiting
+│   ├── models.py               # ORM database models
+│   ├── s3_service.py           # AWS S3 file upload handler & local disk fallback
+│   ├── schemas.py              # Pydantic data validation schemas
+│   ├── seed.py                 # Seeds initial mentor profiles & admin account
+│   ├── Dockerfile              # Production multi-stage Docker build
+│   ├── requirements.txt        # Backend Python dependencies
+│   └── .env.example
+├── doc/                        # Architecture diagrams and implementation reports
+│   ├── pathfind-diagram.drawio.png       # Production architecture diagram image
+│   ├── pathfind_aws_architecture.drawio # Editable draw.io diagram file
+│   ├── pathfind_aws_architecture.xml    # Raw XML diagram file
+│   └── pathfind_comprehensive_project_report.md  # Comprehensive project report
 ├── frontend/
 │   ├── src/
 │   │   ├── components/         # Shared UI components (cards, modals, header, footer)
-│   │   ├── layouts/            # Page layouts (Auth, Onboarding, MentorOnboarding)
-│   │   ├── pages/              # Route-level page components
-│   │   ├── routes/
-│   │   │   ├── router.tsx      # Full routing tree
-│   │   │   └── guards/
-│   │   │       └── AuthGuards.tsx  # ProtectedRoute, GuestOnlyRoute, AdminRoute, MentorRoute
-│   │   ├── store/              # Zustand stores (auth, mentee onboarding, mentor onboarding)
-│   │   ├── lib/api.ts          # Typed API client — auto-clears session on 401
-│   │   └── types/api.ts        # TypeScript interfaces matching backend Pydantic schemas
+│   │   ├── layouts/            # Layout wrappers (Auth, Onboarding, MentorOnboarding)
+│   │   ├── pages/              # Page views (Dashboard, Mentors, Admin, Settings)
+│   │   ├── routes/             # Router setup & protection guards (AuthGuards.tsx)
+│   │   ├── store/              # Zustand state stores (auth, onboarding)
+│   │   ├── lib/api.ts          # API client with auto 401 session handling
+│   │   └── types/api.ts        # TypeScript definitions
 │   ├── package.json
 │   └── .gitignore
-├── .env.example                # Root env template (Docker Compose + all services)
-├── docker-compose.yml          # Local dev: PostgreSQL 15 + FastAPI with hot-reload
+├── .env.example                # Root environment template
+├── docker-compose.yml          # Local development stack (PostgreSQL + FastAPI)
 ├── CONTRIBUTING.md
 └── README.md
 ```
@@ -88,14 +98,7 @@ pathfind/
 
 ## Local Setup
 
-Choose **Method 1 (Docker Compose)** for the fastest start — it provisions the database automatically. Use **Method 2 (Manual)** if you prefer to run services directly.
-
----
-
 ### Method 1 — Docker Compose (Recommended)
-
-#### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose plugin)
 
 #### 1. Copy the environment file
 
@@ -103,15 +106,12 @@ Choose **Method 1 (Docker Compose)** for the fastest start — it provisions the
 cp .env.example .env
 ```
 
-Open `.env` and set the two required values:
+Open `.env` and set the required secrets:
 
 ```env
-# Generate with: openssl rand -hex 32
 POSTGRES_PASSWORD=choose_a_strong_password
 SECRET_KEY=generate_a_32_byte_hex_secret
 ```
-
-All other values have sensible defaults for local development.
 
 #### 2. Start the stack
 
@@ -119,19 +119,17 @@ All other values have sensible defaults for local development.
 docker compose up --build
 ```
 
-> Add `-d` to run in the background: `docker compose up --build -d`
+On first run, the API container automatically executes `alembic upgrade head` before Uvicorn starts.
 
-On first start the container automatically runs `alembic upgrade head` to create the database schema before Uvicorn starts.
+#### 3. Seed initial data
 
-#### 3. Seed mock data
-
-In a second terminal:
+In a separate terminal:
 
 ```bash
 docker compose exec api python3 backend/seed.py
 ```
 
-This creates 8 verified mentor profiles and the admin account (`admin@pathfind.org` / `admin123`).
+This populates verified mentor profiles and the default admin account (`admin@pathfind.org` / `admin123`).
 
 #### 4. Start the frontend
 
@@ -141,54 +139,29 @@ npm install
 npm run dev
 ```
 
-#### 5. Access the services
+#### 5. Local Service Endpoints
 
-| Service | URL |
+| Service | Local URL |
 |---|---|
-| Frontend app | http://localhost:5173 |
-| Backend API | http://localhost:8000 |
-| Swagger / API docs | http://localhost:8000/docs |
-| PostgreSQL | `localhost:5432` — see `.env` for credentials |
-
-#### Useful Docker commands
-
-```bash
-# Tail backend logs
-docker compose logs -f api
-
-# Stop containers (keeps database volume)
-docker compose down
-
-# Stop and wipe all data
-docker compose down -v
-
-# Re-run migrations after a schema change
-docker compose exec api alembic -c backend/alembic.ini upgrade head
-```
+| Frontend Web Application | http://localhost:5173 |
+| Backend API Service | http://localhost:8000 |
+| Interactive API Documentation | http://localhost:8000/docs |
+| PostgreSQL Database | localhost:5432 |
 
 ---
 
 ### Method 2 — Manual Setup
 
-#### Prerequisites
+#### Backend Setup
 
-- Python 3.11+
-- Node.js 18+ and npm 9+
-- (Optional) PostgreSQL 15 — SQLite is used by default
-
----
-
-#### Backend
-
-1. **Create and activate a virtual environment**
+1. **Create and activate Python virtual environment**
 
    ```bash
    python3 -m venv backend/.venv
-   source backend/.venv/bin/activate        # Linux / macOS
-   .\backend\.venv\Scripts\Activate.ps1     # Windows PowerShell
+   source backend/.venv/bin/activate
    ```
 
-2. **Install dependencies**
+2. **Install backend dependencies**
 
    ```bash
    pip install -r backend/requirements.txt
@@ -200,69 +173,46 @@ docker compose exec api alembic -c backend/alembic.ini upgrade head
    cp backend/.env.example backend/.env
    ```
 
-   The defaults use SQLite — no database server needed. To use PostgreSQL instead, set:
-
-   ```env
-   DATABASE_URL=postgresql://user:password@localhost:5432/pathfind
-   SECRET_KEY=generate_a_32_byte_hex_secret
-   ```
-
-4. **Run database migrations**
+4. **Run schema migrations**
 
    ```bash
    alembic -c backend/alembic.ini upgrade head
    ```
 
-   This creates all tables. Run this command every time you pull changes that include new migration files.
-
-5. **Seed mock data**
+5. **Seed database**
 
    ```bash
    python3 backend/seed.py
    ```
 
-6. **Start the API server**
+6. **Start FastAPI application**
 
    ```bash
    uvicorn backend.main:app --reload --port 8000
    ```
 
-   API available at `http://localhost:8000`.
-
-7. **Run tests and linting** (optional)
+7. **Execute test suite**
 
    ```bash
    pytest backend/tests -v
-   python3 -m flake8 backend --exclude=.venv,venv,tests --max-line-length=120
    ```
 
----
+#### Frontend Setup
 
-#### Frontend
-
-1. **Install dependencies**
+1. **Install Node modules**
 
    ```bash
    cd frontend
    npm install
    ```
 
-2. **Configure the API URL** (optional — defaults to `http://localhost:8000`)
-
-   ```bash
-   # frontend/.env
-   VITE_API_BASE_URL=http://localhost:8000
-   ```
-
-3. **Start the dev server**
+2. **Start development server**
 
    ```bash
    npm run dev
    ```
 
-   App available at `http://localhost:5173`.
-
-4. **Build and lint** (optional)
+3. **Run TypeScript check & linter**
 
    ```bash
    npm run build
@@ -273,113 +223,112 @@ docker compose exec api alembic -c backend/alembic.ini upgrade head
 
 ## Database Migrations (Alembic)
 
-The project uses Alembic to manage schema changes. The initial migration (`0001`) creates all tables on a fresh database. After any change to `backend/models.py`, generate and apply a new migration:
+The project manages database schema changes through Alembic.
 
 ```bash
-# Auto-generate a migration from model changes
-alembic -c backend/alembic.ini revision --autogenerate -m "describe your change"
+# Generate a new migration after modifying backend/models.py
+alembic -c backend/alembic.ini revision --autogenerate -m "description_of_change"
 
 # Apply pending migrations
 alembic -c backend/alembic.ini upgrade head
 
-# Roll back the latest migration
+# Roll back latest migration
 alembic -c backend/alembic.ini downgrade -1
-
-# Show current migration state
-alembic -c backend/alembic.ini current
 ```
-
-> In Docker: prefix each command with `docker compose exec api`.
 
 ---
 
-## Environment Variables
+## Environment Variables Configuration
 
-Copy `.env.example` to `.env` at the project root (for Docker) or `backend/.env.example` to `backend/.env` (for manual setup).
-
-| Variable | Default | Where | Description |
+| Variable | Default Value | Target | Description |
 |---|---|---|---|
-| `POSTGRES_PASSWORD` | — | Docker | **Required.** PostgreSQL password |
-| `POSTGRES_USER` | `pathfind` | Docker | PostgreSQL username |
+| `POSTGRES_PASSWORD` | — | Docker | PostgreSQL superuser password |
+| `POSTGRES_USER` | `pathfind` | Docker | PostgreSQL database user |
 | `POSTGRES_DB` | `pathfind` | Docker | PostgreSQL database name |
-| `DATABASE_URL` | `sqlite:///./pathfind.db` | Backend | Full DB connection string |
-| `SECRET_KEY` | — | Backend | **Required in production.** JWT signing secret (`openssl rand -hex 32`) |
-| `ENVIRONMENT` | `development` | Backend | Environment label |
-| `ALLOWED_ORIGINS` | `http://localhost:5173` | Backend | Comma-separated list of allowed frontend origins for CORS |
-| `EMAIL_SERVICE` | `console` | Backend | `console` (mock) \| `smtp` \| `ses` |
-| `SENDER_EMAIL` | `noreply@pathfind.org` | Backend | From address for notification emails |
-| `SMTP_SERVER` | — | Backend | SMTP host (when `EMAIL_SERVICE=smtp`) |
+| `DATABASE_URL` | `sqlite:///./pathfind.db` | Backend | Relational database connection string |
+| `SECRET_KEY` | — | Backend | Required JWT signing secret (`openssl rand -hex 32`) |
+| `ENVIRONMENT` | `development` | Backend | Deployment environment label |
+| `ALLOWED_ORIGINS` | `http://localhost:5173` | Backend | Comma-separated list of allowed CORS origins |
+| `EMAIL_SERVICE` | `console` | Backend | Email driver: `console` (dev mock) \| `smtp` (Gmail) |
+| `SENDER_EMAIL` | `noreply@pathfind.org` | Backend | Sender email address for notifications |
+| `SMTP_SERVER` | `smtp.gmail.com` | Backend | SMTP host server |
 | `SMTP_PORT` | `587` | Backend | SMTP port |
-| `SMTP_USERNAME` | — | Backend | SMTP authentication username |
-| `SMTP_PASSWORD` | — | Backend | SMTP password / API key |
-| `USE_S3` | `false` | Backend | Set `true` to upload files to S3 instead of local disk |
-| `S3_BUCKET_NAME` | — | Backend | S3 bucket name (required when `USE_S3=true`) |
+| `SMTP_USERNAME` | — | Backend | Gmail SMTP username |
+| `SMTP_PASSWORD` | — | Backend | Gmail App Password |
+| `USE_S3` | `false` | Backend | Set `true` to enable AWS S3 uploads |
+| `S3_BUCKET_NAME` | `pathfind-uploads` | Backend | AWS S3 bucket name |
 | `AWS_REGION` | `us-east-1` | Backend | AWS region |
-| `AWS_ACCESS_KEY_ID` | — | Backend | AWS access key (leave blank to use IAM role) |
-| `AWS_SECRET_ACCESS_KEY` | — | Backend | AWS secret key |
+| `AWS_ACCESS_KEY_ID` | — | Backend | AWS IAM access key ID |
+| `AWS_SECRET_ACCESS_KEY` | — | Backend | AWS IAM secret access key |
 | `VITE_API_BASE_URL` | `http://localhost:8000` | Frontend | Backend API base URL |
 
 ---
 
-## API Endpoints
+## API Endpoints Reference
 
 | Category | Method | Endpoint | Auth | Description |
 |---|---|---|---|---|
-| **System** | `GET` | `/` | — | API root status |
-| **System** | `GET` | `/health` | — | Health check |
-| **Auth** | `POST` | `/auth/signup` | — | Register mentee account |
-| **Auth** | `POST` | `/auth/signup/mentor` | — | Register mentor profile |
-| **Auth** | `POST` | `/auth/signin` | — | Sign in, returns JWT |
-| **Auth** | `GET` | `/auth/me` | ✓ | Current user + profile |
-| **Profile** | `PATCH` | `/profiles/me` | ✓ | Update profile |
-| **Settings** | `GET` | `/settings/me` | ✓ | Get notification settings |
-| **Settings** | `PATCH` | `/settings/me` | ✓ | Update notification settings |
-| **Mentors** | `GET` | `/mentors` | — | Browse mentors (filterable) |
-| **Mentors** | `GET` | `/mentors/{id}` | — | Single mentor profile |
-| **Mentors** | `POST` | `/mentors/{id}/reviews` | ✓ | Submit review |
-| **Mentors** | `GET` | `/mentors/{id}/reviews` | — | List mentor reviews |
-| **Requests** | `POST` | `/mentorship-requests` | ✓ | Create request |
-| **Requests** | `GET` | `/mentorship-requests` | ✓ | List requests (role-filtered) |
-| **Requests** | `GET` | `/mentorship-requests/{id}` | ✓ | Single request |
-| **Requests** | `PATCH` | `/mentorship-requests/{id}/status` | Mentor | Accept / decline |
+| **System** | `GET` | `/` | Open | Root API status endpoint |
+| **System** | `GET` | `/health` | Open | Health check endpoint |
+| **Auth** | `POST` | `/auth/signup` | Open | Register mentee account |
+| **Auth** | `POST` | `/auth/signup/mentor` | Open | Register mentor application profile |
+| **Auth** | `POST` | `/auth/signin` | Open | Authenticate credentials & return JWT |
+| **Auth** | `GET` | `/auth/me` | User | Get current user identity & profile |
+| **Profile** | `PATCH` | `/profiles/me` | User | Update personal user profile |
+| **Settings** | `GET` | `/settings/me` | User | Fetch notification preferences |
+| **Settings** | `PATCH` | `/settings/me` | User | Update notification preferences |
+| **Mentors** | `GET` | `/mentors` | Open | Search & filter verified mentors |
+| **Mentors** | `GET` | `/mentors/{id}` | Open | Fetch single mentor details |
+| **Mentors** | `POST` | `/mentors/{id}/reviews` | User | Submit mentor rating & review |
+| **Mentors** | `GET` | `/mentors/{id}/reviews` | Open | List mentor reviews |
+| **Requests** | `POST` | `/mentorship-requests` | Mentee | Submit structured booking request |
+| **Requests** | `GET` | `/mentorship-requests` | User | List mentorship requests |
+| **Requests** | `GET` | `/mentorship-requests/{id}` | User | Fetch request details |
+| **Requests** | `PATCH` | `/mentorship-requests/{id}/status` | Mentor | Accept/decline request & assign meeting link |
 | **Requests** | `DELETE` | `/mentorship-requests/{id}` | Mentee | Cancel pending request |
-| **Requests** | `GET` | `/mentorship-request-types` | — | List request categories |
-| **Saved** | `POST` | `/saved-mentors` | ✓ | Bookmark mentor |
-| **Saved** | `GET` | `/saved-mentors` | ✓ | List bookmarks |
-| **Saved** | `DELETE` | `/saved-mentors/{id}` | ✓ | Remove bookmark |
-| **Notes** | `POST` | `/session-notes` | ✓ | Create session note |
-| **Notes** | `GET` | `/session-notes` | ✓ | List session notes |
-| **Notes** | `PATCH` | `/session-notes/{id}` | ✓ | Update note |
-| **Notes** | `DELETE` | `/session-notes/{id}` | ✓ | Delete note |
-| **Goals** | `GET` | `/goals` | ✓ | List goals (seeds 3 starter goals for new users) |
-| **Goals** | `POST` | `/goals` | ✓ | Create goal |
-| **Goals** | `PATCH` | `/goals/{id}` | ✓ | Update goal |
-| **Goals** | `DELETE` | `/goals/{id}` | ✓ | Delete goal |
-| **Admin** | `GET` | `/admin/stats` | Admin | Platform analytics |
-| **Admin** | `GET` | `/admin/mentors/pending` | Admin | Pending verification queue |
-| **Admin** | `GET` | `/admin/mentors` | Admin | All mentors |
-| **Admin** | `GET` | `/admin/mentees` | Admin | All mentees |
-| **Admin** | `POST` | `/admin/mentors/{id}/approve` | Admin | Approve mentor |
-| **Admin** | `POST` | `/admin/mentors/{id}/reject` | Admin | Reject mentor |
-| **Admin** | `DELETE` | `/admin/users/{id}` | Admin | Delete user |
-| **Upload** | `POST` | `/upload` | ✓ | Upload file (max 5 MB, S3 or local) |
-
-Full interactive documentation: `http://localhost:8000/docs`
+| **Requests** | `GET` | `/mentorship-request-types` | Open | List mentorship request categories |
+| **Saved** | `POST` | `/saved-mentors` | User | Bookmark mentor |
+| **Saved** | `GET` | `/saved-mentors` | User | List bookmarked mentors |
+| **Saved** | `DELETE` | `/saved-mentors/{id}` | User | Remove bookmark |
+| **Notes** | `POST` | `/session-notes` | User | Create private session note |
+| **Notes** | `GET` | `/session-notes` | User | List private session notes |
+| **Notes** | `PATCH` | `/session-notes/{id}` | User | Update session note |
+| **Notes** | `DELETE` | `/session-notes/{id}` | User | Delete session note |
+| **Goals** | `GET` | `/goals` | User | List goals (auto-seeds 3 starter goals) |
+| **Goals** | `POST` | `/goals` | User | Create personal goal |
+| **Goals** | `PATCH` | `/goals/{id}` | User | Update goal progress/status |
+| **Goals** | `DELETE` | `/goals/{id}` | User | Delete goal |
+| **Admin** | `GET` | `/admin/stats` | Admin | System telemetry analytics |
+| **Admin** | `GET` | `/admin/mentors/pending` | Admin | Mentor verification queue |
+| **Admin** | `GET` | `/admin/mentors` | Admin | Directory of all mentors |
+| **Admin** | `GET` | `/admin/mentees` | Admin | Directory of all mentees |
+| **Admin** | `POST` | `/admin/mentors/{id}/approve` | Admin | Approve pending mentor profile |
+| **Admin** | `POST` | `/admin/mentors/{id}/reject` | Admin | Reject pending mentor profile |
+| **Admin** | `DELETE` | `/admin/users/{id}` | Admin | Remove user account |
+| **Upload** | `POST` | `/upload` | User | Upload resume/avatar (max 5 MB) |
 
 ---
 
-## CI/CD Pipeline
+## CI/CD Deployment Pipeline
 
-Every pull request into `main` runs:
-1. **Frontend** — `npm ci`, ESLint, `npm run build`
-2. **Backend** — `pip install`, flake8 lint, `pytest tests/ -v`
+On every Pull Request into `main`:
+1. **Frontend**: Runs `npm ci`, ESLint, and `npm run build`.
+2. **Backend**: Runs `pip install`, flake8 linting, and `pytest backend/tests -v`.
 
-Every push to `main` that touches `backend/**` additionally:
-1. Runs the same test + lint gate
-2. Builds a Docker image and pushes it to Amazon ECR (tagged with the commit SHA)
-3. Registers a new ECS task definition and forces a new deployment
+On Merge to `main`:
+1. Executes test and lint validation gates.
+2. Builds the multi-stage FastAPI Docker image.
+3. Pushes the Docker image to Amazon ECR tagged with the commit SHA.
+4. Registers an updated ECS task definition targeting the single EC2 host instance.
+5. Executes `alembic upgrade head` auto-migrations during task initialization.
 
-The container runs `alembic upgrade head` before starting Uvicorn, so schema migrations are applied automatically on each deploy.
+---
+
+## Documentation Links
+
+- [Comprehensive Project Report](./doc/pathfind_comprehensive_project_report.md)
+- [Architecture Diagram Source (draw.io)](./doc/pathfind_aws_architecture.drawio)
+- [Architecture XML Source](./doc/pathfind_aws_architecture.xml)
 
 ---
 
@@ -388,13 +337,13 @@ The container runs `alembic upgrade head` before starting Uvicorn, so schema mig
 | Name | Role |
 |---|---|
 | **Mustapha Haadi** | DevOps / Cloud, Team Lead |
-| **Edward Kamasah** | Frontend |
-| **Faith Ugwo Oghenetega** | Fullstack |
-| **Margaret Amanfu** | DevOps |
-| **Stephen Nyarko Mensah** | Backend |
+| **Edward Kamasah** | Frontend Engineer |
+| **Faith Ugwo Oghenetega** | Fullstack Engineer |
+| **Margaret Amanfu** | DevOps Engineer |
+| **Stephen Nyarko Mensah** | Backend Engineer |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the branching strategy, PR workflow, and deployment guidelines.
+Refer to [CONTRIBUTING.md](./CONTRIBUTING.md) for developer guidelines, branch management conventions, and pull request rules.
