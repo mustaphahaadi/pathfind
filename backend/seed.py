@@ -16,12 +16,12 @@ SEED_MENTORS = [
     {
         "email": "kwame.mensah@amalitech.org",
         "full_name": "Kwame Mensah",
-        "job_title": "Senior Software Engineer",
+        "job_title": "Senior Backend Engineer",
         "company": "AmaliTech",
         "years_of_experience": 7,
         "bio": (
-            "Kwame is a senior software engineer with extensive experience building backend systems and APIs. "
-            "He enjoys helping students and career switchers move from learning to building production-ready apps."
+            "Kwame is a senior backend engineer at AmaliTech specializing in distributed systems and API design. "
+            "He enjoys helping career switchers move from learning syntax to building production-ready cloud services."
         ),
         "expertise_tags": "Python, FastAPI, PostgreSQL, AWS",
         "availability": "Weekday evenings",
@@ -32,12 +32,13 @@ SEED_MENTORS = [
     {
         "email": "abena.owusu@amalitech.org",
         "full_name": "Abena Owusu",
-        "job_title": "Product Manager",
+        "job_title": "Senior Product Manager",
         "company": "AmaliTech",
         "years_of_experience": 6,
         "bio": (
-            "Abena is a product manager experienced in working with engineering, design, and business teams "
-            "to build digital products. She mentors aspiring product managers on breaking into the field."
+            "Abena leads product strategy initiatives at AmaliTech. "
+            "She helps aspiring product managers master product discovery, "
+            "agile frameworks, and effective stakeholder management."
         ),
         "expertise_tags": "Product Strategy, Agile, User Research, Product Discovery",
         "availability": "Saturday mornings",
@@ -46,14 +47,15 @@ SEED_MENTORS = [
         "avatar_url": "/mentors/mentor_f2.png",
     },
     {
-        "email": "kofi.asante@amalitech.org",
+        "email": "kofi.asante@generation.org",
         "full_name": "Kofi Asante",
-        "job_title": "Frontend Engineer",
-        "company": "AmaliTech",
+        "job_title": "Frontend Tech Lead",
+        "company": "Generation Ghana",
         "years_of_experience": 5,
         "bio": (
-            "Kofi is a frontend engineer passionate about creating accessible and user-friendly web applications. "
-            "He enjoys helping beginners improve their portfolios."
+            "Kofi is a frontend lead at Generation Ghana passionate about "
+            "building responsive, accessible web interfaces. "
+            "He guides early-stage developers on modern React patterns and portfolio projects."
         ),
         "expertise_tags": "React, TypeScript, JavaScript, HTML/CSS",
         "availability": "Weekday evenings",
@@ -62,14 +64,15 @@ SEED_MENTORS = [
         "avatar_url": "/mentors/mentor_2.png",
     },
     {
-        "email": "nana.yeboah@amalitech.org",
+        "email": "nana.yeboah@paystack.com",
         "full_name": "Nana Yeboah",
-        "job_title": "Data Analyst",
-        "company": "AmaliTech",
+        "job_title": "Senior Data Analyst",
+        "company": "Paystack Ghana",
         "years_of_experience": 5,
         "bio": (
-            "Nana works with data to help organizations make better decisions. "
-            "He supports aspiring analysts who want to build practical skills and create projects."
+            "Nana leverages business intelligence and data visualization at "
+            "Paystack Ghana to optimize merchant analytics. "
+            "He coaches mentees on SQL, Power BI, and practical data storytelling."
         ),
         "expertise_tags": "SQL, Power BI, Excel, Data Visualization",
         "availability": "Saturday afternoons",
@@ -78,30 +81,30 @@ SEED_MENTORS = [
         "avatar_url": "/mentors/mentor_5.png",
     },
     {
-        "email": "akosua.boateng@amalitech.org",
+        "email": "akosua.boateng@farmerline.co",
         "full_name": "Akosua Boateng",
-        "job_title": "UX/UI Designer",
-        "company": "AmaliTech",
+        "job_title": "Lead UX/UI Designer",
+        "company": "Farmerline",
         "years_of_experience": 5,
         "bio": (
-            "Akosua is a UX/UI designer focused on turning user problems into simple digital experiences. "
-            "She enjoys reviewing portfolios."
+            "Akosua leads UX design at Farmerline, crafting intuitive digital tools for agricultural innovation. "
+            "She offers portfolio critiques, design system guidance, and Figma workshops."
         ),
         "expertise_tags": "Figma, UX Research, Wireframing, Design Systems",
         "availability": "Weekday evenings",
         "location": "Tema, Ghana",
         "linkedin_url": "https://linkedin.com/in/akosua-boateng",
-        "avatar_url": "/mentors/mentor_f1.png",
+        "avatar_url": "/mentors/mentor_f5.png",
     },
     {
-        "email": "yaw.ofori@amalitech.org",
+        "email": "yaw.ofori@expresspay.gh",
         "full_name": "Yaw Ofori",
-        "job_title": "Cloud/DevOps Engineer",
-        "company": "AmaliTech",
+        "job_title": "DevOps & Cloud Architect",
+        "company": "ExpressPay",
         "years_of_experience": 6,
         "bio": (
-            "Yaw is a cloud and DevOps engineer with experience automating deployments "
-            "and managing infrastructure."
+            "Yaw manages cloud infrastructure and automated deployments at ExpressPay. He helps developers master "
+            "containerization with Docker, CI/CD pipelines, and Linux administration."
         ),
         "expertise_tags": "AWS, Docker, CI/CD, Linux, Cloud Infrastructure",
         "availability": "Saturday mornings",
@@ -116,8 +119,8 @@ SEED_MENTORS = [
         "company": "AmaliTech",
         "years_of_experience": 4,
         "bio": (
-            "Adwoa is a software engineer specializing in Java-based backend systems. "
-            "She enjoys helping university students prepare for technical interviews."
+            "Adwoa is a backend software engineer at AmaliTech specializing in Java and Spring Boot services. "
+            "She focuses on helping university graduates prepare for technical interviews."
         ),
         "expertise_tags": "Java, Spring Boot, PostgreSQL, APIs",
         "availability": "Weekday evenings",
@@ -126,14 +129,14 @@ SEED_MENTORS = [
         "avatar_url": "/mentors/mentor_f4.png",
     },
     {
-        "email": "kojo.antwi@amalitech.org",
+        "email": "kojo.antwi@zeepay.com",
         "full_name": "Kojo Antwi",
-        "job_title": "Data Scientist",
-        "company": "AmaliTech",
+        "job_title": "Senior Data Scientist",
+        "company": "Zeepay",
         "years_of_experience": 6,
         "bio": (
-            "Kojo is a data scientist who works across analytics and machine learning. "
-            "He helps aspiring data professionals identify key skills."
+            "Kojo designs machine learning models and predictive analytics at Zeepay. He works with aspiring data "
+            "professionals to develop practical machine learning pipelines in Python."
         ),
         "expertise_tags": "Python, Machine Learning, SQL, Statistics",
         "availability": "Sunday afternoons",
@@ -142,132 +145,36 @@ SEED_MENTORS = [
         "avatar_url": "/mentors/mentor_4.jpg",
     },
     {
-        "email": "jamal.washington@amalitech.org",
-        "full_name": "Jamal Washington",
-        "job_title": "Senior Software Engineer",
-        "company": "AmaliTech",
-        "years_of_experience": 7,
-        "bio": (
-            "Jamal is a senior software engineer with extensive experience building backend systems and APIs. "
-            "He enjoys helping students and career switchers move from learning to building production-ready apps."
-        ),
-        "expertise_tags": "Python, FastAPI, PostgreSQL, AWS",
-        "availability": "Weekday evenings",
-        "location": "Accra, Ghana",
-        "linkedin_url": "https://linkedin.com/in/jamal-washington",
-        "avatar_url": "/mentors/mentor_1.png",
-    },
-    {
-        "email": "aaliyah.brown@amalitech.org",
-        "full_name": "Aaliyah Brown",
-        "job_title": "Product Manager",
-        "company": "AmaliTech",
-        "years_of_experience": 6,
-        "bio": (
-            "Aaliyah is a product manager experienced in working with engineering, design, and business teams "
-            "to build digital products. She mentors aspiring product managers on breaking into the field."
-        ),
-        "expertise_tags": "Product Strategy, Agile, User Research, Product Discovery",
-        "availability": "Saturday mornings",
-        "location": "Kumasi, Ghana",
-        "linkedin_url": "https://linkedin.com/in/aaliyah-brown",
-        "avatar_url": "/mentors/mentor_f2.png",
-    },
-    {
-        "email": "malik.johnson@amalitech.org",
-        "full_name": "Malik Johnson",
-        "job_title": "Frontend Engineer",
-        "company": "AmaliTech",
-        "years_of_experience": 5,
-        "bio": (
-            "Malik is a frontend engineer passionate about creating accessible and user-friendly web applications. "
-            "He enjoys helping beginners improve their portfolios."
-        ),
-        "expertise_tags": "React, TypeScript, JavaScript, HTML/CSS",
-        "availability": "Weekday evenings",
-        "location": "Takoradi, Ghana",
-        "linkedin_url": "https://linkedin.com/in/malik-johnson",
-        "avatar_url": "/mentors/mentor_2.png",
-    },
-    {
-        "email": "marcus.davis@amalitech.org",
-        "full_name": "Marcus Davis",
-        "job_title": "Data Analyst",
-        "company": "AmaliTech",
-        "years_of_experience": 5,
-        "bio": (
-            "Marcus works with data to help organizations make better decisions. "
-            "He supports aspiring analysts who want to build practical skills and create projects."
-        ),
-        "expertise_tags": "SQL, Power BI, Excel, Data Visualization",
-        "availability": "Saturday afternoons",
-        "location": "Accra, Ghana",
-        "linkedin_url": "https://linkedin.com/in/marcus-davis",
-        "avatar_url": "/mentors/mentor_3.png",
-    },
-    {
-        "email": "nia.williams@amalitech.org",
+        "email": "nia.williams@hubtel.com",
         "full_name": "Nia Williams",
-        "job_title": "UX/UI Designer",
-        "company": "AmaliTech",
-        "years_of_experience": 5,
+        "job_title": "Principal Product Designer",
+        "company": "Hubtel",
+        "years_of_experience": 8,
         "bio": (
-            "Nia is a UX/UI designer focused on turning user problems into simple digital experiences. "
-            "She enjoys reviewing portfolios."
+            "Nia is Principal Product Designer at Hubtel, driving payment UX and component libraries. "
+            "She mentors career transitioners on crafting narrative portfolios and mastering Figma."
         ),
-        "expertise_tags": "Figma, UX Research, Wireframing, Design Systems",
+        "expertise_tags": "Design Systems, Figma, UX Research, Wireframing",
         "availability": "Weekday evenings",
-        "location": "Tema, Ghana",
+        "location": "Accra, Ghana",
         "linkedin_url": "https://linkedin.com/in/nia-williams",
         "avatar_url": "/mentors/mentor_f1.png",
     },
     {
-        "email": "jasmine.jones@amalitech.org",
-        "full_name": "Jasmine Jones",
-        "job_title": "Cloud/DevOps Engineer",
-        "company": "AmaliTech",
-        "years_of_experience": 6,
+        "email": "ama.serwaa@mtn.com.gh",
+        "full_name": "Ama Serwaa",
+        "job_title": "Lead Data Scientist",
+        "company": "MTN Ghana",
+        "years_of_experience": 7,
         "bio": (
-            "Jasmine is a cloud and DevOps engineer with experience automating deployments "
-            "and managing infrastructure."
+            "Ama leads customer intelligence models at MTN Ghana. She coaches aspiring data analysts and scientists "
+            "on statistical modeling, BigQuery analytics, and real-world Python workflows."
         ),
-        "expertise_tags": "AWS, Docker, CI/CD, Linux, Cloud Infrastructure",
-        "availability": "Saturday mornings",
-        "location": "Accra, Ghana",
-        "linkedin_url": "https://linkedin.com/in/jasmine-jones",
-        "avatar_url": "/mentors/mentor_f3.png",
-    },
-    {
-        "email": "ebony.taylor@amalitech.org",
-        "full_name": "Ebony Taylor",
-        "job_title": "Software Engineer",
-        "company": "AmaliTech",
-        "years_of_experience": 4,
-        "bio": (
-            "Ebony is a software engineer specializing in Java-based backend systems. "
-            "She enjoys helping university students prepare for technical interviews."
-        ),
-        "expertise_tags": "Java, Spring Boot, PostgreSQL, APIs",
-        "availability": "Weekday evenings",
-        "location": "Accra, Ghana",
-        "linkedin_url": "https://linkedin.com/in/ebony-taylor",
-        "avatar_url": "/mentors/mentor_f4.png",
-    },
-    {
-        "email": "terrence.smith@amalitech.org",
-        "full_name": "Terrence Smith",
-        "job_title": "Data Scientist",
-        "company": "AmaliTech",
-        "years_of_experience": 6,
-        "bio": (
-            "Terrence is a data scientist who works across analytics and machine learning. "
-            "He helps aspiring data professionals identify key skills."
-        ),
-        "expertise_tags": "Python, Machine Learning, SQL, Statistics",
+        "expertise_tags": "Python, Machine Learning, Statistics, SQL",
         "availability": "Sunday afternoons",
-        "location": "Kumasi, Ghana",
-        "linkedin_url": "https://linkedin.com/in/terrence-smith",
-        "avatar_url": "/mentors/mentor_4.jpg",
+        "location": "Accra, Ghana",
+        "linkedin_url": "https://linkedin.com/in/ama-serwaa",
+        "avatar_url": "/mentors/mentor_f3.png",
     },
 ]
 
@@ -288,10 +195,20 @@ def seed_database():
             db.add(admin_user)
             db.commit()
 
+        # Clean out obsolete duplicate mentor users that are not in SEED_MENTORS list
+        seed_emails = {item["email"] for item in SEED_MENTORS}
+        seed_emails.add("admin@pathfind.org")
+
+        all_users = db.query(User).all()
+        for u in all_users:
+            if u.email not in seed_emails and u.role == "mentor" and u.email.endswith("@amalitech.org"):
+                db.delete(u)
+        db.commit()
+
         # Seed Mentors
         for item in SEED_MENTORS:
-            existing = db.query(User).filter(User.email == item["email"]).first()
-            if not existing:
+            user = db.query(User).filter(User.email == item["email"]).first()
+            if not user:
                 user = User(
                     email=item["email"],
                     hashed_password=hash_password("password123"),
@@ -302,6 +219,7 @@ def seed_database():
                 db.commit()
                 db.refresh(user)
 
+            if not user.profile:
                 profile = MentorProfile(
                     user_id=user.id,
                     full_name=item["full_name"],
@@ -317,20 +235,21 @@ def seed_database():
                 )
                 db.add(profile)
                 db.commit()
-            elif existing.profile:
-                profile = existing.profile
-                loc = item.get("location")
-                if isinstance(loc, str):
-                    profile.location = loc
-                linkedin = item.get("linkedin_url")
-                if isinstance(linkedin, str):
-                    profile.linkedin_url = linkedin
-                avatar = item.get("avatar_url")
-                if isinstance(avatar, str):
-                    profile.avatar_url = avatar
+            else:
+                profile = user.profile
+                profile.full_name = item["full_name"]
+                profile.job_title = item["job_title"]
+                profile.company = item["company"]
+                profile.years_of_experience = item["years_of_experience"]
+                profile.bio = item["bio"]
+                profile.expertise_tags = item["expertise_tags"]
+                profile.availability = item["availability"]
+                profile.location = item.get("location")
+                profile.linkedin_url = item.get("linkedin_url")
+                profile.avatar_url = item.get("avatar_url")
                 db.commit()
 
-        print("Database seeded successfully with mock mentor profiles and admin user!")
+        print("Database seeded successfully with clean, unique mentor profiles!")
     finally:
         db.close()
 

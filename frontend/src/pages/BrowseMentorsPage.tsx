@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BadgeCheck, X, HandCoins, Loader2 } from "lucide-react";
+import { BadgeCheck, X, HandCoins, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import MentorListCard from "../components/mentors/MentorListCard";
@@ -135,13 +135,39 @@ const BrowseMentorsPage = () => {
     [mentors, availableOnly],
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
   const toggleExpertise = (label: string) => {
+    setCurrentPage(1);
     setSelectedExpertise((current) =>
       current.includes(label)
         ? current.filter((item) => item !== label)
         : [...current, label],
     );
   };
+
+  const handleSkillQueryChange = (query: string) => {
+    setCurrentPage(1);
+    setSkillQuery(query);
+  };
+
+  const handleToggleAvailableOnly = () => {
+    setCurrentPage(1);
+    setAvailableOnly((prev) => !prev);
+  };
+
+  const handleClearAllFilters = () => {
+    setCurrentPage(1);
+    setSelectedExpertise([]);
+    setAvailableOnly(false);
+    setSkillQuery("");
+  };
+
+  const totalPages = Math.ceil(filteredMentors.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const displayedMentors = filteredMentors.slice(startIndex, endIndex);
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -206,15 +232,12 @@ const BrowseMentorsPage = () => {
             {/* Sidebar filters */}
             <MentorFiltersSidebar
               skillQuery={skillQuery}
-              onSkillQueryChange={setSkillQuery}
+              onSkillQueryChange={handleSkillQueryChange}
               selectedDisciplines={selectedExpertise as MentorCategory[]}
               onToggleDiscipline={toggleExpertise as (discipline: MentorCategory) => void}
               availableOnly={availableOnly}
-              onToggleAvailableOnly={() => setAvailableOnly((prev) => !prev)}
-              onClearAll={() => {
-                setSelectedExpertise([]);
-                setAvailableOnly(false);
-              }}
+              onToggleAvailableOnly={handleToggleAvailableOnly}
+              onClearAll={handleClearAllFilters}
             />
 
             {/* Mentor list */}
@@ -243,9 +266,59 @@ const BrowseMentorsPage = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4">
-                      {filteredMentors.map((mentor) => (
+                      {displayedMentors.map((mentor) => (
                         <MentorListCard key={mentor.user_id} mentor={mentor} />
                       ))}
+
+                      {/* Pagination Bar */}
+                      {totalPages > 1 && (
+                        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-surface-line bg-white p-4 shadow-xs">
+                          <p className="text-xs font-semibold text-ink/60">
+                            Showing <span className="text-ink font-bold">{startIndex + 1}–{Math.min(endIndex, filteredMentors.length)}</span> of <span className="text-ink font-bold">{filteredMentors.length}</span> mentors
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              disabled={currentPage === 1}
+                              onClick={() => {
+                                setCurrentPage((p) => Math.max(1, p - 1));
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                              className="inline-flex items-center justify-center rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-bold text-ink hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                              <ChevronLeft size={15} className="mr-1" /> Prev
+                            </button>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                              <button
+                                key={pageNum}
+                                type="button"
+                                onClick={() => {
+                                  setCurrentPage(pageNum);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                className={`h-7 w-7 rounded-xl text-xs font-bold transition-all ${
+                                  pageNum === currentPage
+                                    ? "bg-slate-900 text-white shadow-xs"
+                                    : "border border-surface-line bg-white text-ink hover:bg-surface"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              disabled={currentPage === totalPages}
+                              onClick={() => {
+                                setCurrentPage((p) => Math.min(totalPages, p + 1));
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                              className="inline-flex items-center justify-center rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-bold text-ink hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            >
+                              Next <ChevronRight size={15} className="ml-1" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </>
