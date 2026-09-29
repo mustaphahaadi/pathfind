@@ -14,6 +14,9 @@ import {
   Pencil,
   Video,
   ExternalLink,
+  FileText,
+  Globe,
+  Code,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -102,68 +105,67 @@ const MentorDashboardPage = () => {
 
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          {/* Executive Mentor Hero Banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-8 text-white shadow-xl">
-            
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Executive Mentor Header Banner */}
+          <div className="rounded-2xl border border-surface-line bg-white p-6 sm:p-8 text-ink shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-line/60 pb-5">
               <div className="flex flex-wrap items-center gap-2.5">
                 {user?.verification_status === "verified" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     Verified Mentor Profile
                   </span>
                 ) : user?.verification_status === "rejected" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300 backdrop-blur-md ring-1 ring-rose-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 border border-rose-200/80">
+                    <span className="h-2 w-2 rounded-full bg-rose-500" />
                     Verification Rejected
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md ring-1 ring-amber-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200/80">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
                     Pending Admin Verification
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 border border-neutral-200">
                   Capacity: {monthlyCapacity} Calls / Month
                 </span>
               </div>
               <button
                 type="button"
                 onClick={toggleAcceptingRequests}
-                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all backdrop-blur-md ring-1 ${
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all border ${
                   acceptingRequests
-                    ? "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30 hover:bg-emerald-500/30"
-                    : "bg-amber-500/20 text-amber-300 ring-amber-500/30 hover:bg-amber-500/30"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                    : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
                 }`}
               >
-                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-400" : "bg-amber-400"}`} />
+                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-500" : "bg-amber-500"}`} />
                 {acceptingRequests ? "Accepting Mentees" : "Paused"}
               </button>
             </div>
 
             <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-                  Welcome back, {firstName} 👋
+                <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                  Welcome back, {firstName}
                 </h1>
-                <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
-                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana's rising tech talent.
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-ink/60 sm:text-base">
+                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana&apos;s rising tech talent.
                 </p>
               </div>
               <div className="flex shrink-0 gap-2.5">
                 <Link
                   to="/onboarding/mentor/identity-verification"
                   id="edit-profile-btn"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-xs"
                 >
-                  <Pencil size={16} />
+                  <Pencil size={15} />
                   Edit Profile
                 </Link>
                 <Link
                   to={`/mentors/${user?.id ?? "me"}`}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-surface hover:border-ink/20"
                 >
-                  <Eye size={16} />
+                  <Eye size={15} />
                   View Public Card
                 </Link>
               </div>
@@ -572,9 +574,9 @@ const MentorDashboardPage = () => {
                               href={req.resume_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              📄 Resume Attachment
+                              <FileText size={14} className="text-neutral-500" /> Resume Attachment
                             </a>
                           )}
                           {req.portfolio_url && (
@@ -582,9 +584,9 @@ const MentorDashboardPage = () => {
                               href={req.portfolio_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              🌐 Portfolio Link
+                              <Globe size={14} className="text-neutral-500" /> Portfolio Link
                             </a>
                           )}
                           {req.github_url && (
@@ -592,9 +594,9 @@ const MentorDashboardPage = () => {
                               href={req.github_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              💻 GitHub Profile
+                              <Code size={14} className="text-neutral-500" /> GitHub Profile
                             </a>
                           )}
                         </div>
