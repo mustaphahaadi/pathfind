@@ -14,6 +14,9 @@ import {
   Pencil,
   Video,
   ExternalLink,
+  FileText,
+  Globe,
+  Code,
 } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -102,68 +105,67 @@ const MentorDashboardPage = () => {
 
       <main className="flex-1 px-5 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          {/* Executive Mentor Hero Banner */}
-          <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 sm:p-8 text-white shadow-xl">
-            
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Executive Mentor Header Banner */}
+          <div className="rounded-2xl border border-surface-line bg-white p-6 sm:p-8 text-ink shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-line/60 pb-5">
               <div className="flex flex-wrap items-center gap-2.5">
                 {user?.verification_status === "verified" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 backdrop-blur-md ring-1 ring-emerald-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     Verified Mentor Profile
                   </span>
                 ) : user?.verification_status === "rejected" ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-300 backdrop-blur-md ring-1 ring-rose-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700 border border-rose-200/80">
+                    <span className="h-2 w-2 rounded-full bg-rose-500" />
                     Verification Rejected
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md ring-1 ring-amber-500/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200/80">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" />
                     Pending Admin Verification
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 border border-neutral-200">
                   Capacity: {monthlyCapacity} Calls / Month
                 </span>
               </div>
               <button
                 type="button"
                 onClick={toggleAcceptingRequests}
-                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all backdrop-blur-md ring-1 ${
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-semibold transition-all border ${
                   acceptingRequests
-                    ? "bg-emerald-500/20 text-emerald-300 ring-emerald-500/30 hover:bg-emerald-500/30"
-                    : "bg-amber-500/20 text-amber-300 ring-amber-500/30 hover:bg-amber-500/30"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                    : "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
                 }`}
               >
-                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-400" : "bg-amber-400"}`} />
+                <span className={`h-2 w-2 rounded-full ${acceptingRequests ? "bg-emerald-500" : "bg-amber-500"}`} />
                 {acceptingRequests ? "Accepting Mentees" : "Paused"}
               </button>
             </div>
 
             <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-                  Welcome back, {firstName} 👋
+                <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                  Welcome back, {firstName}
                 </h1>
-                <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">
-                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana's rising tech talent.
+                <p className="mt-1 max-w-xl text-sm leading-relaxed text-ink/60 sm:text-base">
+                  Your volunteer mentor hub &middot; Review pending booking requests, conduct 1:1 sessions, and guide Ghana&apos;s rising tech talent.
                 </p>
               </div>
               <div className="flex shrink-0 gap-2.5">
                 <Link
                   to="/onboarding/mentor/identity-verification"
                   id="edit-profile-btn"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-xs"
                 >
-                  <Pencil size={16} />
+                  <Pencil size={15} />
                   Edit Profile
                 </Link>
                 <Link
                   to={`/mentors/${user?.id ?? "me"}`}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl border border-surface-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-surface hover:border-ink/20"
                 >
-                  <Eye size={16} />
+                  <Eye size={15} />
                   View Public Card
                 </Link>
               </div>
@@ -220,8 +222,8 @@ const MentorDashboardPage = () => {
                   <ShieldCheck size={18} strokeWidth={2} />
                 </span>
               </div>
-              <p className="mt-3 text-3xl font-black text-ink">
-                {hasRatings ? "5.0 ★" : "100% Verified"}
+              <p className="mt-3 text-2xl font-black text-ink">
+                {hasRatings ? "5.0" : "100% Verified"}
               </p>
               <p className="mt-1 text-xs font-medium text-ink/50">
                 {hasRatings
@@ -306,14 +308,16 @@ const MentorDashboardPage = () => {
                   </div>
 
                   {pendingRequests.length === 0 ? (
-                    <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink/40">
-                        <Mail size={20} />
+                    <div className="mt-4 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                        <Mail size={18} />
                       </span>
-                      <p className="mt-3 text-sm font-bold text-ink">No pending requests</p>
-                      <p className="mt-1 max-w-sm text-sm text-ink/60">
-                        Requests from mentees matching your focus topics will arrive here for your review.
-                      </p>
+                      <div>
+                        <p className="text-sm font-bold text-ink">No pending requests yet</p>
+                        <p className="mt-0.5 text-xs text-ink/60">
+                          Make sure your profile is set to <span className="font-semibold text-ink">Accepting Mentees</span> so mentees in your area of expertise can find you.
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <ul className="mt-4 space-y-3">
@@ -412,7 +416,7 @@ const MentorDashboardPage = () => {
                       Recurring Office Hours
                     </p>
                     {weeklyWindows.length === 0 ? (
-                      <p className="mt-2 text-sm text-ink/50">No recurring windows set yet.</p>
+                      <p className="mt-2 text-xs text-ink/50">No recurring slots added. Use the link below to configure your weekly hours.</p>
                     ) : (
                       <div className="mt-2 flex flex-col gap-2">
                         {weeklyWindows.map((window) => (
@@ -518,12 +522,16 @@ const MentorDashboardPage = () => {
               </div>
 
               {pendingRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <Mail size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No pending requests</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    When mentees send a request matching your expertise, it will appear here for your review.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <Inbox size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No pending requests</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      When a mentee submits a request that matches your listed expertise, it will appear here. Ensure your profile is marked as <span className="font-semibold text-ink">Accepting Mentees</span>.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">
@@ -572,9 +580,9 @@ const MentorDashboardPage = () => {
                               href={req.resume_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              📄 Resume Attachment
+                              <FileText size={14} className="text-neutral-500" /> Resume Attachment
                             </a>
                           )}
                           {req.portfolio_url && (
@@ -582,9 +590,9 @@ const MentorDashboardPage = () => {
                               href={req.portfolio_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              🌐 Portfolio Link
+                              <Globe size={14} className="text-neutral-500" /> Portfolio Link
                             </a>
                           )}
                           {req.github_url && (
@@ -592,9 +600,9 @@ const MentorDashboardPage = () => {
                               href={req.github_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-surface-line bg-white px-3 py-1.5 font-medium text-ink hover:bg-surface"
                             >
-                              💻 GitHub Profile
+                              <Code size={14} className="text-neutral-500" /> GitHub Profile
                             </a>
                           )}
                         </div>
@@ -706,12 +714,16 @@ const MentorDashboardPage = () => {
               </div>
 
               {acceptedRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <CalendarDays size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No active sessions scheduled</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    Sessions you accept will be listed here with meeting links and mentee contact info.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <CalendarDays size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No active sessions yet</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      Once you accept a mentee request, the confirmed session will appear here. You can add a Google Meet or Zoom link for the mentee at that point.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">
@@ -770,12 +782,16 @@ const MentorDashboardPage = () => {
               <p className="text-sm text-ink/60">Records of completed mentorship calls.</p>
 
               {completedRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <Users size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No completed sessions yet</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    Once you mark scheduled sessions as completed, they will be archived here.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <Users size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No completed sessions yet</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      Sessions you mark as completed will be archived here, along with mentee contact history. Your completed count contributes to your community standing.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-3">
@@ -824,7 +840,7 @@ const MentorDashboardPage = () => {
                 <div className="rounded-2xl border border-surface-line p-4">
                   <p className="text-sm font-bold text-ink">Recurring Weekly Office Hours</p>
                   {weeklyWindows.length === 0 ? (
-                    <p className="mt-2 text-xs text-ink/50">No recurring windows configured.</p>
+                    <p className="mt-2 text-xs text-ink/50">No recurring office hours configured yet. Add your available windows below.</p>
                   ) : (
                     <ul className="mt-3 space-y-2">
                       {weeklyWindows.map((w) => (

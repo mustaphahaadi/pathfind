@@ -492,7 +492,7 @@ const ProfilePage = () => {
                     Welcome to Pathfind
                   </span>
                   <h1 className="mt-4 text-3xl font-extrabold text-ink">
-                    Welcome, {firstName} 👋
+                    Welcome, {firstName}
                   </h1>
                   <p className="mt-2 text-base text-ink/60">
                     Let&apos;s find someone who can help you with your career goals.

@@ -112,18 +112,18 @@ export default function AdminDashboardPage() {
 
       <main className="flex-1 px-5 py-8 sm:px-8 sm:py-12">
         <div className="mx-auto max-w-6xl space-y-8">
-          {/* Header Banner */}
-          <div className="rounded-3xl border border-surface-line bg-slate-950 p-6 text-white shadow-md sm:p-8">
+          {/* Executive Admin Header Banner */}
+          <div className="rounded-2xl border border-surface-line bg-white p-6 sm:p-8 text-ink shadow-xs">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-md ring-1 ring-white/10">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200/80">
                   <ShieldCheck size={14} />
                   Administrator Portal
                 </span>
-                <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
+                <h1 className="mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
                   Platform Control &amp; Verification Center
                 </h1>
-                <p className="mt-1 text-sm text-white/70">
+                <p className="mt-1 text-sm text-ink/60">
                   Real-time system stats, mentor verification queue, and user account management.
                 </p>
               </div>
@@ -132,7 +132,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 onClick={handleRefresh}
                 disabled={loading}
-                className="inline-flex items-center gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
+                className="inline-flex items-center gap-2 self-start rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-95 disabled:opacity-50"
               >
                 <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
                 Refresh Portal

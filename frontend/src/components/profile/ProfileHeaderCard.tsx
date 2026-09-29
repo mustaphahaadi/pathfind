@@ -26,14 +26,14 @@ const ProfileHeaderCard = () => {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-surface-line bg-white shadow-sm transition-all hover:shadow-md">
-      {/* Rich dark solid executive banner */}
-      <div className="relative h-24 bg-slate-950 p-6 sm:h-28">
+      {/* Executive banner */}
+      <div className="relative h-24 bg-neutral-900 p-6 sm:h-28">
         <div className="flex items-center justify-between text-white/80">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur-md ring-1 ring-white/10">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300 border border-emerald-500/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Verified Mentee
           </span>
-          <span className="text-xs font-semibold tracking-wide text-white/60 uppercase">
+          <span className="text-xs font-semibold tracking-wide text-white/70 uppercase">
             Pathfind Talent Network
           </span>
         </div>
