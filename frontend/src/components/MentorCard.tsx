@@ -23,7 +23,7 @@ export function MentorCard({ mentor }: { mentor: Mentor }) {
             <div>
               <h3 className="flex items-center gap-1.5 text-lg font-bold text-neutral-900">
                 {mentor.name}
-                <CheckCircle2 size={16} className="text-blue-600 fill-blue-600/10" />
+                <CheckCircle2 size={16} className="text-emerald-600 fill-emerald-50" />
               </h3>
               <p className="text-xs font-medium text-neutral-600">
                 {mentor.role} at {mentor.company}

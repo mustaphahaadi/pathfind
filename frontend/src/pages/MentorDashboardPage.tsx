@@ -81,7 +81,8 @@ const MentorDashboardPage = () => {
 
   const firstName = fullName.split(" ")[0] || "there";
   const monthlyCapacity = weeklyWindows.reduce((sum, window) => sum + window.maxCalls, 0);
-  const shareLink = `pathfind.org/mentors/${user?.id ?? "me"}`;
+  const profileUrl = `https://pathfind.alphateam.live/mentors/${user?.id ?? "me"}`;
+  const shareLink = profileUrl;
 
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const acceptedRequests = requests.filter((r) => r.status === "accepted");
@@ -279,12 +280,21 @@ const MentorDashboardPage = () => {
                     Mentees can review your background, focus topics, and request 1:1 sessions.
                   </p>
 
-                  <div className="mt-4 flex items-center justify-between rounded-2xl bg-surface p-3.5">
-                    <span className="font-mono text-xs font-medium text-ink/80">{shareLink}</span>
+                  <div className="mt-4 flex items-center gap-2 rounded-2xl bg-surface p-3.5">
+                    <span className="flex-1 overflow-hidden">
+                      <a
+                        href={shareLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs font-medium text-accent-blue hover:underline break-all"
+                      >
+                        {shareLink}
+                      </a>
+                    </span>
                     <button
                       type="button"
-                      onClick={() => navigator.clipboard.writeText(`https://${shareLink}`)}
-                      className="rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface"
+                      onClick={() => navigator.clipboard.writeText(shareLink)}
+                      className="shrink-0 rounded-xl border border-surface-line bg-white px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface"
                     >
                       Copy Link
                     </button>
@@ -382,12 +392,12 @@ const MentorDashboardPage = () => {
                       aria-checked={acceptingRequests}
                       onClick={toggleAcceptingRequests}
                       className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                        acceptingRequests ? "bg-ink" : "bg-surface-line"
+                        acceptingRequests ? "bg-emerald-500" : "bg-neutral-300"
                       }`}
                     >
                       <span
-                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                          acceptingRequests ? "translate-x-5" : "translate-x-0.5"
+                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                          acceptingRequests ? "translate-x-5" : "translate-x-0"
                         }`}
                       />
                     </button>
@@ -826,12 +836,12 @@ const MentorDashboardPage = () => {
                     aria-checked={acceptingRequests}
                     onClick={toggleAcceptingRequests}
                     className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                      acceptingRequests ? "bg-ink" : "bg-surface-line"
+                      acceptingRequests ? "bg-emerald-500" : "bg-neutral-300"
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                        acceptingRequests ? "translate-x-5" : "translate-x-0.5"
+                      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        acceptingRequests ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
                   </button>

@@ -23,6 +23,59 @@ const buildMatchFilters = (): string[] => {
   return filters;
 };
 
+/** Maps frontend discipline labels → actual expertise_tags keywords stored in the DB.
+ *  Derived from seeded mentor data to guarantee every checkbox returns results.
+ */
+const disciplineKeywordMap: Record<string, string[]> = {
+  // Software engineers: Backend, Frontend, DevOps, Data Engineers
+  "Software Engineering": [
+    "Python", "FastAPI", "PostgreSQL", "AWS",
+    "React", "TypeScript", "JavaScript", "HTML/CSS",
+    "Java", "Spring Boot", "APIs",
+    "Docker", "CI/CD", "Linux", "Cloud Infrastructure",
+    "Node", "Go", "Ruby", "GraphQL",
+  ],
+  // UX/UI designers
+  "UX & Product Design": [
+    "Figma", "UX Research", "Wireframing", "Design Systems",
+    "UX", "UI", "User Experience", "Prototyping",
+  ],
+  // Product managers
+  "Product Management": [
+    "Product Strategy", "Agile", "User Research", "Product Discovery",
+    "Roadmap", "Scrum", "Stakeholder",
+  ],
+  // Brand/design – overlaps with UX seed data
+  "Brand & Design Systems": [
+    "Design Systems", "Figma", "Branding", "Visual Design",
+    "Illustration", "Typography",
+  ],
+  // Technical writers – no dedicated seed yet, search on writing-adjacent tags
+  "Technical Writing": [
+    "Technical Writing", "Documentation", "API Docs", "Developer Relations",
+    "Markdown", "Content",
+  ],
+  // Data analysts and data scientists
+  "Data & Analytics": [
+    "SQL", "Power BI", "Excel", "Data Visualization",
+    "Python", "Machine Learning", "Statistics", "Data Analysis",
+    "Tableau", "BigQuery", "dbt",
+  ],
+  // Cloud and DevOps engineers
+  "Cloud & DevOps": [
+    "AWS", "Docker", "CI/CD", "Linux", "Cloud Infrastructure",
+    "Kubernetes", "Terraform", "GCP", "Azure", "Jenkins",
+  ],
+};
+
+/** Converts a list of selected discipline labels into OR-searched keywords for the API. */
+const disciplinesToExpertiseQuery = (disciplines: string[]): string | undefined => {
+  if (disciplines.length === 0) return undefined;
+  const keywords = disciplines.flatMap((d) => disciplineKeywordMap[d] ?? [d]);
+  // Deduplicate
+  return [...new Set(keywords)].join(",");
+};
+
 const BrowseMentorsPage = () => {
   const location = useLocation();
   const isPersonalized = Boolean((location.state as { matched?: boolean } | null)?.matched);
@@ -53,7 +106,7 @@ const BrowseMentorsPage = () => {
       try {
         const result = await api.mentors.list({
           query: skillQuery || undefined,
-          expertise: selectedExpertise.length > 0 ? selectedExpertise.join(",") : undefined,
+          expertise: disciplinesToExpertiseQuery(selectedExpertise),
           verified_only: true,
           limit: 50,
         });

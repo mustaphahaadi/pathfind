@@ -2,8 +2,8 @@ export type MentorCategory =
   | "UX & Product Design"
   | "Software Engineering"
   | "Product Management"
-  | "Brand & Design Systems"
-  | "Technical Writing";
+  | "Data & Analytics"
+  | "Cloud & DevOps";
 
 export interface MentorReview {
   reviewerName: string;

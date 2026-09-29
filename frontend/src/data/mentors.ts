@@ -494,7 +494,7 @@ export const mentors: Mentor[] = [
     company: "Paystack",
     imageUrl:
       "/mentors/mentor_f4.png",
-    category: "Technical Writing",
+    category: "Software Engineering",
     trackId: "other",
     tags: ["API Docs", "Style Guides", "Editing"],
     available: true,

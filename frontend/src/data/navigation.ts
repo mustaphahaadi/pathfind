@@ -19,5 +19,4 @@ export const footerNavLinks: NavLink[] = [
   { label: "Honor Code", to: "/honor-code" },
   { label: "Privacy Policy", to: "/privacy" },
   { label: "Become a Mentor", to: "/join/mentor" },
-  { label: "Open Source", to: "/open-source" },
 ];

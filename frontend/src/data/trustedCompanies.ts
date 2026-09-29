@@ -1,4 +1,13 @@
-import { Grid2x2, Camera, Triangle, CircleDot, Shuffle } from "lucide-react";
+import {
+  Rocket,
+  GraduationCap,
+  Radio,
+  ShoppingBag,
+  Smartphone,
+  Leaf,
+  Zap,
+  Globe,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface TrustedCompany {
@@ -7,10 +16,12 @@ export interface TrustedCompany {
 }
 
 export const trustedCompanies: TrustedCompany[] = [
-  { name: "Stripe" },
-  { name: "Figma", icon: Grid2x2 },
-  { name: "Datadog", icon: Camera },
-  { name: "Vercel", icon: Triangle },
-  { name: "Google", icon: CircleDot },
-  { name: "DoorDash", icon: Shuffle },
+  { name: "AmaliTech", icon: Rocket },
+  { name: "GenerationGhana", icon: GraduationCap },
+  { name: "MTN Ghana", icon: Radio },
+  { name: "Hubtel", icon: ShoppingBag },
+  { name: "Vodafone Ghana", icon: Smartphone },
+  { name: "Farmerline", icon: Leaf },
+  { name: "Kofa", icon: Zap },
+  { name: "Ghana Tech Lab", icon: Globe },
 ];
