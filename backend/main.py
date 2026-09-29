@@ -382,7 +382,13 @@ def list_mentors(
         )
 
     if expertise:
-        q = q.filter(MentorProfile.expertise_tags.ilike(f"%{expertise}%"))
+        keywords = [k.strip() for k in expertise.split(",") if k.strip()]
+        if keywords:
+            q = q.filter(
+                or_(
+                    *[MentorProfile.expertise_tags.ilike(f"%{kw}%") for kw in keywords]
+                )
+            )
 
     return q.offset(offset).limit(limit).all()
 

@@ -5,8 +5,8 @@ const disciplines: MentorCategory[] = [
   "Software Engineering",
   "UX & Product Design",
   "Product Management",
-  "Brand & Design Systems",
-  "Technical Writing",
+  "Data & Analytics",
+  "Cloud & DevOps",
 ];
 
 interface MentorFiltersSidebarProps {

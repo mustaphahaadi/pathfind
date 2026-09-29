@@ -13,8 +13,8 @@ export const mentorFilterOptions: MentorFilter[] = [
   "UX & Product Design",
   "Software Engineering",
   "Product Management",
-  "Brand & Design Systems",
-  "Technical Writing",
+  "Data & Analytics",
+  "Cloud & DevOps",
 ];
 
 export const useMentorFilterStore = create<MentorFilterState>((set) => ({
