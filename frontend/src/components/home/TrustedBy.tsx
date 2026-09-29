@@ -4,7 +4,7 @@ const TrustedBy = () => {
   return (
     <section className="px-5 py-10 sm:px-8 sm:py-14">
       <p className="text-center text-xs font-medium tracking-wide text-muted">
-        Mentors from top teams &amp; alumni networks worldwide
+        Mentors from Ghana's leading tech companies &amp; alumni networks
       </p>
       <div className="mx-auto mt-6 flex max-w-4xl flex-wrap items-center justify-center gap-x-10 gap-y-4">
         {trustedCompanies.map((company) => {
