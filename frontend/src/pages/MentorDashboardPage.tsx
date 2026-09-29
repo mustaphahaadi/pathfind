@@ -222,8 +222,8 @@ const MentorDashboardPage = () => {
                   <ShieldCheck size={18} strokeWidth={2} />
                 </span>
               </div>
-              <p className="mt-3 text-3xl font-black text-ink">
-                {hasRatings ? "5.0 ★" : "100% Verified"}
+              <p className="mt-3 text-2xl font-black text-ink">
+                {hasRatings ? "5.0" : "100% Verified"}
               </p>
               <p className="mt-1 text-xs font-medium text-ink/50">
                 {hasRatings
@@ -308,14 +308,16 @@ const MentorDashboardPage = () => {
                   </div>
 
                   {pendingRequests.length === 0 ? (
-                    <div className="mt-4 flex flex-col items-center rounded-2xl bg-surface p-8 text-center">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-ink/40">
-                        <Mail size={20} />
+                    <div className="mt-4 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                        <Mail size={18} />
                       </span>
-                      <p className="mt-3 text-sm font-bold text-ink">No pending requests</p>
-                      <p className="mt-1 max-w-sm text-sm text-ink/60">
-                        Requests from mentees matching your focus topics will arrive here for your review.
-                      </p>
+                      <div>
+                        <p className="text-sm font-bold text-ink">No pending requests yet</p>
+                        <p className="mt-0.5 text-xs text-ink/60">
+                          Make sure your profile is set to <span className="font-semibold text-ink">Accepting Mentees</span> so mentees in your area of expertise can find you.
+                        </p>
+                      </div>
                     </div>
                   ) : (
                     <ul className="mt-4 space-y-3">
@@ -414,7 +416,7 @@ const MentorDashboardPage = () => {
                       Recurring Office Hours
                     </p>
                     {weeklyWindows.length === 0 ? (
-                      <p className="mt-2 text-sm text-ink/50">No recurring windows set yet.</p>
+                      <p className="mt-2 text-xs text-ink/50">No recurring slots added. Use the link below to configure your weekly hours.</p>
                     ) : (
                       <div className="mt-2 flex flex-col gap-2">
                         {weeklyWindows.map((window) => (
@@ -520,12 +522,16 @@ const MentorDashboardPage = () => {
               </div>
 
               {pendingRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <Mail size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No pending requests</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    When mentees send a request matching your expertise, it will appear here for your review.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <Inbox size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No pending requests</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      When a mentee submits a request that matches your listed expertise, it will appear here. Ensure your profile is marked as <span className="font-semibold text-ink">Accepting Mentees</span>.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">
@@ -708,12 +714,16 @@ const MentorDashboardPage = () => {
               </div>
 
               {acceptedRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <CalendarDays size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No active sessions scheduled</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    Sessions you accept will be listed here with meeting links and mentee contact info.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <CalendarDays size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No active sessions yet</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      Once you accept a mentee request, the confirmed session will appear here. You can add a Google Meet or Zoom link for the mentee at that point.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">
@@ -772,12 +782,16 @@ const MentorDashboardPage = () => {
               <p className="text-sm text-ink/60">Records of completed mentorship calls.</p>
 
               {completedRequests.length === 0 ? (
-                <div className="mt-6 flex flex-col items-center rounded-2xl bg-surface p-10 text-center">
-                  <Users size={32} className="text-ink/30" />
-                  <p className="mt-3 text-base font-bold text-ink">No completed sessions yet</p>
-                  <p className="mt-1 text-sm text-ink/60">
-                    Once you mark scheduled sessions as completed, they will be archived here.
-                  </p>
+                <div className="mt-6 flex items-start gap-4 rounded-2xl border border-surface-line bg-surface/40 p-6">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-surface-line bg-white text-ink/40">
+                    <Users size={18} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-ink">No completed sessions yet</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-ink/60">
+                      Sessions you mark as completed will be archived here, along with mentee contact history. Your completed count contributes to your community standing.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-3">
@@ -826,7 +840,7 @@ const MentorDashboardPage = () => {
                 <div className="rounded-2xl border border-surface-line p-4">
                   <p className="text-sm font-bold text-ink">Recurring Weekly Office Hours</p>
                   {weeklyWindows.length === 0 ? (
-                    <p className="mt-2 text-xs text-ink/50">No recurring windows configured.</p>
+                    <p className="mt-2 text-xs text-ink/50">No recurring office hours configured yet. Add your available windows below.</p>
                   ) : (
                     <ul className="mt-3 space-y-2">
                       {weeklyWindows.map((w) => (
