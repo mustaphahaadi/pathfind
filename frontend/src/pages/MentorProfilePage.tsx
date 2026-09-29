@@ -162,7 +162,7 @@ const MentorProfilePage = () => {
                 <h1 className="text-2xl font-extrabold text-ink sm:text-3xl">
                   {mentor.full_name}
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-accent-blue/10 px-2.5 py-1 text-xs font-semibold text-accent-blue">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
                   <BadgeCheck size={13} />
                   Verified Mentor
                 </span>

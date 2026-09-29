@@ -1,19 +1,8 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { footerNavLinks } from "../../data/navigation";
-import { api } from "../../lib/api";
-
 import { Logo } from "../ui/Logo";
 
 const Footer = () => {
-  const [healthy, setHealthy] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    api.health()
-      .then((res) => setHealthy(res.status === "healthy"))
-      .catch(() => setHealthy(false));
-  }, []);
-
   return (
     <footer className="border-t border-black/10 px-5 py-8 sm:px-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -24,12 +13,6 @@ const Footer = () => {
             © 2026 Pathfind. 100% Free &amp; Open Tech Mentorship.
           </p>
 
-          {healthy !== null && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 sm:ml-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              API Operational
-            </span>
-          )}
         </div>
 
         <nav

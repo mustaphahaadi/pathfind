@@ -56,7 +56,7 @@ const MentorListCard = ({ mentor }: MentorListCardProps) => {
               <h3 className="text-lg font-bold text-ink hover:underline">
                 {mentor.full_name}
               </h3>
-              <BadgeCheck size={16} className="text-accent-blue" fill="currentColor" />
+              <BadgeCheck size={16} className="text-emerald-600 fill-emerald-50" />
             </div>
             <p className="text-sm text-ink/60">
               {mentor.job_title} at{" "}
