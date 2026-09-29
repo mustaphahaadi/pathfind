@@ -135,7 +135,11 @@ const BrowseMentorsPage = () => {
     [mentors, availableOnly],
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
   const toggleExpertise = (label: string) => {
+    setCurrentPage(1);
     setSelectedExpertise((current) =>
       current.includes(label)
         ? current.filter((item) => item !== label)
@@ -143,13 +147,22 @@ const BrowseMentorsPage = () => {
     );
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
-
-  // Reset page when search or filters change
-  useEffect(() => {
+  const handleSkillQueryChange = (query: string) => {
     setCurrentPage(1);
-  }, [skillQuery, selectedExpertise, availableOnly]);
+    setSkillQuery(query);
+  };
+
+  const handleToggleAvailableOnly = () => {
+    setCurrentPage(1);
+    setAvailableOnly((prev) => !prev);
+  };
+
+  const handleClearAllFilters = () => {
+    setCurrentPage(1);
+    setSelectedExpertise([]);
+    setAvailableOnly(false);
+    setSkillQuery("");
+  };
 
   const totalPages = Math.ceil(filteredMentors.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -219,15 +232,12 @@ const BrowseMentorsPage = () => {
             {/* Sidebar filters */}
             <MentorFiltersSidebar
               skillQuery={skillQuery}
-              onSkillQueryChange={setSkillQuery}
+              onSkillQueryChange={handleSkillQueryChange}
               selectedDisciplines={selectedExpertise as MentorCategory[]}
               onToggleDiscipline={toggleExpertise as (discipline: MentorCategory) => void}
               availableOnly={availableOnly}
-              onToggleAvailableOnly={() => setAvailableOnly((prev) => !prev)}
-              onClearAll={() => {
-                setSelectedExpertise([]);
-                setAvailableOnly(false);
-              }}
+              onToggleAvailableOnly={handleToggleAvailableOnly}
+              onClearAll={handleClearAllFilters}
             />
 
             {/* Mentor list */}

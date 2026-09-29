@@ -36,7 +36,8 @@ SEED_MENTORS = [
         "company": "AmaliTech",
         "years_of_experience": 6,
         "bio": (
-            "Abena leads product strategy initiatives at AmaliTech. She helps aspiring product managers master product discovery, "
+            "Abena leads product strategy initiatives at AmaliTech. "
+            "She helps aspiring product managers master product discovery, "
             "agile frameworks, and effective stakeholder management."
         ),
         "expertise_tags": "Product Strategy, Agile, User Research, Product Discovery",
@@ -52,7 +53,8 @@ SEED_MENTORS = [
         "company": "Generation Ghana",
         "years_of_experience": 5,
         "bio": (
-            "Kofi is a frontend lead at Generation Ghana passionate about building responsive, accessible web interfaces. "
+            "Kofi is a frontend lead at Generation Ghana passionate about "
+            "building responsive, accessible web interfaces. "
             "He guides early-stage developers on modern React patterns and portfolio projects."
         ),
         "expertise_tags": "React, TypeScript, JavaScript, HTML/CSS",
@@ -68,7 +70,8 @@ SEED_MENTORS = [
         "company": "Paystack Ghana",
         "years_of_experience": 5,
         "bio": (
-            "Nana leverages business intelligence and data visualization at Paystack Ghana to optimize merchant analytics. "
+            "Nana leverages business intelligence and data visualization at "
+            "Paystack Ghana to optimize merchant analytics. "
             "He coaches mentees on SQL, Power BI, and practical data storytelling."
         ),
         "expertise_tags": "SQL, Power BI, Excel, Data Visualization",
@@ -195,7 +198,7 @@ def seed_database():
         # Clean out obsolete duplicate mentor users that are not in SEED_MENTORS list
         seed_emails = {item["email"] for item in SEED_MENTORS}
         seed_emails.add("admin@pathfind.org")
-        
+
         all_users = db.query(User).all()
         for u in all_users:
             if u.email not in seed_emails and u.role == "mentor" and u.email.endswith("@amalitech.org"):
